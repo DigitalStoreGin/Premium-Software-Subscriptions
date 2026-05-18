@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DigitalStore — Premium Software & Subscriptions</title>
+<meta name="description" content="Premium digitale Abonnements & Software-Lizenzen zum besten Preis. Mit voller Garantie und sofortiger Lieferung.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;450;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:80px}
+:root{
+  --bg:#ffffff;--bg-2:#fafafa;--bg-3:#f4f4f5;
+  --line:#e7e7ea;--line-2:#d4d4d8;
+  --text:#0a0a0a;--text-2:#52525b;--text-3:#a1a1aa;
+  --success:#16a34a;--success-bg:#dcfce7;
+  --danger:#dc2626;--danger-bg:#fee2e2;
+  --warning:#ca8a04;--warning-bg:#fef9c3;
+  --info:#2563eb;--info-bg:#dbeafe;
+  --radius:12px;--radius-sm:8px;
+  --shadow-sm:0 1px 2px rgba(0,0,0,0.04);
+  --shadow:0 4px 12px -2px rgba(0,0,0,0.06),0 2px 4px -1px rgba(0,0,0,0.03);
+  --shadow-lg:0 20px 50px -12px rgba(0,0,0,0.12);
+}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden;font-feature-settings:'cv02','cv03','cv04','cv11'}
+h1,h2,h3,h4{letter-spacing:-0.02em;line-height:1.15;font-weight:600}
+a{color:inherit}button{font-family:inherit}
+.mono{font-family:'SF Mono','Monaco','Menlo','Consolas',monospace}
+
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(255,255,255,0.7);backdrop-filter:blur(14px);border-bottom:1px solid transparent;transition:all 0.2s ease}
+.nav.scrolled{border-bottom-color:var(--line);background:rgba(255,255,255,0.85)}
+.nav-inner{max-width:1240px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:24px}
+.logo{font-size:18px;font-weight:700;letter-spacing:-0.02em;text-decoration:none;color:var(--text);display:flex;align-items:center;gap:8px}
+.logo-mark{width:28px;height:28px;border-radius:7px;background:var(--text);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px}
+.nav-links{display:flex;gap:4px}
+.nav-links a{color:var(--text-2);text-decoration:none;font-weight:500;font-size:14px;padding:8px 12px;border-radius:7px;transition:all 0.15s}
+.nav-links a:hover{color:var(--text);background:var(--bg-3)}
+.nav-actions{display:flex;gap:8px;align-items:center}
+.icon-btn{width:38px;height:38px;border-radius:9px;border:1px solid var(--line);background:#fff;color:var(--text);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.15s;position:relative;font-size:14px}
+.icon-btn:hover{border-color:var(--line-2);background:var(--bg-3)}
+.cart-count{position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;border-radius:9px;background:var(--text);color:#fff;font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;padding:0 4px;border:2px solid #fff}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:9px;font-weight:500;font-size:14px;text-decoration:none;cursor:pointer;transition:all 0.15s;border:1px solid transparent;font-family:inherit;white-space:nowrap}
+.btn-primary{background:var(--text);color:#fff}
+.btn-primary:hover{background:#1f1f23;transform:translateY(-1px);box-shadow:var(--shadow)}
+.btn-ghost{background:#fff;color:var(--text);border-color:var(--line)}
+.btn-ghost:hover{border-color:var(--line-2);background:var(--bg-3)}
+.btn-sm{padding:7px 12px;font-size:13px}
+
+.hero{padding:140px 24px 80px;position:relative;border-bottom:1px solid var(--line)}
+.hero-inner{max-width:1100px;margin:0 auto;text-align:center}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:50px;background:var(--bg-3);border:1px solid var(--line);font-size:13px;color:var(--text-2);margin-bottom:24px;animation:fadeUp 0.6s ease both}
+.eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--success);box-shadow:0 0 0 3px rgba(22,163,74,0.15)}
+.hero h1{font-size:clamp(36px,6vw,68px);font-weight:600;margin-bottom:20px;letter-spacing:-0.035em;animation:fadeUp 0.7s 0.05s ease both}
+.hero h1 .muted{color:var(--text-3)}
+.hero p.lead{font-size:clamp(16px,1.6vw,18px);color:var(--text-2);max-width:600px;margin:0 auto 32px;animation:fadeUp 0.7s 0.1s ease both}
+.hero-cta{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;animation:fadeUp 0.7s 0.15s ease both}
+.hero-meta{margin-top:64px;display:flex;justify-content:center;gap:48px;flex-wrap:wrap;padding-top:48px;border-top:1px solid var(--line);animation:fadeUp 0.7s 0.2s ease both}
+.hero-meta .stat-num{font-size:30px;font-weight:600;letter-spacing:-0.02em}
+.hero-meta .stat-label{font-size:13px;color:var(--text-3);margin-top:2px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+.logos{padding:48px 24px;border-bottom:1px solid var(--line);background:var(--bg-2)}
+.logos-inner{max-width:1240px;margin:0 auto}
+.logos-label{text-align:center;font-size:12px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:24px;font-weight:500}
+.logos-track{display:flex;gap:48px;align-items:center;justify-content:center;flex-wrap:wrap;opacity:0.55}
+.logos-track img{height:30px;object-fit:contain;filter:grayscale(1);transition:all 0.3s}
+.logos-track img:hover{filter:grayscale(0);opacity:1;transform:scale(1.08)}
+
+section{padding:96px 24px;position:relative}
+.container{max-width:1240px;margin:0 auto}
+.section-head{margin-bottom:56px;max-width:680px}
+.section-head.center{margin-left:auto;margin-right:auto;text-align:center}
+.section-tag{display:inline-block;font-size:13px;font-weight:500;color:var(--text-2);padding:4px 10px;border-radius:6px;background:var(--bg-3);margin-bottom:14px}
+.section-head h2{font-size:clamp(28px,4vw,42px);font-weight:600;margin-bottom:12px;letter-spacing:-0.025em}
+.section-head p{color:var(--text-2);font-size:17px}
+
+.features{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.feature{padding:28px;border-radius:var(--radius);background:var(--bg);border:1px solid var(--line);transition:all 0.2s;opacity:0;transform:translateY(20px)}
+.feature.visible{opacity:1;transform:translateY(0)}
+.feature:hover{border-color:var(--line-2);box-shadow:var(--shadow)}
+.feature .icon{width:40px;height:40px;border-radius:9px;background:var(--bg-3);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:17px;color:var(--text);margin-bottom:18px}
+.feature h3{font-size:16px;font-weight:600;margin-bottom:6px}
+.feature p{color:var(--text-2);font-size:14px;line-height:1.6}
+
+.toolbar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:32px}
+.search-box{flex:1;min-width:240px;position:relative}
+.search-box i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-3);font-size:14px}
+.search-box input{width:100%;padding:11px 16px 11px 40px;background:#fff;border:1px solid var(--line);border-radius:9px;color:var(--text);font-size:14px;font-family:inherit;transition:all 0.15s}
+.search-box input::placeholder{color:var(--text-3)}
+.search-box input:focus{outline:none;border-color:var(--text);box-shadow:0 0 0 3px rgba(0,0,0,0.06)}
+.filter-chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{padding:8px 14px;border-radius:8px;background:#fff;border:1px solid var(--line);color:var(--text-2);font-size:13px;font-weight:500;cursor:pointer;transition:all 0.15s}
+.chip:hover{border-color:var(--line-2);color:var(--text)}
+.chip.active{background:var(--text);color:#fff;border-color:var(--text)}
+
+.products{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:20px}
+.product{position:relative;border-radius:var(--radius);background:#fff;border:1px solid var(--line);overflow:hidden;transition:all 0.25s;display:flex;flex-direction:column;opacity:0;transform:translateY(16px)}
+.product.visible{opacity:1;transform:translateY(0)}
+.product:hover{border-color:var(--line-2);transform:translateY(-3px);box-shadow:var(--shadow-lg)}
+.product-img{height:160px;display:flex;align-items:center;justify-content:center;background:var(--bg-2);position:relative;overflow:hidden;padding:24px;border-bottom:1px solid var(--line)}
+.product-img img{max-width:75%;max-height:90px;object-fit:contain;transition:transform 0.35s}
+.product:hover .product-img img{transform:scale(1.06)}
+.badge-bs{position:absolute;top:12px;left:12px;padding:3px 9px;border-radius:5px;background:var(--text);color:#fff;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;z-index:2}
+.badge-status{position:absolute;top:12px;right:12px;padding:3px 9px;border-radius:5px;font-size:10.5px;font-weight:600;letter-spacing:0.02em;z-index:2;display:inline-flex;align-items:center;gap:5px}
+.badge-status::before{content:'';width:5px;height:5px;border-radius:50%}
+.badge-status.available{background:var(--success-bg);color:#15803d}
+.badge-status.available::before{background:var(--success)}
+.badge-status.unavailable{background:var(--danger-bg);color:#b91c1c}
+.badge-status.unavailable::before{background:var(--danger)}
+.badge-status.order{background:var(--info-bg);color:#1d4ed8}
+.badge-status.order::before{background:var(--info)}
+.product-body{padding:18px;flex:1;display:flex;flex-direction:column}
+.product-cat{font-size:11px;color:var(--text-3);font-weight:500;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px}
+.product-title{font-size:16px;font-weight:600;margin-bottom:6px;line-height:1.3}
+.product-desc{font-size:13px;color:var(--text-2);margin-bottom:14px;flex:1;line-height:1.55}
+.product-features{display:flex;flex-direction:column;gap:4px;margin-bottom:14px}
+.product-features div{font-size:12.5px;color:var(--text-2);display:flex;gap:6px;align-items:flex-start;line-height:1.45}
+.product-features i{color:var(--text-3);margin-top:4px;flex-shrink:0;font-size:10px}
+.variants{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px;max-height:120px;overflow-y:auto;padding-right:4px}
+.variants::-webkit-scrollbar{width:4px}
+.variants::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:4px}
+.variant{padding:5px 9px;border-radius:6px;background:#fff;border:1px solid var(--line);font-size:11.5px;font-weight:500;cursor:pointer;transition:all 0.15s;color:var(--text-2);font-family:inherit}
+.variant:hover{border-color:var(--line-2);color:var(--text)}
+.variant.selected{background:var(--text);color:#fff;border-color:var(--text)}
+.product-footer{display:flex;justify-content:space-between;align-items:center;padding-top:14px;border-top:1px solid var(--line);gap:12px}
+.price{font-size:20px;font-weight:600;letter-spacing:-0.02em}
+.price-period{font-size:11px;color:var(--text-3);display:block;margin-top:1px;font-weight:400}
+.add-cart{padding:8px 14px;border-radius:7px;border:1px solid var(--text);background:var(--text);color:#fff;font-weight:500;font-size:13px;cursor:pointer;transition:all 0.15s;font-family:inherit;display:flex;gap:6px;align-items:center}
+.add-cart:hover{background:#1f1f23;transform:translateY(-1px)}
+.add-cart:disabled{opacity:0.35;cursor:not-allowed;background:var(--bg-3);color:var(--text-3);border-color:var(--line)}
+.add-cart:disabled:hover{transform:none}
+
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:24px}
+.step{padding:32px 28px;border-radius:var(--radius);background:#fff;border:1px solid var(--line);position:relative;opacity:0;transform:translateY(20px)}
+.step.visible{opacity:1;transform:translateY(0)}
+.step-num{width:32px;height:32px;border-radius:8px;background:var(--text);color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;margin-bottom:18px}
+.step h3{font-size:18px;font-weight:600;margin-bottom:8px}
+.step p{color:var(--text-2);font-size:14.5px;line-height:1.65}
+
+.faq{max-width:760px;margin:0 auto}
+.faq-item{border-bottom:1px solid var(--line)}
+.faq-q{padding:22px 4px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:500;font-size:16px;user-select:none;gap:16px}
+.faq-q i{transition:transform 0.25s;color:var(--text-3);font-size:14px}
+.faq-item.open .faq-q i{transform:rotate(180deg);color:var(--text)}
+.faq-a{max-height:0;overflow:hidden;transition:max-height 0.3s ease}
+.faq-item.open .faq-a{max-height:380px}
+.faq-a div{padding:0 4px 22px;font-size:14.5px;color:var(--text-2);line-height:1.7}
+
+.contact-payment{display:grid;grid-template-columns:1fr 1.4fr;gap:20px;max-width:960px;margin:0 auto;align-items:stretch}
+.contact-card{padding:32px;border-radius:var(--radius);background:#fff;border:1px solid var(--line);text-decoration:none;color:inherit;transition:all 0.2s;display:flex;flex-direction:column;align-items:flex-start;justify-content:center}
+.contact-card:hover{border-color:var(--line-2);box-shadow:var(--shadow);transform:translateY(-2px)}
+.contact-card .icon{width:44px;height:44px;border-radius:11px;background:var(--bg-3);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:16px;color:var(--text)}
+.contact-card h3{font-size:17px;font-weight:600;margin-bottom:8px}
+.contact-card .email-pill{font-family:'SF Mono','Monaco','Menlo',monospace;font-size:14px;color:var(--text);background:var(--bg-3);padding:7px 11px;border-radius:6px;display:inline-block;margin-bottom:16px;border:1px solid var(--line)}
+.link-pill{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:500;color:var(--text);padding:8px 14px;border:1px solid var(--text);border-radius:8px;transition:all 0.15s}
+.contact-card:hover .link-pill{background:var(--text);color:#fff}
+
+.payment-card{padding:28px 32px;border-radius:var(--radius);background:#fff;border:1px solid var(--line)}
+.payment-head{display:flex;align-items:center;gap:14px;margin-bottom:20px;padding-bottom:18px;border-bottom:1px solid var(--line)}
+.payment-head .icon{width:44px;height:44px;border-radius:11px;background:var(--text);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.payment-head h3{font-size:17px;font-weight:600}
+.payment-row{display:grid;grid-template-columns:140px 1fr auto;gap:14px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.payment-row.last{border-bottom:none}
+.payment-row .label{font-size:12px;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:0.06em}
+.payment-row .value{font-size:14.5px;color:var(--text);font-weight:500;word-break:break-all}
+.payment-row .value.mono{font-family:'SF Mono','Monaco','Menlo',monospace;font-size:14px;letter-spacing:0.02em}
+.copy-btn{background:var(--bg-3);border:1px solid var(--line);color:var(--text-2);width:30px;height:30px;border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:all 0.15s}
+.copy-btn:hover{background:var(--text);color:#fff;border-color:var(--text)}
+.payment-example{margin-top:16px;padding:14px 16px;background:var(--bg-3);border-radius:8px;font-size:13.5px;color:var(--text-2);line-height:1.55;border-left:3px solid var(--warning)}
+.payment-example i{color:var(--warning);margin-right:6px}
+.payment-example strong{color:var(--text);font-weight:600}
+
+.cta{margin:0;padding:80px 24px;background:var(--text);color:#fff;text-align:center}
+.cta h2{font-size:clamp(28px,4vw,42px);font-weight:600;margin-bottom:14px;letter-spacing:-0.025em}
+.cta p{color:rgba(255,255,255,0.7);font-size:17px;margin-bottom:32px;max-width:540px;margin-left:auto;margin-right:auto}
+.cta .btn-primary{background:#fff;color:var(--text)}
+.cta .btn-primary:hover{background:#f4f4f5}
+.cta .btn-ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,0.3)}
+.cta .btn-ghost:hover{background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.5)}
+
+footer{padding:64px 24px 32px;border-top:1px solid var(--line);background:var(--bg-2)}
+.footer-grid{max-width:1240px;margin:0 auto;display:grid;grid-template-columns:2fr 1fr 1fr 1.3fr;gap:48px;margin-bottom:40px}
+.footer-grid h4{font-size:13px;font-weight:600;margin-bottom:14px;color:var(--text)}
+.footer-grid ul{list-style:none}
+.footer-grid li{margin-bottom:8px}
+.footer-grid a{color:var(--text-2);text-decoration:none;font-size:14px;transition:color 0.15s}
+.footer-grid a:hover{color:var(--text)}
+.footer-grid p{color:var(--text-2);font-size:14px;margin-bottom:14px}
+.social{display:flex;gap:8px;margin-top:18px}
+.social a{width:34px;height:34px;border-radius:8px;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--text-2);transition:all 0.15s;font-size:13px}
+.social a:hover{background:var(--text);color:#fff;border-color:var(--text)}
+.footer-bottom{max-width:1240px;margin:0 auto;padding-top:24px;border-top:1px solid var(--line);text-align:center;color:var(--text-3);font-size:13px}
+
+.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:200;opacity:0;pointer-events:none;transition:opacity 0.25s}
+.drawer-overlay.open{opacity:1;pointer-events:all}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:min(420px,100vw);background:#fff;border-left:1px solid var(--line);z-index:201;transform:translateX(100%);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;box-shadow:var(--shadow-lg)}
+.drawer.open{transform:translateX(0)}
+.drawer-head{padding:20px 24px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.drawer-head h3{font-size:18px;font-weight:600;display:flex;align-items:center;gap:10px}
+.drawer-head h3 .count{font-size:13px;color:var(--text-3);font-weight:500}
+.drawer-body{flex:1;overflow-y:auto;padding:20px 24px}
+.drawer-empty{text-align:center;color:var(--text-3);padding:60px 0}
+.drawer-empty i{font-size:48px;margin-bottom:14px;opacity:0.4}
+.drawer-empty p{font-size:14px}
+.cart-item{display:flex;gap:14px;padding:14px;margin-bottom:10px;background:#fff;border:1px solid var(--line);border-radius:10px;transition:border-color 0.15s}
+.cart-item:hover{border-color:var(--line-2)}
+.cart-item .ci-img{width:56px;height:56px;border-radius:8px;background:var(--bg-2);display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid var(--line);padding:6px}
+.cart-item .ci-img img{max-width:100%;max-height:100%;object-fit:contain}
+.cart-item-info{flex:1;min-width:0}
+.cart-item-info h4{font-size:14px;font-weight:600;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cart-item-info .meta{color:var(--text-3);font-size:12.5px;margin-bottom:6px}
+.cart-item-info .price-row{display:flex;justify-content:space-between;align-items:center;gap:6px}
+.cart-item-info .price-row strong{font-size:14px;font-weight:600;flex:1}
+.qty{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:#fff}
+.qty button{background:#fff;border:none;width:22px;height:22px;cursor:pointer;color:var(--text-2);font-size:14px;display:flex;align-items:center;justify-content:center;transition:background 0.15s}
+.qty button:hover{background:var(--bg-3);color:var(--text)}
+.qty span{font-size:12.5px;font-weight:600;min-width:18px;text-align:center}
+.cart-item .remove{background:none;border:none;color:var(--text-3);cursor:pointer;font-size:13px;padding:4px;transition:color 0.15s}
+.cart-item .remove:hover{color:var(--danger)}
+.drawer-foot{padding:20px 24px;border-top:1px solid var(--line);background:var(--bg-2)}
+.cart-total{display:flex;justify-content:space-between;align-items:baseline;font-size:18px;font-weight:600;margin-bottom:6px}
+.cart-note{font-size:12.5px;color:var(--text-2);line-height:1.5;margin-bottom:16px;padding:11px 13px;background:#fff;border:1px solid var(--line);border-radius:8px}
+.cart-note i{color:var(--info);margin-right:6px}
+.checkout-btn{width:100%;padding:13px;font-size:14px;justify-content:center}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);z-index:300;opacity:0;pointer-events:none;transition:opacity 0.25s;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:#fff;border-radius:16px;max-width:560px;width:100%;max-height:92vh;overflow-y:auto;transform:scale(0.94) translateY(20px);transition:transform 0.3s cubic-bezier(0.4,0,0.2,1);box-shadow:0 30px 80px -10px rgba(0,0,0,0.3)}
+.modal-overlay.open .modal{transform:scale(1) translateY(0)}
+.modal-head{padding:24px 28px 18px;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;border-bottom:1px solid var(--line)}
+.modal-head-text h3{font-size:20px;font-weight:600;margin-bottom:4px;letter-spacing:-0.02em}
+.modal-head-text p{color:var(--text-2);font-size:14px}
+.modal-success-icon{width:44px;height:44px;border-radius:50%;background:var(--success-bg);color:var(--success);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;margin-bottom:14px}
+.modal-body{padding:24px 28px}
+.modal-body .section-title{font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:0.08em;margin:0 0 12px}
+.modal-body .section-title:not(:first-child){margin-top:24px}
+.bank-box{background:var(--bg-2);border:1px solid var(--line);border-radius:10px;padding:4px 16px}
+.bank-row{display:grid;grid-template-columns:130px 1fr auto;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.bank-row:last-child{border-bottom:none}
+.bank-row .lbl{font-size:12px;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:0.05em}
+.bank-row .val{font-size:14.5px;font-weight:500;word-break:break-all}
+.bank-row .val.mono{font-family:'SF Mono','Monaco','Menlo',monospace;letter-spacing:0.02em}
+.bank-row .ref{color:var(--text-2);font-size:13px}
+.bank-row .ref strong{color:var(--text);font-weight:600}
+.steps-list{display:flex;flex-direction:column;gap:12px}
+.step-mini{display:flex;gap:14px;align-items:flex-start;padding:14px;background:var(--bg-2);border:1px solid var(--line);border-radius:10px}
+.step-mini .num{width:26px;height:26px;border-radius:50%;background:var(--text);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0;margin-top:1px}
+.step-mini .body strong{display:block;font-size:14px;font-weight:600;margin-bottom:2px}
+.step-mini .body p{font-size:13px;color:var(--text-2);line-height:1.55;margin:0}
+.modal-foot{padding:18px 28px 24px;display:flex;gap:10px;flex-wrap:wrap;border-top:1px solid var(--line);background:var(--bg-2);border-radius:0 0 16px 16px}
+.modal-foot .btn{flex:1;justify-content:center;min-width:140px}
+.modal-close{background:none;border:none;color:var(--text-3);cursor:pointer;font-size:18px;padding:6px;border-radius:6px;transition:all 0.15s}
+.modal-close:hover{background:var(--bg-3);color:var(--text)}
+.order-summary{background:var(--bg-2);border:1px solid var(--line);border-radius:10px;padding:14px 16px;max-height:160px;overflow-y:auto}
+.order-summary .os-row{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px dashed var(--line);gap:10px}
+.order-summary .os-row:last-child{border-bottom:none}
+.order-summary .os-row .desc{flex:1;color:var(--text-2);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.order-summary .os-row.total{font-weight:600;color:var(--text);margin-top:4px;padding-top:8px;border-top:1px solid var(--line);border-bottom:none;font-size:14px}
+
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(120px);background:var(--text);color:#fff;padding:12px 20px;border-radius:10px;display:flex;gap:10px;align-items:center;box-shadow:var(--shadow-lg);z-index:500;transition:transform 0.35s cubic-bezier(0.4,0,0.2,1);font-size:14px;font-weight:500}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast i{color:#4ade80}
+
+.scroll-top{position:fixed;bottom:24px;right:24px;width:44px;height:44px;border-radius:11px;background:var(--text);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;z-index:99;opacity:0;pointer-events:none;transform:translateY(20px);transition:all 0.2s;box-shadow:var(--shadow)}
+.scroll-top.show{opacity:1;pointer-events:all;transform:translateY(0)}
+.scroll-top:hover{transform:translateY(-2px)}
+
+@media (max-width:980px){
+  .nav-links{display:none}
+  .features{grid-template-columns:repeat(2,1fr)}
+  .steps{grid-template-columns:1fr;gap:14px}
+  .footer-grid{grid-template-columns:1fr 1fr;gap:32px}
+  .contact-payment{grid-template-columns:1fr;gap:16px}
+  .hero-meta{gap:32px}
+  section{padding:64px 20px}
+  .hero{padding:120px 20px 60px}
+  .cta{padding:60px 20px}
+  .nav-inner{padding:12px 16px}
+  .payment-row{grid-template-columns:110px 1fr auto}
+  .bank-row{grid-template-columns:100px 1fr auto}
+}
+@media (max-width:560px){
+  .features{grid-template-columns:1fr}
+  .footer-grid{grid-template-columns:1fr;gap:28px}
+  .products{grid-template-columns:1fr}
+  .hero-meta{gap:24px}
+  .hero-meta .stat-num{font-size:24px}
+  .chip{padding:7px 11px;font-size:12.5px}
+  .payment-row{grid-template-columns:1fr;gap:4px}
+  .payment-row .copy-btn{justify-self:start}
+  .bank-row{grid-template-columns:1fr;gap:4px}
+  .modal-head,.modal-body,.modal-foot{padding-left:20px;padding-right:20px}
+}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:10px;border:2px solid var(--bg)}
+::-webkit-scrollbar-thumb:hover{background:var(--text-3)}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav" id="nav">
+  <div class="nav-inner">
+    <a href="#" class="logo">
+      <span class="logo-mark"><i class="fa-solid fa-bolt"></i></span>
+      DigitalStore
+    </a>
+    <div class="nav-links">
+      <a href="#products">Produkte</a>
+      <a href="#how">So funktioniert's</a>
+      <a href="#faq">FAQ</a>
+      <a href="#contact">Kontakt</a>
+    </div>
+    <div class="nav-actions">
+      <button class="icon-btn" id="cartBtn" title="Warenkorb" aria-label="Warenkorb">
+        <i class="fa-solid fa-cart-shopping"></i>
+        <span class="cart-count" id="cartCount" style="display:none">0</span>
+      </button>
+      <a href="#contact" class="btn btn-primary btn-sm">Bestellen</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-inner">
+    <div class="eyebrow"><span class="dot"></span> Von 100+ zufriedenen Kunden vertraut</div>
+    <h1>Premium-Software<br><span class="muted">zum besten Preis.</span></h1>
+    <p class="lead">YouTube Premium, Microsoft 365, Adobe Creative Cloud, ChatGPT, Claude, NordVPN und mehr — mit voller Garantie und sofortiger Lieferung per E-Mail.</p>
+    <div class="hero-cta">
+      <a href="#products" class="btn btn-primary"><i class="fa-solid fa-arrow-right"></i>Produkte ansehen</a>
+      <a href="#how" class="btn btn-ghost">So funktioniert's</a>
+    </div>
+    <div class="hero-meta">
+      <div><div class="stat-num">22+</div><div class="stat-label">Produkte</div></div>
+      <div><div class="stat-num">100+</div><div class="stat-label">Zufriedene Kunden</div></div>
+      <div><div class="stat-num">100%</div><div class="stat-label">Garantie</div></div>
+      <div><div class="stat-num">~5 Min</div><div class="stat-label">Lieferzeit</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- LOGOS -->
+<div class="logos">
+  <div class="logos-inner">
+    <div class="logos-label">Offizielle Marken in unserem Sortiment</div>
+    <div class="logos-track">
+      <img src="images/youtube.png" alt="YouTube">
+      <img src="images/spotify.png" alt="Spotify">
+      <img src="images/microsoft.png" alt="Microsoft">
+      <img src="images/google-one.png" alt="Google One">
+      <img src="images/adobe-cc.png" alt="Adobe">
+      <img src="images/claude.png" alt="Claude">
+      <img src="images/nordvpn.png" alt="NordVPN">
+      <img src="images/canva.png" alt="Canva">
+      <img src="images/zoom.png" alt="Zoom">
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="container">
+    <div class="section-head center">
+      <span class="section-tag">Warum DigitalStore</span>
+      <h2>Einfach. Schnell. Garantiert.</h2>
+      <p>Premium-Software-Abonnements zum besten Preis — direkt per E-Mail geliefert.</p>
+    </div>
+    <div class="features">
+      <div class="feature reveal">
+        <div class="icon"><i class="fa-solid fa-bolt"></i></div>
+        <h3>Sofortige Lieferung</h3>
+        <p>Zugangsdaten oder Aktivierungscodes innerhalb weniger Minuten per E-Mail.</p>
+      </div>
+      <div class="feature reveal">
+        <div class="icon"><i class="fa-solid fa-shield-halved"></i></div>
+        <h3>Volle Garantie</h3>
+        <p>1 Monat Garantie auf alle Produkte. Bei Problemen kostenloser Ersatz.</p>
+      </div>
+      <div class="feature reveal">
+        <div class="icon"><i class="fa-solid fa-tag"></i></div>
+        <h3>Bestpreis</h3>
+        <p>Premium-Software zu einem Bruchteil der offiziellen Originalpreise.</p>
+      </div>
+      <div class="feature reveal">
+        <div class="icon"><i class="fa-regular fa-envelope"></i></div>
+        <h3>Persönlicher Support</h3>
+        <p>Direkter E-Mail-Support — wir antworten meist innerhalb weniger Minuten.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRODUCTS -->
+<section id="products" style="background:var(--bg-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="container">
+    <div class="section-head">
+      <span class="section-tag">Katalog</span>
+      <h2>Alle Premium-Produkte</h2>
+      <p>Durchsuche unsere Auswahl an Top-Software- und Streaming-Diensten.</p>
+    </div>
+    <div class="toolbar">
+      <div class="search-box">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="searchInput" placeholder="Produkt suchen — z.B. YouTube, ChatGPT, VPN">
+      </div>
+      <div class="filter-chips" id="filterChips">
+        <button class="chip active" data-filter="all">Alle</button>
+        <button class="chip" data-filter="streaming">Streaming</button>
+        <button class="chip" data-filter="ai">KI &amp; Code</button>
+        <button class="chip" data-filter="office">Office</button>
+        <button class="chip" data-filter="design">Design</button>
+        <button class="chip" data-filter="vpn">VPN</button>
+        <button class="chip" data-filter="other">Sonstige</button>
+        <button class="chip" data-filter="bestseller">Best Seller</button>
+      </div>
+    </div>
+    <div class="products" id="productGrid"></div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="container">
+    <div class="section-head center">
+      <span class="section-tag">So funktioniert's</span>
+      <h2>In 3 einfachen Schritten</h2>
+      <p>Vom Bestellen bis zur Aktivierung — wir haben den Prozess so einfach wie möglich gestaltet.</p>
+    </div>
+    <div class="steps">
+      <div class="step reveal">
+        <div class="step-num">1</div>
+        <h3>Produkt auswählen</h3>
+        <p>Füge gewünschte Produkte zum Warenkorb hinzu und überprüfe deine Auswahl.</p>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">2</div>
+        <h3>Bestellung &amp; Überweisung</h3>
+        <p>Sende deine Bestellung per E-Mail. Du erhältst sofort die Zahlungsanleitung und überweist auf unser Konto.</p>
+      </div>
+      <div class="step reveal">
+        <div class="step-num">3</div>
+        <h3>Lieferung per E-Mail</h3>
+        <p>Nach Zahlungseingang erhältst du innerhalb von 5–30 Minuten deine Zugangsdaten oder den Aktivierungscode.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section id="faq" style="background:var(--bg-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)">
+  <div class="container">
+    <div class="section-head center">
+      <span class="section-tag">FAQ</span>
+      <h2>Häufig gestellte Fragen</h2>
+    </div>
+    <div class="faq">
+      <div class="faq-item">
+        <div class="faq-q">Wie funktioniert die Bestellung? <i class="fa-solid fa-chevron-down"></i></div>
+        <div class="faq-a"><div>Wähle deine Produkte aus, füge sie zum Warenkorb hinzu und klicke auf „Bestellung abschicken". Es öffnet sich ein Fenster mit der Bankverbindung. Sende uns die Bestellung per E-Mail und überweise den Betrag — wir liefern innerhalb weniger Minuten.</div></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Welche Zahlungsmethode wird akzeptiert? <i class="fa-solid fa-chevron-down"></i></div>
+        <div class="faq-a"><div>Wir akzeptieren ausschließlich Banküberweisung (SEPA). Die IBAN ist: <strong>BE05 9675 8234 0775</strong>, Kontoinhaber: Dong Huy Truong. Bitte gib im Verwendungszweck Produktname + deinen Namen an.</div></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Welche Garantie habe ich? <i class="fa-solid fa-chevron-down"></i></div>
+        <div class="faq-a"><div>Alle Produkte haben standardmäßig 1 Monat Garantie. Bei Produkten mit längerer Laufzeit (z.B. ChatGPT Team, Adobe CC Pro, NordVPN, SurfShark) gilt die Garantie für die gesamte gekaufte Laufzeit. Bei Problemen erhältst du kostenlosen Ersatz.</div></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Sind die Produkte legal und sicher? <i class="fa-solid fa-chevron-down"></i></div>
+        <div class="faq-a"><div>Ja. Wir nutzen offizielle Familien-Abos, Bildungslizenzen und Reseller-Programme. Alle Konten und Codes stammen aus legitimen Quellen.</div></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Wie schnell erhalte ich mein Produkt? <i class="fa-solid fa-chevron-down"></i></div>
+        <div class="faq-a"><div>Nach Zahlungseingang senden wir dir innerhalb von 5–30 Minuten die Zugangsdaten oder den Aktivierungscode per E-Mail.</div></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Was bedeutet „Upgrade auf Ihr Konto"? <i class="fa-solid fa-chevron-down"></i></div>
+        <div class="faq-a"><div>Wir aktivieren das Premium-Abo direkt auf deinem bestehenden Account, ohne dass du dich auf einem neuen Konto einloggen musst. Bei einigen VPN-Diensten ist ein neues, leeres Konto erforderlich.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT & PAYMENT -->
+<section id="contact">
+  <div class="container">
+    <div class="section-head center">
+      <span class="section-tag">Kontakt &amp; Zahlung</span>
+      <h2>Bereit zum Bestellen?</h2>
+      <p>Sende deine Bestellung per E-Mail und überweise auf das untenstehende Konto.</p>
+    </div>
+    <div class="contact-payment">
+      <a href="mailto:cfvblue@gmail.com" class="contact-card">
+        <div class="icon"><i class="fa-regular fa-envelope"></i></div>
+        <h3>Kontakt per E-Mail</h3>
+        <span class="email-pill">cfvblue@gmail.com</span>
+        <span class="link-pill">Jetzt schreiben <i class="fa-solid fa-arrow-right"></i></span>
+      </a>
+      <div class="payment-card">
+        <div class="payment-head">
+          <div class="icon"><i class="fa-solid fa-building-columns"></i></div>
+          <h3>Zahlungsinformationen (SEPA-Überweisung)</h3>
+        </div>
+        <div class="payment-row">
+          <span class="label">Name</span>
+          <span class="value">Dong Huy Truong</span>
+          <button class="copy-btn" data-copy="Dong Huy Truong" title="Kopieren"><i class="fa-regular fa-copy"></i></button>
+        </div>
+        <div class="payment-row">
+          <span class="label">IBAN</span>
+          <span class="value mono">BE05 9675 8234 0775</span>
+          <button class="copy-btn" data-copy="BE05 9675 8234 0775" title="Kopieren"><i class="fa-regular fa-copy"></i></button>
+        </div>
+        <div class="payment-row last">
+          <span class="label">Verwendungszweck</span>
+          <span class="value">Produktname + Ihr Name</span>
+          <span></span>
+        </div>
+        <div class="payment-example"><i class="fa-solid fa-lightbulb"></i> Beispiel: <strong>„Microsoft – Max Mustermann"</strong></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<div class="cta">
+  <h2>Starte mit Premium zum Bestpreis.</h2>
+  <p>Über 20 Produkte sofort verfügbar. Wähle deine Software und erhalte sie innerhalb von Minuten.</p>
+  <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+    <a href="#products" class="btn btn-primary">Katalog ansehen</a>
+    <a href="mailto:cfvblue@gmail.com" class="btn btn-ghost"><i class="fa-regular fa-envelope"></i>Direkt kontaktieren</a>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div>
+      <a href="#" class="logo" style="margin-bottom:14px"><span class="logo-mark"><i class="fa-solid fa-bolt"></i></span>DigitalStore</a>
+      <p style="margin-top:14px">Premium digitale Abonnements und Software-Lizenzen zum besten Preis. Mit Garantie und sofortiger Lieferung.</p>
+      <div class="social">
+        <a href="mailto:cfvblue@gmail.com" aria-label="E-Mail"><i class="fa-regular fa-envelope"></i></a>
+      </div>
+    </div>
+    <div>
+      <h4>Produkte</h4>
+      <ul>
+        <li><a href="#products">Streaming</a></li>
+        <li><a href="#products">KI &amp; Code</a></li>
+        <li><a href="#products">Office</a></li>
+        <li><a href="#products">VPN</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Service</h4>
+      <ul>
+        <li><a href="#how">So funktioniert's</a></li>
+        <li><a href="#faq">FAQ</a></li>
+        <li><a href="#contact">Kontakt</a></li>
+        <li><a href="#features">Garantie</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Kontakt &amp; Bankverbindung</h4>
+      <ul>
+        <li><a href="mailto:cfvblue@gmail.com">cfvblue@gmail.com</a></li>
+        <li style="margin-top:12px;color:var(--text-2);font-size:13px"><strong style="color:var(--text);display:block;margin-bottom:3px">Kontoinhaber</strong>Dong Huy Truong</li>
+        <li style="color:var(--text-2);font-size:12.5px;font-family:'SF Mono','Monaco',monospace">BE05 9675 8234 0775</li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">© 2026 DigitalStore · Dong Huy Truong · Alle Rechte vorbehalten.</div>
+</footer>
+
+<!-- CART DRAWER -->
+<div class="drawer-overlay" id="drawerOverlay"></div>
+<aside class="drawer" id="drawer">
+  <div class="drawer-head">
+    <h3>Warenkorb <span class="count" id="drawerCount">(0)</span></h3>
+    <button class="icon-btn" id="closeDrawer" aria-label="Schließen"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <div class="drawer-body" id="drawerBody">
+    <div class="drawer-empty">
+      <i class="fa-solid fa-cart-shopping"></i>
+      <p>Dein Warenkorb ist leer</p>
+    </div>
+  </div>
+  <div class="drawer-foot" id="drawerFoot" style="display:none">
+    <div class="cart-total">
+      <span>Gesamtsumme</span>
+      <span>€<span id="cartTotal">0.00</span></span>
+    </div>
+    <div class="cart-note">
+      <i class="fa-solid fa-circle-info"></i>
+      Nach dem Klick öffnet sich ein Fenster mit der Bankverbindung &amp; Zahlungsanleitung.
+    </div>
+    <button class="btn btn-primary checkout-btn" onclick="showCheckoutModal()">
+      <i class="fa-solid fa-arrow-right"></i>Bestellung abschicken
+    </button>
+  </div>
+</aside>
+
+<!-- PAYMENT MODAL -->
+<div class="modal-overlay" id="checkoutModal" role="dialog" aria-modal="true">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <div class="modal-success-icon"><i class="fa-solid fa-check"></i></div>
+        <div class="modal-head-text">
+          <h3>Fast geschafft!</h3>
+          <p>Folge diesen 3 Schritten, um deine Bestellung abzuschließen.</p>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeCheckoutModal()" aria-label="Schließen"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="section-title">Deine Bestellung</div>
+      <div class="order-summary" id="orderSummary"></div>
+
+      <div class="section-title">Bankverbindung (SEPA)</div>
+      <div class="bank-box">
+        <div class="bank-row">
+          <span class="lbl">Name</span>
+          <span class="val">Dong Huy Truong</span>
+          <button class="copy-btn" data-copy="Dong Huy Truong" title="Kopieren"><i class="fa-regular fa-copy"></i></button>
+        </div>
+        <div class="bank-row">
+          <span class="lbl">IBAN</span>
+          <span class="val mono">BE05 9675 8234 0775</span>
+          <button class="copy-btn" data-copy="BE05 9675 8234 0775" title="Kopieren"><i class="fa-regular fa-copy"></i></button>
+        </div>
+        <div class="bank-row">
+          <span class="lbl">Betrag</span>
+          <span class="val mono">€<span id="modalAmount">0.00</span></span>
+          <button class="copy-btn" id="copyAmount" title="Kopieren"><i class="fa-regular fa-copy"></i></button>
+        </div>
+        <div class="bank-row">
+          <span class="lbl">Verwendungszweck</span>
+          <span class="val ref">Produktname + <strong>Ihr Name</strong><br><small style="color:var(--text-3)">z.B. „Microsoft – Max Mustermann"</small></span>
+          <span></span>
+        </div>
+      </div>
+
+      <div class="section-title">Nächste Schritte</div>
+      <div class="steps-list">
+        <div class="step-mini">
+          <div class="num">1</div>
+          <div class="body">
+            <strong>Bestellung per E-Mail senden</strong>
+            <p>Klicke unten auf „E-Mail senden". Dein E-Mail-Programm öffnet sich mit allen Details bereits ausgefüllt.</p>
+          </div>
+        </div>
+        <div class="step-mini">
+          <div class="num">2</div>
+          <div class="body">
+            <strong>SEPA-Überweisung tätigen</strong>
+            <p>Überweise den Betrag auf das obenstehende Konto. Vergiss nicht den Verwendungszweck mit deinem Namen!</p>
+          </div>
+        </div>
+        <div class="step-mini">
+          <div class="num">3</div>
+          <div class="body">
+            <strong>Lieferung erhalten</strong>
+            <p>Nach Zahlungseingang erhältst du innerhalb von 5–30 Minuten deine Zugangsdaten oder den Code per E-Mail.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeCheckoutModal()">Schließen</button>
+      <button class="btn btn-ghost" onclick="copyOrder()"><i class="fa-regular fa-copy"></i>Bestellung kopieren</button>
+      <button class="btn btn-primary" onclick="sendOrderEmail()"><i class="fa-regular fa-envelope"></i>E-Mail senden</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"><i class="fa-solid fa-check"></i><span id="toastMsg">Hinzugefügt</span></div>
+
+<!-- SCROLL TOP -->
+<button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Nach oben">
+  <i class="fa-solid fa-arrow-up"></i>
+</button>
+<script>
+// PRODUCT DATA — kept original product list, only true duplicates merged
+const products = [
+  {id:1,name:"YouTube Premium",cat:"streaming",img:"images/youtube.png",bs:true,
+    desc:"Werbefreies Streaming auf YouTube & YouTube Music. Offline-Downloads & Hintergrundwiedergabe.",
+    features:["Keine Werbung","Offline-Downloads","Hintergrundwiedergabe","YouTube Music inklusive"],
+    variants:[
+      {label:"1 Monat",price:7.14,status:"unavailable"},
+      {label:"3 Monate",price:21.40,status:"unavailable"},
+      {label:"6 Monate",price:43.00,status:"available"},
+      {label:"12 Monate",price:86.00,status:"available"}
+    ]},
+  {id:2,name:"Google One (Gemini Pro + 5TB)",cat:"office",img:"images/google-one.png",bs:true,
+    desc:"5 TB Cloud-Speicher + Gemini Pro KI-Assistent + Google One VPN. Bis zu 5 Nutzer.",
+    features:["5 TB Speicher","Gemini Pro KI","Google One VPN","Bis 5 Nutzer"],
+    variants:[
+      {label:"12M · Einladung",price:25.00,status:"available"},
+      {label:"12M · Zugangsdaten",price:35.00,status:"available"},
+      {label:"18M · Code",price:48.00,status:"available"}
+    ]},
+  {id:3,name:"Microsoft 365 Premium",cat:"office",img:"images/microsoft.png",bs:true,
+    desc:"Word, Excel, PowerPoint, Outlook, Teams + 1 TB OneDrive + Copilot KI. Für bis zu 5 Geräte/Nutzer.",
+    features:["Alle Office-Apps","1 TB OneDrive","5 Geräte","Copilot KI"],
+    variants:[
+      {label:"1 Jahr · Einladung",price:32.00,status:"available"},
+      {label:"1 Jahr · Zugangsdaten",price:80.00,status:"available"}
+    ]},
+  {id:4,name:"Microsoft 365 Personal",cat:"office",img:"images/microsoft.png",
+    desc:"Office 365 Personal — für 1 Person, alle Apps inklusive.",
+    features:["Word, Excel, PPT","1 TB OneDrive","1 Person","12 Monate"],
+    variants:[{label:"12 Monate · Zugangsdaten",price:45.00,status:"available"}]},
+  {id:5,name:"Cursor Pro",cat:"ai",img:"images/cursor.png",bs:true,
+    desc:"Der führende KI-Code-Editor mit GPT-4.1, Claude 4 Sonnet & Gemini 2.5 Pro.",
+    features:["Premium-Modelle","Codebase-Indexierung","KI-Agent","VS Code-Basis"],
+    variants:[{label:"1 Jahr · Zugangsdaten",price:55.00,status:"available"}]},
+  {id:6,name:"Spotify Premium",cat:"streaming",img:"images/spotify.png",
+    desc:"100 Millionen Songs werbefrei. Offline-Downloads & hohe Audioqualität bis 320 kbps.",
+    features:["Keine Werbung","Offline-Modus","320 kbps","KI-DJ & Wrapped"],
+    variants:[
+      {label:"6 Monate",price:40.00,status:"available"},
+      {label:"12 Monate",price:80.00,status:"available"}
+    ]},
+  {id:7,name:"ChatGPT",cat:"ai",img:"images/chatgpt.png",
+    desc:"Go für Einstieg oder Team für Workspaces — höhere Limits, voller Datenschutz, kein Daten-Training.",
+    features:["Go & Team Pläne","GPT-Zugang","Voller Datenschutz","Eigener Workspace (Team)"],
+    variants:[
+      {label:"Go · 1 Monat",price:2.15,status:"unavailable"},
+      {label:"Go · 3 Monate",price:6.45,status:"unavailable"},
+      {label:"Go · 6 Monate",price:12.90,status:"unavailable"},
+      {label:"Go · 12 Monate",price:25.80,status:"unavailable"},
+      {label:"Team · 1 Monat",price:12.00,status:"order"},
+      {label:"Team · 3 Monate",price:36.00,status:"order"},
+      {label:"Team · 6 Monate",price:72.00,status:"order"},
+      {label:"Team · 12 Monate",price:144.00,status:"order"}
+    ]},
+  {id:8,name:"Claude Team",cat:"ai",img:"images/claude.png",
+    desc:"Standard (Claude 3.5 Sonnet) oder Premium (Claude Opus) — sicherer Team-Workspace mit 200k Kontext.",
+    features:["Standard & Premium","200k Kontext","Sicherer Workspace","Admin-Konsole"],
+    variants:[
+      {label:"Standard · 6 Monate",price:72.00,status:"available"},
+      {label:"Standard · 12 Monate",price:144.00,status:"available"},
+      {label:"Premium · 6 Monate",price:360.00,status:"available"},
+      {label:"Premium · 12 Monate",price:720.00,status:"available"}
+    ]},
+  {id:9,name:"Canva Edu",cat:"design",img:"images/canva.png",
+    desc:"Canva Pro gratis für Bildungseinrichtungen — alle Premium-Funktionen für Schüler & Lehrer.",
+    features:["Alle Pro-Features","Bildungsversion","100 Mio. Assets","1 TB Speicher"],
+    variants:[{label:"1 Jahr · Einladung",price:15.00,status:"available"}]},
+  {id:10,name:"Canva Pro",cat:"design",img:"images/canva.png",
+    desc:"100 Mio. Premium-Assets, Brand Kit & KI-Tools für professionelle Designs.",
+    features:["100 Mio. Assets","Brand Kit","KI-Tools","1 TB Speicher"],
+    variants:[{label:"1 Jahr · Einladung",price:35.00,status:"available"}]},
+  {id:11,name:"Autodesk EDU",cat:"design",img:"images/autodesk.png",
+    desc:"AutoCAD, Fusion 360, Revit, Maya, 3ds Max — voller Zugang zu allen Apps.",
+    features:["AutoCAD & Fusion 360","Revit & Maya","Voller Funktionsumfang","Auto-Updates"],
+    variants:[{label:"12 Monate · Zugangsdaten",price:35.00,status:"available"}]},
+  {id:12,name:"Adobe Creative Cloud Pro",cat:"design",img:"images/adobe-cc.png",bs:true,
+    desc:"Photoshop, Illustrator, Premiere Pro, After Effects & 20+ weitere Apps.",
+    features:["20+ Apps","100 GB Cloud","2 Geräte","Auto-Updates"],
+    variants:[{label:"12 Monate · 2 Geräte",price:190.00,status:"available"}]},
+  {id:13,name:"Adobe Acrobat Pro",cat:"office",img:"images/adobe-acrobat.png",
+    desc:"PDF-Bearbeitung, OCR, digitale Signaturen & Formulare. Der Branchenstandard für PDFs.",
+    features:["PDF-Bearbeitung","OCR-Texterkennung","e-Signaturen","MS 365-Integration"],
+    variants:[{label:"12 Monate · Code",price:170.00,status:"available"}]},
+  {id:14,name:"Codex GPT (100$ OpenAI)",cat:"ai",img:"images/codex.png",
+    desc:"100 USD OpenAI API-Guthaben — für Entwickler & KI-Projekte.",
+    features:["100 USD Guthaben","Alle OpenAI-Modelle","Python, JS, TS","API-Integration"],
+    variants:[{label:"12 Monate",price:30.00,status:"available"}]},
+  {id:15,name:"Zoom Pro",cat:"office",img:"images/zoom.png",
+    desc:"Unbegrenzte Meetings, bis 100 Teilnehmer, Cloud-Aufzeichnung & Whiteboard.",
+    features:["Unbegrenzt Meetings","100 Teilnehmer","Cloud-Aufzeichnung","Whiteboard"],
+    variants:[{label:"12 Monate · Code",price:28.00,status:"available"}]},
+  {id:16,name:"SurfShark VPN",cat:"vpn",img:"images/surfshark.png",bs:true,
+    desc:"Starter, One oder One+ — Premium VPN mit unbegrenzten Verbindungen, Antivirus & Alternative ID.",
+    features:["3.200+ Server","100+ Länder","Unbegrenzte Geräte","No-Log-Policy"],
+    variants:[
+      {label:"Starter Trial · 2 Monate",price:5.00,status:"available"},
+      {label:"Starter · 15 Monate",price:44.00,status:"available"},
+      {label:"Starter · 27 Monate",price:48.00,status:"available"},
+      {label:"One · 15 Monate",price:50.00,status:"available"},
+      {label:"One · 27 Monate",price:66.00,status:"available"},
+      {label:"One+ · 15 Monate",price:104.00,status:"available"},
+      {label:"One+ · 27 Monate",price:134.00,status:"available"}
+    ]},
+  {id:17,name:"NordVPN",cat:"vpn",img:"images/nordvpn.png",bs:true,
+    desc:"Basic, Plus oder Ultimate — 6.500+ Server in 111 Ländern, NordPass, Dark Web Monitor & NordProtect.",
+    features:["111 Länder","10 Geräte","No-Log-Policy","24/7 Support"],
+    variants:[
+      {label:"Basic Trial · 3 Monate",price:7.00,status:"available"},
+      {label:"Basic · 12 Monate",price:53.00,status:"available"},
+      {label:"Basic · 24 Monate",price:71.00,status:"available"},
+      {label:"Plus · 12 Monate",price:58.00,status:"available"},
+      {label:"Plus · 24 Monate",price:83.00,status:"available"},
+      {label:"Ultimate · 12 Monate",price:91.00,status:"available"},
+      {label:"Ultimate · 24 Monate",price:148.00,status:"available"}
+    ]},
+  {id:18,name:"LinkedIn Sales Navigator Core",cat:"other",img:"images/linkedin.png",
+    desc:"B2B-Vertrieb auf Topniveau mit erweiterter Lead-Suche & InMail.",
+    features:["30+ Filter","Echtzeit-Updates","InMail-Nachrichten","CRM-Integration"],
+    variants:[{label:"12 Monate · Code",price:32.00,status:"available"}]},
+  {id:19,name:"Picsart Pro",cat:"design",img:"images/picsart.png",
+    desc:"KI-gestützte Bildbearbeitung mit 10.000+ Vorlagen & Premium-Assets.",
+    features:["KI-Tools","10.000+ Vorlagen","Videobearbeitung","Premium-Assets"],
+    variants:[{label:"12 Monate · Code",price:20.00,status:"available"}]},
+  {id:20,name:"Google Colab Pro",cat:"ai",img:"images/colab.png",
+    desc:"Schnelle GPUs & TPUs für Deep Learning — ideal für KI-Forschung.",
+    features:["A100/V100 GPUs","TPUs","Längere Sitzungen","100 GB Drive"],
+    variants:[{label:"12 Monate",price:35.00,status:"available"}]},
+  {id:21,name:"ElevenReader",cat:"other",img:"images/elevenreader.png",
+    desc:"KI-Vorlesefunktion mit 1.000+ natürlichen Stimmen in 29 Sprachen.",
+    features:["1.000+ Stimmen","29 Sprachen","Voice Cloning","Audio-Export"],
+    variants:[{label:"12 Monate · Code",price:20.00,status:"available"}]},
+  {id:22,name:"Discord Nitro",cat:"other",img:"images/discord.png",
+    desc:"Animierte Avatare, eigene Emojis, 500 MB Uploads & 4K Streaming.",
+    features:["500 MB Upload","4K Streaming","Animierte Avatare","2 Server-Boosts"],
+    variants:[{label:"Trial · 3 Monate",price:8.00,status:"available"}]}
+];
+
+// STATE
+let currentFilter = 'all';
+let currentSearch = '';
+let cart = [];
+const grid = document.getElementById('productGrid');
+const ORDER_EMAIL = 'cfvblue@gmail.com';
+const BANK = {name:'Dong Huy Truong', iban:'BE05 9675 8234 0775'};
+
+function statusText(s){return s==='available'?'Verfügbar':s==='unavailable'?'Nicht verfügbar':s==='order'?'Auf Bestellung':s}
+function catLabel(c){return {streaming:'Streaming',ai:'KI & Code',office:'Office',design:'Design',vpn:'VPN',other:'Sonstige'}[c]||c}
+
+// RENDER
+function renderProducts(){
+  const filtered = products.filter(p=>{
+    const fMatch = currentFilter==='all' || (currentFilter==='bestseller' ? p.bs : p.cat===currentFilter);
+    const sMatch = !currentSearch || p.name.toLowerCase().includes(currentSearch) || p.desc.toLowerCase().includes(currentSearch);
+    return fMatch && sMatch;
+  });
+  if(filtered.length===0){
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:80px 24px;color:var(--text-3)"><i class="fa-solid fa-magnifying-glass" style="font-size:36px;margin-bottom:14px;opacity:0.5"></i><p style="font-size:16px;color:var(--text-2)">Keine Produkte gefunden</p></div>';
+    return;
+  }
+  grid.innerHTML = filtered.map(p=>{
+    const defaultIdx = Math.max(0, p.variants.findIndex(v=>v.status==='available'));
+    const defaultV = p.variants[defaultIdx];
+    return `
+    <article class="product reveal" data-id="${p.id}">
+      ${p.bs ? '<div class="badge-bs">Best Seller</div>' : ''}
+      <div class="badge-status ${defaultV.status}">${statusText(defaultV.status)}</div>
+      <div class="product-img"><img src="${p.img}" alt="${p.name}" loading="lazy"></div>
+      <div class="product-body">
+        <div class="product-cat">${catLabel(p.cat)}</div>
+        <h3 class="product-title">${p.name}</h3>
+        <p class="product-desc">${p.desc}</p>
+        <div class="product-features">
+          ${p.features.map(f=>`<div><i class="fa-solid fa-check"></i>${f}</div>`).join('')}
+        </div>
+        <div class="variants">
+          ${p.variants.map((v,i)=>`<button class="variant ${i===defaultIdx?'selected':''}" data-id="${p.id}" data-idx="${i}">${v.label} · €${v.price.toFixed(2)}</button>`).join('')}
+        </div>
+        <div class="product-footer">
+          <div>
+            <span class="price">€<span data-price-id="${p.id}">${defaultV.price.toFixed(2)}</span></span>
+            <span class="price-period" data-period-id="${p.id}">${defaultV.label}</span>
+          </div>
+          <button class="add-cart" data-add="${p.id}" data-variant-idx="${defaultIdx}" ${defaultV.status==='unavailable'?'disabled':''}>
+            <i class="fa-solid fa-plus"></i>Hinzufügen
+          </button>
+        </div>
+      </div>
+    </article>`;
+  }).join('');
+  attachVariantListeners();
+  attachAddListeners();
+  observeReveal();
+}
+
+function attachVariantListeners(){
+  document.querySelectorAll('.variant').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const pid = +btn.dataset.id, idx = +btn.dataset.idx;
+      const p = products.find(x=>x.id===pid);
+      const v = p.variants[idx];
+      const card = btn.closest('.product');
+      card.querySelectorAll('.variant').forEach(b=>b.classList.remove('selected'));
+      btn.classList.add('selected');
+      card.querySelector(`[data-price-id="${pid}"]`).textContent = v.price.toFixed(2);
+      card.querySelector(`[data-period-id="${pid}"]`).textContent = v.label;
+      const bs = card.querySelector('.badge-status');
+      bs.className = `badge-status ${v.status}`;
+      bs.textContent = statusText(v.status);
+      const add = card.querySelector('.add-cart');
+      add.disabled = v.status==='unavailable';
+      add.dataset.variantIdx = idx;
+    });
+  });
+}
+
+function attachAddListeners(){
+  document.querySelectorAll('.add-cart').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      if(btn.disabled) return;
+      const pid = +btn.dataset.add;
+      const idx = +btn.dataset.variantIdx;
+      addToCart(pid, idx);
+    });
+  });
+}
+
+// CART
+function addToCart(pid, vIdx){
+  const p = products.find(x=>x.id===pid);
+  const v = p.variants[vIdx];
+  const key = `${pid}-${vIdx}`;
+  const exist = cart.find(c=>c.key===key);
+  if(exist){ exist.qty++; }
+  else { cart.push({key,pid,vIdx,qty:1,name:p.name,variant:v.label,price:v.price,img:p.img}); }
+  updateCartUI();
+  showToast(`${p.name} hinzugefügt`);
+}
+
+function updateQty(key, delta){
+  const item = cart.find(c=>c.key===key);
+  if(!item) return;
+  item.qty += delta;
+  if(item.qty<=0) cart = cart.filter(c=>c.key!==key);
+  updateCartUI();
+}
+
+function removeFromCart(key){
+  cart = cart.filter(c=>c.key!==key);
+  updateCartUI();
+}
+
+function updateCartUI(){
+  const totalQty = cart.reduce((s,c)=>s+c.qty,0);
+  const totalPrice = cart.reduce((s,c)=>s+c.qty*c.price,0);
+  const cc = document.getElementById('cartCount');
+  cc.textContent = totalQty;
+  cc.style.display = totalQty>0 ? 'flex' : 'none';
+  document.getElementById('drawerCount').textContent = `(${totalQty})`;
+  const body = document.getElementById('drawerBody');
+  const foot = document.getElementById('drawerFoot');
+  if(cart.length===0){
+    body.innerHTML = '<div class="drawer-empty"><i class="fa-solid fa-cart-shopping"></i><p>Dein Warenkorb ist leer</p></div>';
+    foot.style.display = 'none';
+  } else {
+    body.innerHTML = cart.map(c=>`
+      <div class="cart-item">
+        <div class="ci-img"><img src="${c.img}" alt="${c.name}"></div>
+        <div class="cart-item-info">
+          <h4>${c.name}</h4>
+          <div class="meta">${c.variant}</div>
+          <div class="price-row">
+            <div class="qty">
+              <button onclick="updateQty('${c.key}',-1)" aria-label="weniger">−</button>
+              <span>${c.qty}</span>
+              <button onclick="updateQty('${c.key}',1)" aria-label="mehr">+</button>
+            </div>
+            <strong>€${(c.qty*c.price).toFixed(2)}</strong>
+            <button class="remove" onclick="removeFromCart('${c.key}')" aria-label="entfernen"><i class="fa-solid fa-trash-can"></i></button>
+          </div>
+        </div>
+      </div>`).join('');
+    foot.style.display = 'block';
+    document.getElementById('cartTotal').textContent = totalPrice.toFixed(2);
+  }
+}
+
+function buildOrderText(){
+  if(cart.length===0) return '';
+  const lines = cart.map(c=>`• ${c.name} (${c.variant}) × ${c.qty} = €${(c.qty*c.price).toFixed(2)}`).join('\n');
+  const total = cart.reduce((s,c)=>s+c.qty*c.price,0).toFixed(2);
+  return `Hallo,\n\nich möchte folgende Produkte bestellen:\n\n${lines}\n\nGesamtsumme: €${total}\n\n--- Zahlung erfolgt per SEPA-Überweisung auf: ---\nName: ${BANK.name}\nIBAN: ${BANK.iban}\nVerwendungszweck: Produktname + Mein Name\n\nVielen Dank!`;
+}
+
+// CHECKOUT MODAL
+function showCheckoutModal(){
+  if(cart.length===0){ showToast('Warenkorb ist leer'); return; }
+  // close drawer first
+  closeDrawer();
+  // populate summary
+  const sumEl = document.getElementById('orderSummary');
+  const total = cart.reduce((s,c)=>s+c.qty*c.price,0).toFixed(2);
+  sumEl.innerHTML = cart.map(c=>`<div class="os-row"><span class="desc">${c.qty}× ${c.name} <small style="color:var(--text-3)">(${c.variant})</small></span><strong>€${(c.qty*c.price).toFixed(2)}</strong></div>`).join('')
+    + `<div class="os-row total"><span>Gesamtsumme</span><span>€${total}</span></div>`;
+  document.getElementById('modalAmount').textContent = total;
+  document.getElementById('checkoutModal').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+function closeCheckoutModal(){
+  document.getElementById('checkoutModal').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+function sendOrderEmail(){
+  if(cart.length===0) return;
+  const subject = encodeURIComponent('Neue Bestellung — DigitalStore');
+  const body = encodeURIComponent(buildOrderText());
+  window.location.href = `mailto:${ORDER_EMAIL}?subject=${subject}&body=${body}`;
+}
+
+function copyOrder(){
+  if(cart.length===0){ showToast('Warenkorb ist leer'); return; }
+  const text = buildOrderText() + `\n\n— An: ${ORDER_EMAIL}`;
+  doCopy(text, 'Bestellung kopiert');
+}
+
+function doCopy(text, msg){
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(()=>showToast(msg||'Kopiert')).catch(fallback);
+  } else { fallback(); }
+  function fallback(){
+    const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy');showToast(msg||'Kopiert')}catch(e){showToast('Kopieren fehlgeschlagen')}
+    document.body.removeChild(ta);
+  }
+}
+
+// Copy buttons (delegated)
+document.addEventListener('click', e=>{
+  const btn = e.target.closest('.copy-btn');
+  if(!btn) return;
+  if(btn.id==='copyAmount'){
+    doCopy(document.getElementById('modalAmount').textContent, 'Betrag kopiert');
+  } else {
+    const txt = btn.dataset.copy;
+    if(txt) doCopy(txt, 'In Zwischenablage kopiert');
+  }
+});
+
+// TOAST
+let toastTimer;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2400);
+}
+
+// DRAWER
+const drawer = document.getElementById('drawer');
+const drawerOverlay = document.getElementById('drawerOverlay');
+function openDrawer(){drawer.classList.add('open');drawerOverlay.classList.add('open');document.body.style.overflow='hidden'}
+function closeDrawer(){drawer.classList.remove('open');drawerOverlay.classList.remove('open');document.body.style.overflow=''}
+document.getElementById('cartBtn').addEventListener('click',openDrawer);
+document.getElementById('closeDrawer').addEventListener('click',closeDrawer);
+drawerOverlay.addEventListener('click',closeDrawer);
+
+// Modal close on overlay click & ESC
+document.getElementById('checkoutModal').addEventListener('click', e=>{
+  if(e.target.id==='checkoutModal') closeCheckoutModal();
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){closeDrawer();closeCheckoutModal()}
+});
+
+// SEARCH & FILTER
+document.getElementById('searchInput').addEventListener('input',e=>{
+  currentSearch = e.target.value.toLowerCase().trim();
+  renderProducts();
+});
+document.querySelectorAll('.chip').forEach(c=>{
+  c.addEventListener('click',()=>{
+    document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));
+    c.classList.add('active');
+    currentFilter = c.dataset.filter;
+    renderProducts();
+  });
+});
+
+// FAQ
+document.querySelectorAll('.faq-q').forEach(q=>{
+  q.addEventListener('click',()=>q.parentElement.classList.toggle('open'));
+});
+
+// NAV SCROLL
+const nav = document.getElementById('nav');
+const scrollTopBtn = document.getElementById('scrollTop');
+window.addEventListener('scroll',()=>{
+  nav.classList.toggle('scrolled', window.scrollY>20);
+  scrollTopBtn.classList.toggle('show', window.scrollY>500);
+});
+
+// REVEAL ON SCROLL
+function observeReveal(){
+  const obs = new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        e.target.classList.add('visible');
+        obs.unobserve(e.target);
+      }
+    });
+  },{threshold:0.08, rootMargin:'0px 0px -40px 0px'});
+  document.querySelectorAll('.reveal:not(.visible)').forEach(el=>obs.observe(el));
+}
+
+// INIT
+renderProducts();
+observeReveal();
+</script>
+</body>
+</html>
