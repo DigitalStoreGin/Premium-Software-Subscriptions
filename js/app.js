@@ -956,34 +956,27 @@ async function confirmAndSendProof(){
   });
 
   try{
+    // Upload file chứng từ lên Cloudflare R2 qua Worker
+    const fd = new FormData();
+    fd.append('proof', CURRENT_PROOF_FILE);
+    const uploadRes = await fetch(WORKER_URL.replace(/\/$/,'') + '/order/' + encodeURIComponent(o.orderId) + '/proof', { method:'POST', body: fd });
+    if(!uploadRes.ok) throw new Error('upload-'+uploadRes.status);
+
+    // Gửi thông báo cho admin qua Web3Forms (gồm thông tin đơn + tên file)
     const fileInfo = CURRENT_PROOF_FILE.name + ' (' + (CURRENT_PROOF_FILE.size/1024).toFixed(0) + ' KB)';
-
-    // Gửi thông tin đơn + thông tin file qua Web3Forms JSON (luôn hoạt động)
-    const payload = {
-      access_key: WEB3FORMS_KEY,
-      subject: `${I18N.t('email.proofSubject')} ${o.orderId} — ${o.name}`,
-      from_name: o.name || 'Kunde',
-      replyto: o.email || '',
-      OrderID: o.orderId,
-      Kundenname: o.name || '',
-      'Kunden-Email': o.email || '',
-      Bestellung: o.lines || '',
-      Gesamtsumme: `€${o.total}`,
-      Bankverbindung: `Name: ${BANK.name} | IBAN: ${BANK.iban}`,
-      Zahlungsbeleg: fileInfo,
-      Hinweis: 'Kunde hat den Betrag überwiesen und den Zahlungsbeleg hochgeladen.'
-    };
-    const r = await fetch('https://api.web3forms.com/submit', {
+    fetch('https://api.web3forms.com/submit', {
       method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'},
-      body: JSON.stringify(payload)
-    });
-    if(!r.ok) throw new Error('HTTP '+r.status);
+      body: JSON.stringify({
+        access_key: WEB3FORMS_KEY,
+        subject: `${I18N.t('email.proofSubject')} ${o.orderId} — ${o.name}`,
+        from_name: o.name || 'Kunde', replyto: o.email || '',
+        OrderID: o.orderId, Kundenname: o.name || '', 'Kunden-Email': o.email || '',
+        Bestellung: o.lines || '', Gesamtsumme: `€${o.total}`,
+        Zahlungsbeleg: fileInfo,
+        Hinweis: 'Zahlungsbeleg wurde auf R2 hochgeladen. Bitte prüfen unter /order/' + o.orderId + '/proof'
+      })
+    }).catch(()=>{});
 
-    // báo Worker cập nhật trạng thái + đính kèm file thật (best-effort)
-    if(WORKER_URL){
-      const fd2 = new FormData(); fd2.append('proof', CURRENT_PROOF_FILE);
-      fetch(WORKER_URL.replace(/\/$/,'') + '/order/' + encodeURIComponent(o.orderId) + '/proof', { method:'POST', body: fd2 }).catch(()=>{});
-    }
     showToast(I18N.t('proof.sent'));
     if(btn){ btn.innerHTML='<i class="fa-solid fa-check"></i> '+I18N.t('proof.done'); }
     setTimeout(closeSuccessModal, 900);
@@ -1018,6 +1011,9 @@ document.addEventListener('click', e=>{
     doCopy(document.getElementById('modalAmount').textContent, I18N.t('toast.amount_copied'));
   } else if(btn.id==='copySuccessAmount'){
     doCopy(document.getElementById('successAmount').textContent, I18N.t('toast.amount_copied'));
+  } else if(btn.id==='copyVzweck'){
+    const el = document.getElementById('successVzweck');
+    doCopy(el ? el.textContent.trim() : '', I18N.t('toast.clipboard'));
   } else {
     const txt = btn.dataset.copy;
     if(txt) doCopy(txt, I18N.t('toast.clipboard'));

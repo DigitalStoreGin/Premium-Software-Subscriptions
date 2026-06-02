@@ -440,10 +440,13 @@
           <span class="val mono">€<span id="successAmount">0.00</span></span>
           <button class="copy-btn" id="copySuccessAmount" title="Kopieren"><i class="fa-regular fa-copy"></i></button>
         </div>
-        <div class="bank-row" style="display:flex;flex-direction:column;gap:8px;align-items:flex-start">
+        <div class="bank-row">
           <span class="lbl" data-i18n="sm.l_ref">Verwendungszweck</span>
-          <span class="val ref"><span data-i18n="sm.ref1">Produktname +</span> <strong data-i18n="sm.ref2">Ihr Name</strong></span>
-          <small style="grid-column:unset;margin-top:0;color:var(--text-3);font-size:12px;background:none;border:none;border-left:none;padding:0" data-i18n="sm.example">z.B. „Microsoft – Max Mustermann"</small>
+          <span class="val ref" id="successVzweck"><span data-i18n="sm.ref1">Produktname +</span> <strong data-i18n="sm.ref2">Ihr Name</strong></span>
+          <button class="copy-btn" id="copyVzweck" title="Kopieren"><i class="fa-regular fa-copy"></i></button>
+        </div>
+        <div class="bank-row" style="grid-template-columns:1fr;padding-top:0;border:none">
+          <small style="color:var(--text-3);font-size:12px" data-i18n="sm.example">z.B. „Microsoft – Max Mustermann"</small>
         </div>
       </div>
 

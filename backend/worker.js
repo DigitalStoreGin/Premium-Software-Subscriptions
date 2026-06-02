@@ -37,6 +37,7 @@ export default {
       if (m) {
         const id = decodeURIComponent(m[1]); const sub = m[2];
         if (sub === '/proof' && request.method === 'POST') return uploadProof(request, env, cors, id);
+        if (sub === '/proof' && request.method === 'GET') return requireAdmin(request, env, cors, () => getProofFile(request, env, cors, id));
         if (sub === '/status' && request.method === 'POST') return requireAdmin(request, env, cors, () => updateStatus(request, env, cors, id));
         if (!sub && request.method === 'GET') return lookupOrder(env, cors, id);
         if (!sub && request.method === 'DELETE') return requireAdmin(request, env, cors, () => deleteOrder(env, cors, id));
@@ -238,26 +239,46 @@ async function uploadProof(request, env, cors, id) {
   const proof = form.get('proof');
   if (!proof || typeof proof === 'string') return json({ error: 'no_file' }, 400, cors);
   if (proof.size > 4 * 1024 * 1024) return json({ error: 'file_too_large' }, 413, cors);
-  if (env.WEB3FORMS_KEY) {
-    const fd = new FormData();
-    fd.append('access_key', env.WEB3FORMS_KEY);
-    fd.append('subject', `Zahlungsbeleg — ${id}`);
-    fd.append('OrderID', id);
-    fd.append('message', `Proof of payment for ${id}`);
-    fd.append('attachment', proof, proof.name || 'proof');
-    await fetch('https://api.web3forms.com/submit', { method: 'POST', body: fd }).catch(() => {});
+
+  const ext = (proof.name || 'proof').split('.').pop() || 'bin';
+  const r2Key = `${id}/${Date.now()}.${ext}`;
+
+  // Upload file vào R2
+  let r2ok = false;
+  if (env.PROOFS) {
+    try {
+      await env.PROOFS.put(r2Key, proof.stream(), {
+        httpMetadata: { contentType: proof.type || 'application/octet-stream' },
+        customMetadata: { orderId: id, originalName: proof.name || 'proof', uploadedAt: new Date().toISOString() },
+      });
+      r2ok = true;
+    } catch (e) { r2ok = false; }
   }
+
+  // Cập nhật đơn hàng trong KV
   if (env.ORDERS) {
     const o = await env.ORDERS.get(id, { type: 'json' });
     if (o) {
-      o.proof = { name: proof.name || 'proof', size: proof.size, at: new Date().toISOString() };
+      o.proof = { name: proof.name || 'proof', size: proof.size, r2Key, at: new Date().toISOString() };
       o.status = (o.status === 'awaiting_payment' || o.status === 'created') ? 'proof_uploaded' : o.status;
       o.updated_at = new Date().toISOString();
-      o.history.push({ at: o.updated_at, status: o.status, note: 'proof uploaded' });
+      o.history.push({ at: o.updated_at, status: o.status, note: 'proof uploaded to R2' });
       await env.ORDERS.put(id, JSON.stringify(o));
     }
   }
-  return json({ ok: true, order_id: id }, 200, cors);
+  return json({ ok: true, order_id: id, r2: r2ok, key: r2Key }, 200, cors);
+}
+
+// ───────── GET /order/:id/proof (admin — tải file chứng từ từ R2) ─────────
+async function getProofFile(request, env, cors, id) {
+  if (!env.PROOFS || !env.ORDERS) return json({ error: 'storage_unavailable' }, 500, cors);
+  const o = await env.ORDERS.get(id, { type: 'json' });
+  if (!o || !o.proof || !o.proof.r2Key) return json({ error: 'no_proof' }, 404, cors);
+  const obj = await env.PROOFS.get(o.proof.r2Key);
+  if (!obj) return json({ error: 'file_not_found' }, 404, cors);
+  const headers = { ...cors, 'Content-Type': obj.httpMetadata?.contentType || 'application/octet-stream',
+    'Content-Disposition': `inline; filename="${o.proof.name || 'proof'}"` };
+  return new Response(obj.body, { headers });
 }
 
 // ───────── GET /order/:id (public) ─────────
