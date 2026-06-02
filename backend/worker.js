@@ -32,6 +32,8 @@ export default {
         if (request.method === 'GET') return getConfig(env, cors);
         if (request.method === 'POST') return requireAdmin(request, env, cors, () => saveConfig(request, env, cors));
       }
+      // Online sync for admin GitHub connection/token (password-hash auth)
+      if (url.pathname === '/admin-sync' && request.method === 'POST') return adminSync(request, env, cors);
 
       const m = url.pathname.match(/^\/order\/([^\/]+)(\/proof|\/status)?$/);
       if (m) {
@@ -163,6 +165,31 @@ async function saveConfig(request, env, cors) {
   if (Array.isArray(cfg.upsell)) cfg.upsell = cfg.upsell.map(u => ({ n: String(u.n || ''), d: String(u.d || ''), p: String(u.p || ''), t: String(u.t || '') })).filter(u => u.n);
   await env.ORDERS.put(CONFIG_KEY, JSON.stringify(cfg));
   return json({ ok: true, config: cfg }, 200, cors);
+}
+
+// ───────── Admin online sync (GitHub cfg/token) ─────────
+const ADMIN_SYNC_KEY = '__admin_sync';
+async function adminSync(request, env, cors) {
+  let b; try { b = await request.json(); } catch { return json({ error: 'bad_json' }, 400, cors); }
+  if (!env.ORDERS) return json({ error: 'storage_unavailable' }, 500, cors);
+  // Password-hash auth: requires ADMIN_PASS_HASH secret in Worker.
+  if (!env.ADMIN_PASS_HASH) return json({ error: 'sync_not_configured' }, 403, cors);
+  if (!b || String(b.pass_hash || '') !== String(env.ADMIN_PASS_HASH)) return json({ error: 'unauthorized' }, 401, cors);
+
+  if (b.action === 'get') {
+    const data = await env.ORDERS.get(ADMIN_SYNC_KEY, { type: 'json' });
+    return json({ ok: true, data: data || null }, 200, cors);
+  }
+  if (b.action === 'set') {
+    const payload = b.data && typeof b.data === 'object' ? b.data : null;
+    if (!payload) return json({ error: 'missing_data' }, 400, cors);
+    await env.ORDERS.put(ADMIN_SYNC_KEY, JSON.stringify({
+      ...payload,
+      updated_at: new Date().toISOString(),
+    }));
+    return json({ ok: true }, 200, cors);
+  }
+  return json({ error: 'bad_action' }, 400, cors);
 }
 
 function renderEmail({ name, items, total, supportEmail, cfg }) {

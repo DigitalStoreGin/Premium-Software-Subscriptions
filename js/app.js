@@ -53,8 +53,8 @@ const I18N = (function(){
       'cm.name':'Dein Name *','cm.name_ph':'z.B. Max Mustermann','cm.email':'Deine E-Mail-Adresse *','cm.email_ph':'z.B. max@beispiel.de','cm.submit':'Bestellung absenden',
       'sm.title':'Bestellung erfolgreich!','sm.thanks':'Vielen Dank,','sm.sent':'! Deine Bestellung wurde gesendet.',
       'sm.info':'Bitte überweise den Betrag per SEPA. Nach Zahlungseingang erhältst du deine Zugangsdaten innerhalb von <strong>5–30 Minuten</strong> per E-Mail.',
-      'sm.bank':'Bankverbindung (SEPA)','sm.l_name':'Name','sm.l_amount':'Betrag','sm.l_ref':'Verwendungszweck',
-      'sm.ref1':'Produktname +','sm.ref2':'Ihr Name','sm.example':'z.B. „Microsoft – Max Mustermann"','sm.ok':'Ich habe es gesendet',
+      'sm.bank':'Bankverbindung (SEPA)','sm.l_name':'Name','sm.l_amount':'Betrag','sm.l_ref':'Verwendungszweck (Bestellnummer)',
+      'sm.ref1':'','sm.ref2':'','sm.example':'z.B. DS-260602-EM2A','sm.ok':'Ich habe es gesendet',
       'common.close':'Schließen','common.back':'Zurück','common.copy':'Kopieren','common.scrolltop':'Nach oben',
       'toast.added':'Hinzugefügt','toast.added_suffix':'hinzugefügt','toast.empty':'Warenkorb ist leer',
       'toast.amount_copied':'Betrag kopiert','toast.clipboard':'In Zwischenablage kopiert','toast.copied':'Kopiert','toast.copy_fail':'Kopieren fehlgeschlagen',
@@ -113,8 +113,8 @@ const I18N = (function(){
       'cm.name':'Your name *','cm.name_ph':'e.g. John Doe','cm.email':'Your email *','cm.email_ph':'e.g. john@example.com','cm.submit':'Submit order',
       'sm.title':'Order successful!','sm.thanks':'Thank you,','sm.sent':'! Your order has been sent.',
       'sm.info':'Please transfer the amount via SEPA. After payment is received you will get your credentials by email within <strong>5–30 minutes</strong>.',
-      'sm.bank':'Bank details (SEPA)','sm.l_name':'Name','sm.l_amount':'Amount','sm.l_ref':'Reference',
-      'sm.ref1':'Product name +','sm.ref2':'your name','sm.example':'e.g. "Microsoft – John Doe"','sm.ok':"I've sent it",
+      'sm.bank':'Bank details (SEPA)','sm.l_name':'Name','sm.l_amount':'Amount','sm.l_ref':'Reference (order number)',
+      'sm.ref1':'','sm.ref2':'','sm.example':'e.g. DS-260602-EM2A','sm.ok':"I've sent it",
       'common.close':'Close','common.back':'Back','common.copy':'Copy','common.scrolltop':'Scroll to top',
       'toast.added':'Added','toast.added_suffix':'added','toast.empty':'Cart is empty',
       'toast.amount_copied':'Amount copied','toast.clipboard':'Copied to clipboard','toast.copied':'Copied','toast.copy_fail':'Copy failed',
@@ -173,8 +173,8 @@ const I18N = (function(){
       'cm.name':'Ваше имя *','cm.name_ph':'напр. Иван Иванов','cm.email':'Ваш email *','cm.email_ph':'напр. ivan@example.com','cm.submit':'Оформить заказ',
       'sm.title':'Заказ успешно оформлен!','sm.thanks':'Спасибо,','sm.sent':'! Ваш заказ отправлен.',
       'sm.info':'Пожалуйста, переведите сумму через SEPA. После поступления оплаты вы получите данные для входа на email в течение <strong>5–30 минут</strong>.',
-      'sm.bank':'Банковские реквизиты (SEPA)','sm.l_name':'Имя','sm.l_amount':'Сумма','sm.l_ref':'Назначение',
-      'sm.ref1':'Название продукта +','sm.ref2':'ваше имя','sm.example':'напр. «Microsoft – Иван Иванов»','sm.ok':'Я отправил(а)',
+      'sm.bank':'Банковские реквизиты (SEPA)','sm.l_name':'Имя','sm.l_amount':'Сумма','sm.l_ref':'Назначение (номер заказа)',
+      'sm.ref1':'','sm.ref2':'','sm.example':'напр. DS-260602-EM2A','sm.ok':'Я отправил(а)',
       'common.close':'Закрыть','common.back':'Назад','common.copy':'Копировать','common.scrolltop':'Наверх',
       'toast.added':'Добавлено','toast.added_suffix':'добавлено','toast.empty':'Корзина пуста',
       'toast.amount_copied':'Сумма скопирована','toast.clipboard':'Скопировано в буфер','toast.copied':'Скопировано','toast.copy_fail':'Не удалось скопировать',
@@ -875,6 +875,8 @@ function submitOrder(){
     closeCheckoutModal();
     document.getElementById('successAmount').textContent = total;
     document.getElementById('successCustomerName').textContent = name;
+    const refEl = document.getElementById('successVzweckOrder');
+    if(refEl) refEl.textContent = orderId;
     // reset trạng thái upload bằng chứng (bắt buộc trước khi xác nhận)
     resetProofUI();
     document.getElementById('successModal').classList.add('open');
@@ -1012,7 +1014,7 @@ document.addEventListener('click', e=>{
   } else if(btn.id==='copySuccessAmount'){
     doCopy(document.getElementById('successAmount').textContent, I18N.t('toast.amount_copied'));
   } else if(btn.id==='copyVzweck'){
-    const el = document.getElementById('successVzweck');
+    const el = document.getElementById('successVzweckOrder');
     doCopy(el ? el.textContent.trim() : '', I18N.t('toast.clipboard'));
   } else {
     const txt = btn.dataset.copy;

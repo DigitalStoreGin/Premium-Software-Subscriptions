@@ -224,9 +224,8 @@ tbody tr:hover{background:var(--surface-2)}
 @media(max-width:560px){.et-upsell-grid{grid-template-columns:1fr}}
 .et-preview-frame{width:100%;height:480px;border:1px solid var(--line);border-radius:10px;background:#fff}
 .et-status{font-size:13px;font-weight:600;padding:10px 0}
-.et-tabs{display:flex;gap:6px;margin-bottom:16px}
-.et-tabs button{flex:1;padding:9px;border:1px solid var(--line);border-radius:9px;background:#fff;font-weight:600;font-size:13px;cursor:pointer}
-.et-tabs button.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+.et-live-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:1100px){.et-live-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -288,7 +287,7 @@ tbody tr:hover{background:var(--surface-2)}
   <div class="gate-card">
     <div class="gate-logo"><i class="fa-brands fa-github"></i></div>
     <h1>Kết nối GitHub</h1>
-    <p class="sub">Dán Personal Access Token để admin có thể lưu thay đổi (commit) vào kho. Token chỉ lưu trong trình duyệt này.</p>
+    <p class="sub">Dán Personal Access Token để admin có thể lưu thay đổi (commit) vào kho. Sau lần đầu kết nối, token/cấu hình sẽ được đồng bộ online để thiết bị khác chỉ cần nhập mật khẩu admin.</p>
     <div class="grid2">
       <label class="field"><span>Owner (user/tổ chức)</span><input id="cOwner" class="input" placeholder="vd: my-name"></label>
       <label class="field"><span>Repository</span><input id="cRepo" class="input" placeholder="vd: my-shop"></label>
@@ -297,6 +296,9 @@ tbody tr:hover{background:var(--surface-2)}
       <label class="field"><span>Branch</span><input id="cBranch" class="input" value="main"></label>
       <label class="field"><span>Đường dẫn file</span><input id="cPath" class="input" value="products.json"></label>
     </div>
+    <label class="field"><span>Worker URL (đồng bộ online)</span>
+      <input id="cWorkerSync" class="input" value="https://store.tdh1812.workers.dev" placeholder="https://store.tdh1812.workers.dev">
+    </label>
     <label class="field"><span>GitHub token (fine-grained)</span>
       <input id="cToken" class="input" type="password" placeholder="github_pat_..." autocomplete="off">
     </label>
@@ -471,11 +473,8 @@ tbody tr:hover{background:var(--surface-2)}
       Dữ liệu lưu online (Cloudflare) nên sửa từ điện thoại hay máy nào cũng đồng bộ.
     </div>
 
-    <div class="et-tabs">
-      <button class="on" onclick="etShowTab('edit',this)"><i class="fa-solid fa-pen"></i> Sửa</button>
-      <button onclick="etShowTab('preview',this)"><i class="fa-solid fa-eye"></i> Xem trước</button>
-    </div>
-
+    <div class="callout" style="margin:0 0 16px 0">Chỉnh sửa bên trái, xem trước cập nhật song song bên phải.</div>
+    <div class="et-live-grid">
     <div id="etEditPane">
       <div class="et-section">
         <h3>Kết nối Worker</h3>
@@ -513,8 +512,9 @@ tbody tr:hover{background:var(--surface-2)}
       </div>
     </div>
 
-    <div id="etPreviewPane" class="hidden">
+    <div id="etPreviewPane">
       <iframe id="etPreviewFrame" class="et-preview-frame" title="Email preview"></iframe>
+    </div>
     </div>
   </div>
   <div class="drawer-foot">
@@ -543,11 +543,13 @@ const LS = {
   cfg:        'pm_cfg',
   tokenLocal: 'pm_token',          // token được "ghi nhớ" trên thiết bị (tuỳ chọn)
   rememberAuth:'pm_remember_auth', // chứa hash nếu user chọn "ghi nhớ mật khẩu"
+  workerSync: 'pm_worker_sync',
 };
 const SS_AUTH = 'pm_session_auth'; // dấu mốc session: đã đăng nhập trong tab này
 let TOKEN = null;                  // in-memory token (always)
 let CFG = loadCfg();
 let STATE = { products: [], dirty: false, editingId: null, imgData: '' };
+let SESSION_PASS_HASH = '';
 
 function loadCfg(){
   try{ return JSON.parse(localStorage.getItem(LS.cfg)) || {}; }catch(e){ return {}; }
@@ -707,6 +709,7 @@ async function boot(){
   if(sessionStorage.getItem(SS_AUTH) === '1'){ afterAuth(); return; }
   // 3) "Ghi nhớ trên thiết bị này" đã bật ở lần trước → đi tiếp
   if(localStorage.getItem(LS.rememberAuth) === ADMIN_PASS_HASH){
+    SESSION_PASS_HASH = ADMIN_PASS_HASH;
     sessionStorage.setItem(SS_AUTH,'1');
     afterAuth(); return;
   }
@@ -740,6 +743,7 @@ function showUnlock(){
     if(!v) return;
     const h = await sha256(v);
     if(h === ADMIN_PASS_HASH){
+      SESSION_PASS_HASH = h;
       sessionStorage.setItem(SS_AUTH,'1');
       if($('#rememberPass').checked) localStorage.setItem(LS.rememberAuth, ADMIN_PASS_HASH);
       $('#gatePass').classList.add('hidden');
@@ -754,10 +758,30 @@ function showUnlock(){
   setTimeout(()=>$('#passInput').focus(), 50);
 }
 
-function afterAuth(){
+async function afterAuth(){
   TOKEN = sessionGetToken();
-  if(TOKEN && CFG.owner && CFG.repo){ enterApp(); }
-  else showConnect();
+  if(TOKEN && CFG.owner && CFG.repo){ enterApp(); return; }
+
+  // Thiết bị mới: thử nạp cấu hình/token online bằng mật khẩu đã xác minh
+  const synced = await syncAdminGet();
+  if(synced && synced.token && synced.owner && synced.repo){
+    TOKEN = String(synced.token);
+    CFG = {
+      ...CFG,
+      owner: synced.owner,
+      repo: synced.repo,
+      branch: synced.branch || 'main',
+      path: synced.path || 'products.json',
+      authorName: synced.authorName || CFG.authorName || '',
+      authorEmail: synced.authorEmail || CFG.authorEmail || ''
+    };
+    saveCfg();
+    localStorage.setItem(LS.tokenLocal, TOKEN);
+    toast('Đã nạp cấu hình GitHub online','ok');
+    enterApp();
+    return;
+  }
+  showConnect();
 }
 function sessionGetToken(){ return localStorage.getItem(LS.tokenLocal) || null; }
 
@@ -774,15 +798,45 @@ function prefillConn(){
   $('#cRepo').value   = CFG.repo   || repo;
   $('#cBranch').value = CFG.branch || 'main';
   $('#cPath').value   = CFG.path   || 'products.json';
+  $('#cWorkerSync').value = localStorage.getItem(LS.workerSync) || 'https://store.tdh1812.workers.dev';
 }
 function showConnect(){ $('#gateConn').classList.remove('hidden'); }
+
+async function syncAdminGet(){
+  const worker = ($('#cWorkerSync')?.value || localStorage.getItem(LS.workerSync) || '').trim().replace(/\/$/,'');
+  if(!worker || !SESSION_PASS_HASH) return null;
+  try{
+    const r = await fetch(worker + '/admin-sync', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ action:'get', pass_hash: SESSION_PASS_HASH })
+    });
+    if(!r.ok) return null;
+    const data = await r.json();
+    return data && data.ok ? data.data : null;
+  }catch(e){ return null; }
+}
+async function syncAdminSet(payload){
+  const worker = ($('#cWorkerSync')?.value || localStorage.getItem(LS.workerSync) || '').trim().replace(/\/$/,'');
+  if(!worker || !SESSION_PASS_HASH || !payload) return false;
+  try{
+    const r = await fetch(worker + '/admin-sync', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ action:'set', pass_hash: SESSION_PASS_HASH, data: payload })
+    });
+    return r.ok;
+  }catch(e){ return false; }
+}
 
 $('#connBtn').onclick = async ()=>{
   const owner=$('#cOwner').value.trim(), repo=$('#cRepo').value.trim();
   const branch=$('#cBranch').value.trim()||'main', path=$('#cPath').value.trim()||'products.json';
+  const workerSync = $('#cWorkerSync').value.trim().replace(/\/$/,'');
   const tok=$('#cToken').value.trim();
   if(!owner||!repo) return toast('Nhập owner và repository','err');
   if(!tok) return toast('Dán GitHub token','err');
+  if(workerSync) localStorage.setItem(LS.workerSync, workerSync);
   CFG = {...CFG, owner, repo, branch, path}; TOKEN = tok;
   $('#connBtn').disabled=true; $('#connBtn').innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Đang kiểm tra…';
   try{
@@ -790,6 +844,13 @@ $('#connBtn').onclick = async ()=>{
     if(!r || r.permissions && r.permissions.push===false){ /* fine-grained may not expose; ignore */ }
     saveCfg();
     if($('#cRemember').checked) localStorage.setItem(LS.tokenLocal, tok); else localStorage.removeItem(LS.tokenLocal);
+    // Đồng bộ online để thiết bị khác chỉ cần nhập mật khẩu là dùng tiếp
+    await syncAdminSet({
+      owner, repo, branch, path,
+      token: tok,
+      authorName: CFG.authorName || '',
+      authorEmail: CFG.authorEmail || ''
+    });
     $('#gateConn').classList.add('hidden');
     enterApp();
   }catch(e){
@@ -1062,6 +1123,12 @@ function closeSet(){ setDrawer.classList.remove('open'); setOverlay.classList.re
 $('#setClose').onclick=closeSet; setOverlay.onclick=closeSet;
 $('#setSaveAuthor').onclick=()=>{
   CFG.authorName=$('#setAuthorName').value.trim(); CFG.authorEmail=$('#setAuthorEmail').value.trim(); saveCfg();
+  syncAdminSet({
+    owner: CFG.owner, repo: CFG.repo, branch: CFG.branch || 'main', path: CFG.path || 'products.json',
+    token: TOKEN || '',
+    authorName: CFG.authorName || '',
+    authorEmail: CFG.authorEmail || ''
+  }).catch(()=>{});
   toast('Đã lưu thông tin commit','ok');
 };
 $('#changePass').onclick=()=>{
@@ -1137,6 +1204,7 @@ function etFillForm(){
   g('et_supportEmail',ET_CONFIG.supportEmail); g('et_signature',ET_CONFIG.signature);
   if(!Array.isArray(ET_CONFIG.upsell)) ET_CONFIG.upsell=[];
   etRenderUpsell();
+  etRenderPreview();
 }
 function etRenderUpsell(){
   const list=$('#etUpsellList');
@@ -1152,6 +1220,7 @@ function etRenderUpsell(){
     </div>`).join('');
   list.querySelectorAll('input[data-eu]').forEach(inp=>inp.addEventListener('input',()=>{
     ET_CONFIG.upsell[+inp.dataset.eu][inp.dataset.ek]=inp.value;
+    etRenderPreview();
   }));
 }
 function etAddUpsell(){ ET_CONFIG.upsell=ET_CONFIG.upsell||[]; ET_CONFIG.upsell.push({n:'',d:'',p:'',t:''}); etRenderUpsell(); }
@@ -1187,6 +1256,11 @@ function etShowTab(which, btn){
   $('#etPreviewPane').classList.toggle('hidden', which!=='preview');
   if(which==='preview') etRenderPreview();
 }
+etDrawer?.addEventListener('input', (e)=>{
+  if(e.target && (e.target.matches('input') || e.target.matches('textarea') || e.target.matches('select'))){
+    etRenderPreview();
+  }
+});
 function etRenderPreview(){
   const c=etCollect();
   const sample=[{name:'Microsoft 365 Premium',variant:'1 Jahr',qty:1,price:32},{name:'Google One (Gemini Pro + 5TB)',variant:'12 Monate',qty:1,price:25}];
