@@ -359,7 +359,7 @@
           <div class="body">
             <strong data-i18n="ck.s3.t">Bestätigung per E-Mail</strong>
             <p data-i18n="ck.s3.d">Du erhältst eine Bestätigung per E-Mail, sobald deine Bestellung und Zahlung eingegangen sind.</p>
-            <p style="margin-top:6px;font-size:12.5px;color:var(--text-2)"><span data-i18n="ck.ref">Verwendungszweck:</span> <strong style="color:var(--text)" data-i18n="ck.ref_v">Produktname + dein Name</strong></p>
+            <p style="margin-top:6px;font-size:12.5px;color:var(--text-2)"><span data-i18n="ck.ref_v">Deine Bestellnummer wird automatisch erstellt.</span></p>
           </div>
         </div>
       </div>
@@ -441,12 +441,9 @@
           <button class="copy-btn" id="copySuccessAmount" title="Kopieren"><i class="fa-regular fa-copy"></i></button>
         </div>
         <div class="bank-row">
-          <span class="lbl" data-i18n="sm.l_ref">Verwendungszweck</span>
-          <span class="val ref mono" id="successVzweckOrder">DS-000000-XXXX</span>
+          <span class="lbl" data-i18n="sm.l_ref">Bestellnr.</span>
+          <span class="val mono" id="successVzweckOrder" style="font-weight:700">DS-000000-XXXX</span>
           <button class="copy-btn" id="copyVzweck" title="Kopieren"><i class="fa-regular fa-copy"></i></button>
-        </div>
-        <div class="bank-row" style="grid-template-columns:1fr;padding-top:0;border:none">
-          <small style="color:var(--text-3);font-size:12px" data-i18n="sm.example">z.B. DS-260602-EM2A</small>
         </div>
       </div>
 
