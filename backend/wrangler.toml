@@ -3,7 +3,7 @@ main = "worker.js"
 compatibility_date = "2024-11-01"
 
 [vars]
-ALLOWED_ORIGIN = "https://digitalstoregin.github.io"
+ALLOWED_ORIGIN = "*"
 
 # KV namespace (binding ORDERS)
 [[kv_namespaces]]

@@ -1248,7 +1248,8 @@ $('#etClose').onclick=closeET; etOverlay.onclick=closeET;
 function etStatus(msg, ok){ const s=$('#etStatus'); s.textContent=msg; s.style.color=ok?'var(--green)':'var(--text-3)'; }
 
 async function etApi(path, opts={}){
-  const url=$('#etWorker').value.trim().replace(/\/$/,'');
+  const rawUrl = $('#etWorker').value.trim();
+  const url = (/^https?:\/\//i.test(rawUrl) ? rawUrl : ('https://' + rawUrl)).replace(/\/$/,'');
   const tok=$('#etToken').value.trim();
   localStorage.setItem(ET_LS.url, url);
   localStorage.setItem(ET_LS.tok, tok);
@@ -1256,7 +1257,12 @@ async function etApi(path, opts={}){
     ...opts,
     headers:{'x-admin-token':tok,...(opts.body?{'Content-Type':'application/json'}:{}),...(opts.headers||{})}
   });
-  if(!r.ok){ const e=new Error('HTTP '+r.status); e.status=r.status; throw e; }
+  if(!r.ok){
+    const body = await r.text().catch(()=>'');
+    const e=new Error('HTTP '+r.status+(body?(' — '+body.slice(0,200)):''));
+    e.status=r.status;
+    throw e;
+  }
   return r.json();
 }
 
@@ -1268,8 +1274,9 @@ async function etLoadConfig(){
     etFillForm();
     etStatus('Đã tải cấu hình ✓', true);
   }catch(e){
-    etStatus(e.status===401?'Sai token (401)':'Lỗi kết nối — kiểm tra Worker URL & Token');
-    toast(e.status===401?'Sai Admin Token':'Không kết nối được Worker','err');
+    const msg = e && e.message ? e.message : 'unknown_error';
+    etStatus(e.status===401?'Sai token (401)':'Lỗi kết nối Worker: '+msg);
+    toast(e.status===401?'Sai Admin Token':'Không kết nối được Worker: '+msg,'err');
   }
 }
 function etFillForm(){

@@ -55,7 +55,13 @@ export default {
 
 // ───────── helpers ─────────
 function corsHeaders(request, env) {
-  const allowed = env.ALLOWED_ORIGIN || '*';
+  const reqOrigin = request.headers.get('Origin') || '';
+  const raw = String(env.ALLOWED_ORIGIN || '*').trim();
+  const allowList = raw.split(',').map(s => s.trim()).filter(Boolean);
+  let allowed = '*';
+  if (allowList.length && !allowList.includes('*')) {
+    allowed = (reqOrigin && allowList.includes(reqOrigin)) ? reqOrigin : allowList[0];
+  }
   return {
     'Access-Control-Allow-Origin': allowed,
     'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
@@ -268,33 +274,37 @@ async function uploadProof(request, env, cors, id) {
   const proof = form.get('proof');
   if (!proof || typeof proof === 'string') return json({ error: 'no_file' }, 400, cors);
   if (proof.size > 4 * 1024 * 1024) return json({ error: 'file_too_large' }, 413, cors);
+  if (!env.PROOFS) return json({ error: 'r2_unavailable' }, 500, cors);
+  if (!env.ORDERS) return json({ error: 'storage_unavailable' }, 500, cors);
+
+  const order = await env.ORDERS.get(id, { type: 'json' });
+  if (!order) return json({ error: 'order_not_found', order_id: id }, 404, cors);
 
   const ext = (proof.name || 'proof').split('.').pop() || 'bin';
   const r2Key = `${id}/${Date.now()}.${ext}`;
 
-  // Upload file vào R2
+  // Upload file vào R2 (dùng ArrayBuffer để tương thích tốt hơn).
   let r2ok = false;
-  if (env.PROOFS) {
-    try {
-      await env.PROOFS.put(r2Key, proof.stream(), {
-        httpMetadata: { contentType: proof.type || 'application/octet-stream' },
-        customMetadata: { orderId: id, originalName: proof.name || 'proof', uploadedAt: new Date().toISOString() },
-      });
-      r2ok = true;
-    } catch (e) { r2ok = false; }
+  let r2Err = '';
+  try {
+    const buf = await proof.arrayBuffer();
+    await env.PROOFS.put(r2Key, buf, {
+      httpMetadata: { contentType: proof.type || 'application/octet-stream' },
+      customMetadata: { orderId: id, originalName: proof.name || 'proof', uploadedAt: new Date().toISOString() },
+    });
+    r2ok = true;
+  } catch (e) {
+    r2Err = String(e && e.message || e);
+    r2ok = false;
   }
+  if (!r2ok) return json({ error: 'r2_upload_failed', message: r2Err || 'unknown_error' }, 500, cors);
 
   // Cập nhật đơn hàng trong KV
-  if (env.ORDERS) {
-    const o = await env.ORDERS.get(id, { type: 'json' });
-    if (o) {
-      o.proof = { name: proof.name || 'proof', size: proof.size, r2Key, at: new Date().toISOString() };
-      o.status = (o.status === 'awaiting_payment' || o.status === 'created') ? 'proof_uploaded' : o.status;
-      o.updated_at = new Date().toISOString();
-      o.history.push({ at: o.updated_at, status: o.status, note: 'proof uploaded to R2' });
-      await env.ORDERS.put(id, JSON.stringify(o));
-    }
-  }
+  order.proof = { name: proof.name || 'proof', size: proof.size, r2Key, at: new Date().toISOString() };
+  order.status = (order.status === 'awaiting_payment' || order.status === 'created') ? 'proof_uploaded' : order.status;
+  order.updated_at = new Date().toISOString();
+  order.history.push({ at: order.updated_at, status: order.status, note: 'proof uploaded to R2' });
+  await env.ORDERS.put(id, JSON.stringify(order));
   return json({ ok: true, order_id: id, r2: r2ok, key: r2Key }, 200, cors);
 }
 

@@ -896,22 +896,44 @@ function submitOrder(){
     Bankverbindung: `Name: ${BANK.name} | IBAN: ${BANK.iban}`
   };
 
-  // Gửi thẳng Web3Forms để báo admin (luôn chạy, không phụ thuộc Worker)
+  // Gửi thẳng Web3Forms để báo admin (không chặn luồng nếu fail).
   const notifyAdmin = ()=> fetch('https://api.web3forms.com/submit', {
     method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'},
     body: JSON.stringify(payload)
   }).then(r=>r.json()).catch(()=>null);
 
-  // Nếu có Worker → gửi qua Worker để kích hoạt email xác nhận Brevo (+ lưu đơn).
+  // Worker là bước quan trọng: phải thành công thì mới mở bước upload chứng từ.
   const callWorker = ()=> WORKER_URL ? fetch(WORKER_URL.replace(/\/$/,'') + '/order', {
     method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'},
     body: JSON.stringify({ orderId, name, email, items: cart.map(c=>({name:c.name,variant:c.variant,qty:c.qty,price:c.price})), total, lines })
-  }).then(r=>r.json()).catch(()=>null) : Promise.resolve(null);
+  }).then(async (r)=>{
+    const data = await r.json().catch(()=>null);
+    return { ok:r.ok, status:r.status, data };
+  }).catch((e)=>({ ok:false, status:0, error:String(e && e.message || e) })) : Promise.resolve({ ok:false, status:0, error:'no_worker_url' });
 
-  // Chạy song song: báo admin (Web3Forms) + email khách (Brevo qua Worker).
-  Promise.allSettled([notifyAdmin(), callWorker()])
-    .then(()=> showSuccess())
-    .catch(()=> showSuccess());
+  callWorker().then((res)=>{
+    // luôn thử báo admin, nhưng không chặn giao diện
+    notifyAdmin().catch(()=>{});
+
+    if(!res || !res.ok){
+      submitBtn.disabled=false;
+      submitBtn.innerHTML='<i class="fa-solid fa-paper-plane"></i>'+I18N.t('cm.submit');
+      showToast(I18N.t('proof.failed'));
+      return;
+    }
+    // Worker thành công nhưng Brevo lỗi -> báo rõ để user xử lý.
+    if(res.data && res.data.brevo && res.data.brevo.ok === false){
+      submitBtn.disabled=false;
+      submitBtn.innerHTML='<i class="fa-solid fa-paper-plane"></i>'+I18N.t('cm.submit');
+      showToast('Brevo fehlgeschlagen (' + (res.data.brevo.status || 'error') + ')');
+      return;
+    }
+    showSuccess();
+  }).catch(()=>{
+    submitBtn.disabled=false;
+    submitBtn.innerHTML='<i class="fa-solid fa-paper-plane"></i>'+I18N.t('cm.submit');
+    showToast(I18N.t('proof.failed'));
+  });
 }
 
 // ── Bằng chứng thanh toán (BẮT BUỘC) ───────────────────────────────
@@ -961,13 +983,14 @@ async function confirmAndSendProof(){
     const fileInfo = CURRENT_PROOF_FILE.name + ' (' + (CURRENT_PROOF_FILE.size/1024).toFixed(0) + ' KB)';
     let r2ok = false;
 
-    // 1) Try uploading proof to Cloudflare R2 via Worker
-    try{
-      const fd = new FormData();
-      fd.append('proof', CURRENT_PROOF_FILE);
-      const uploadRes = await fetch(WORKER_URL.replace(/\/$/,'') + '/order/' + encodeURIComponent(o.orderId) + '/proof', { method:'POST', body: fd });
-      r2ok = uploadRes.ok;
-    }catch(e){ r2ok = false; }
+    // 1) Upload proof to Cloudflare R2 via Worker (must be successful)
+    let uploadData = null;
+    const fd = new FormData();
+    fd.append('proof', CURRENT_PROOF_FILE);
+    const uploadRes = await fetch(WORKER_URL.replace(/\/$/,'') + '/order/' + encodeURIComponent(o.orderId) + '/proof', { method:'POST', body: fd });
+    uploadData = await uploadRes.json().catch(()=>null);
+    r2ok = !!(uploadRes.ok && uploadData && uploadData.ok && uploadData.r2 === true);
+    if(!r2ok) throw new Error('r2_upload_failed');
 
     // 2) Read file as base64 for Web3Forms fallback
     const b64 = await new Promise(resolve=>{
@@ -985,7 +1008,7 @@ async function confirmAndSendProof(){
       OrderID: o.orderId, Kundenname: o.name || '', 'Kunden-Email': o.email || '',
       Bestellung: o.lines || '', Gesamtsumme: `€${o.total}`,
       Zahlungsbeleg: fileInfo,
-      R2_Upload: r2ok ? 'OK — /order/' + o.orderId + '/proof' : 'Fehlgeschlagen'
+      R2_Upload: 'OK — /order/' + o.orderId + '/proof'
     };
     if(b64 && b64.length < 100000) w3payload['Beleg_Base64'] = b64;
     await fetch('https://api.web3forms.com/submit', {
