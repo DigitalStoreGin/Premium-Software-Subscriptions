@@ -11,11 +11,12 @@ Brevo → **Senders, Domains & Dedicated IPs → Senders → Add a sender** → 
 (vd `no-reply@domain` hoặc Gmail). Đặt qua `wrangler secret put BREVO_SENDER_EMAIL`.
 
 ## Cách A — Worker render HTML (mặc định, KHÔNG cần tạo template trên Brevo)
-Worker `backend/worker.js` hàm `renderEmail()` đã dựng sẵn email:
+Worker `backend/worker.js` hàm `renderEmail()` dựng email **theo cấu hình online** (KV key `__email_config`):
 - **Top:** sản phẩm khách mua (động) + Gesamtsumme.
-- **Middle:** 8 sản phẩm gợi ý tĩnh.
-- **Bottom:** khối "Persönlicher Support" + nút `mailto:cfvblue@gmail.com`.
-Gửi qua `htmlContent`. Không cần làm gì thêm trên Brevo ngoài API key + sender.
+- **Middle:** mục "Das könnte Sie auch interessieren" (do bạn tự sửa trong `/admin/`).
+- **Bottom:** khối "Persönlicher Support" + nút email hỗ trợ.
+Bạn sửa lời cảm ơn, danh sách sản phẩm gợi ý, chữ ký… tại `/admin/` → lưu → email khách tự đổi theo.
+Không cần làm gì thêm trên Brevo ngoài API key + sender đã verify.
 
 ## Cách B — Brevo Template (nếu bạn thích quản lý template trên dashboard)
 1. Brevo → **Campaigns → Templates → New template** (Drag & Drop hoặc Code your own).

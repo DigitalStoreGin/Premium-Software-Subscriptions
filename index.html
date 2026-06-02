@@ -10,7 +10,7 @@
   gtag('config', 'G-6H1MSN5KY9');
 </script>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="format-detection" content="telephone=no,date=no,email=no,address=no">
 <title data-i18n="meta.title">DigitalStore — Premium Software & Subscriptions</title>
 <meta name="description" content="Premium digitale Abonnements & Software-Lizenzen zum besten Preis. Mit voller Garantie und sofortiger Lieferung." data-i18n-attr="content:meta.desc">
@@ -418,15 +418,6 @@
       <button class="modal-close" onclick="closeSuccessModal()" aria-label="Schließen"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="modal-body">
-      <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:14px 16px;margin-bottom:14px;display:flex;align-items:center;gap:10px">
-        <i class="fa-solid fa-hashtag" style="color:#3b82f6"></i>
-        <div style="flex:1">
-          <div style="font-size:11px;font-weight:700;color:#1e3a8a;letter-spacing:.05em" data-i18n="sm.orderIdLbl">BESTELLNUMMER</div>
-          <div style="font-family:ui-monospace,monospace;font-size:16px;font-weight:700;color:#1e3a8a" id="successOrderId">—</div>
-        </div>
-        <button class="copy-btn" data-copy-orderid data-copy="" title="Kopieren"><i class="fa-regular fa-copy"></i></button>
-      </div>
-
       <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:14px 16px;margin-bottom:18px;font-size:13px;color:#166534;line-height:1.5">
         <i class="fa-solid fa-circle-info" style="margin-right:6px"></i>
         <span data-i18n-html="sm.info">Bitte überweise den Betrag per SEPA. Nach Zahlungseingang erhältst du deine Zugangsdaten innerhalb von <strong>5–30 Minuten</strong> per E-Mail.</span>
@@ -451,22 +442,21 @@
         </div>
         <div class="bank-row" style="display:flex;flex-direction:column;gap:8px;align-items:flex-start">
           <span class="lbl" data-i18n="sm.l_ref">Verwendungszweck</span>
-          <span class="val ref" style="font-family:ui-monospace,monospace;font-weight:700"><span id="successRef">—</span></span>
-          <small style="grid-column:unset;margin-top:0;color:var(--text-3);font-size:12px;background:none;border:none;border-left:none;padding:0" data-i18n="sm.refHint">Bitte die Bestellnummer als Verwendungszweck angeben — wir ordnen die Zahlung damit zu.</small>
+          <span class="val ref"><span data-i18n="sm.ref1">Produktname +</span> <strong data-i18n="sm.ref2">Ihr Name</strong></span>
+          <small style="grid-column:unset;margin-top:0;color:var(--text-3);font-size:12px;background:none;border:none;border-left:none;padding:0" data-i18n="sm.example">z.B. „Microsoft – Max Mustermann"</small>
         </div>
       </div>
 
       <div style="margin-top:18px;padding-top:14px;border-top:1px dashed var(--line)">
-        <div class="section-title" data-i18n="proof.title">Zahlungsbeleg hochladen (optional)</div>
-        <p style="font-size:12px;color:var(--text-3);margin:4px 0 10px" data-i18n="proof.help">Beleg/Screenshot der SEPA-Überweisung hochladen — wir bestätigen schneller. Max 4 MB.</p>
-        <label style="display:flex;gap:8px;align-items:center">
-          <input type="file" id="proofFile" accept="image/*,.pdf" style="flex:1;font-size:12px">
-          <button id="uploadProofBtn" class="btn btn-ghost" onclick="uploadPaymentProof(document.getElementById('proofFile').files[0])"><i class="fa-solid fa-upload"></i><span data-i18n="proof.btn">Hochladen</span></button>
-        </label>
+        <div class="section-title" style="color:var(--text)"><i class="fa-solid fa-receipt" style="margin-right:6px;color:#3b82f6"></i><span data-i18n="proof.title">Zahlungsbeleg hochladen</span> <span style="color:#dc2626">*</span></div>
+        <p style="font-size:12px;color:var(--text-3);margin:4px 0 10px" data-i18n="proof.help">Beleg oder Screenshot der SEPA-Überweisung (PNG, JPG oder PDF, max. 4 MB) hochladen. Erforderlich, damit wir deine Zahlung bestätigen können.</p>
+        <input type="file" id="proofFile" accept="image/png,image/jpeg,image/jpg,application/pdf" style="width:100%;font-size:13px;padding:8px;border:1px dashed var(--line);border-radius:8px;background:var(--bg-2)" onchange="onProofSelected(this.files[0])">
+        <div id="proofFileName" style="font-size:12px;color:var(--success);margin-top:8px;display:none"><i class="fa-solid fa-circle-check" style="margin-right:4px"></i><span></span></div>
       </div>
     </div>
-    <div class="modal-foot" style="justify-content:center">
-      <button class="btn btn-primary" onclick="closeSuccessModal()" style="padding:10px 28px"><i class="fa-solid fa-check"></i><span data-i18n="sm.ok">Verstanden</span></button>
+    <div class="modal-foot" style="justify-content:center;flex-direction:column;gap:8px">
+      <button id="confirmSentBtn" class="btn btn-primary" onclick="confirmAndSendProof()" style="padding:10px 28px" disabled><i class="fa-solid fa-paper-plane"></i><span data-i18n="sm.ok">Ich habe es gesendet</span></button>
+      <small id="proofHint" style="color:var(--text-3);font-size:12px;text-align:center" data-i18n="proof.required">Bitte lade zuerst den Zahlungsbeleg hoch.</small>
     </div>
   </div>
 </div>
@@ -478,7 +468,6 @@
 <button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Nach oben" data-i18n-attr="aria-label:common.scrolltop">
   <i class="fa-solid fa-arrow-up"></i>
 </button>
-<script src="js/presets.js"></script>
 <script src="js/app.js"></script>
 <!-- Cloudflare Web Analytics -->
 <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "b2ee46c9497c4b15af60b809cd01e14b"}'></script>

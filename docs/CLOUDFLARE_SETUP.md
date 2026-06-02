@@ -42,14 +42,27 @@ git add -A && git commit -m "order automation" && git push
 ```
 Đợi GitHub Pages build ~1 phút.
 
-## Test
-- Đặt 1 đơn thử với email của bạn → kiểm Brevo email + Web3Forms.
-- Admin orders: mở `/admin/orders.html`, dán Worker URL + ADMIN_TOKEN → thấy đơn.
+## Test (đúng quy trình khách)
+1. Mở URL GitHub Pages của bạn.
+2. Thêm 1 sản phẩm vào giỏ → "Bestellung abschicken".
+3. Nhập Tên + Email của bạn → "Bestellung absenden".
+   - **Email admin (Web3Forms)** đến NGAY (không cần Worker).
+   - **Email xác nhận khách (Brevo)** đến nếu Worker + secret Brevo đã cấu hình.
+4. Trong cửa sổ thành công: upload 1 file bằng chứng (PNG/JPG/PDF) → "Ich habe es gesendet".
+   - Admin nhận email thứ 2 kèm file đính kèm.
+5. Mở admin `/admin/` → sửa nội dung email → Lưu → đặt đơn lại để thấy email khách đổi theo.
 
-## Sự cố
-| Lỗi | Sửa |
+## Kiểm tra nhanh /config
+```bash
+curl https://store.tdh1812.workers.dev/config           # → {"ok":true,"config":{...}}
+curl https://store.tdh1812.workers.dev/order/NONE        # → {"error":"not_found"} là OK
+```
+
+## Khắc phục sự cố
+| Triệu chứng | Nguyên nhân & cách sửa |
 |-----|-----|
-| CORS | sửa `ALLOWED_ORIGIN` trong wrangler.toml rồi deploy lại |
-| 401 /orders | sai `x-admin-token` |
-| 500 storage_unavailable | KV id sai trong wrangler.toml |
-| Brevo không gửi | sender chưa verify trên Brevo |
+| Admin KHÔNG nhận đơn | Web3Forms key sai. Kiểm `WEB3FORMS_KEY` trong `js/app.js`, hoặc access_key trên web3forms.com. |
+| Khách KHÔNG nhận email xác nhận | Worker chưa deploy / chưa set `BREVO_API_KEY` + `BREVO_SENDER_EMAIL`, hoặc **sender chưa verify** trên Brevo. Mở DevTools → Network → POST `/order` → xem trường `brevo` trong response (`ok:false` + `status`/`body` cho biết lý do). |
+| CORS bị chặn | `ALLOWED_ORIGIN` trong wrangler.toml phải khớp origin GitHub Pages (vd `https://digitalstoregin.github.io`) → deploy lại. |
+| 401 khi lưu /config | sai `x-admin-token` (phải khớp secret `ADMIN_TOKEN`). |
+| 500 storage_unavailable | KV id sai trong wrangler.toml. |

@@ -54,14 +54,13 @@ const I18N = (function(){
       'sm.title':'Bestellung erfolgreich!','sm.thanks':'Vielen Dank,','sm.sent':'! Deine Bestellung wurde gesendet.',
       'sm.info':'Bitte überweise den Betrag per SEPA. Nach Zahlungseingang erhältst du deine Zugangsdaten innerhalb von <strong>5–30 Minuten</strong> per E-Mail.',
       'sm.bank':'Bankverbindung (SEPA)','sm.l_name':'Name','sm.l_amount':'Betrag','sm.l_ref':'Verwendungszweck',
-      'sm.ref1':'Produktname +','sm.ref2':'Ihr Name','sm.example':'z.B. „Microsoft – Max Mustermann"','sm.ok':'Verstanden',
+      'sm.ref1':'Produktname +','sm.ref2':'Ihr Name','sm.example':'z.B. „Microsoft – Max Mustermann"','sm.ok':'Ich habe es gesendet',
       'common.close':'Schließen','common.back':'Zurück','common.copy':'Kopieren','common.scrolltop':'Nach oben',
       'toast.added':'Hinzugefügt','toast.added_suffix':'hinzugefügt','toast.empty':'Warenkorb ist leer',
       'toast.amount_copied':'Betrag kopiert','toast.clipboard':'In Zwischenablage kopiert','toast.copied':'Kopiert','toast.copy_fail':'Kopieren fehlgeschlagen',
       'toast.order_copied':'Bestellung kopiert','toast.no_name':'Bitte gib deinen Namen ein','toast.no_email':'Bitte gib eine gültige E-Mail ein','toast.sending':'Wird gesendet…',
-      'sm.orderIdLbl':'BESTELLNUMMER','sm.refHint':'Bitte die Bestellnummer als Verwendungszweck angeben — wir ordnen die Zahlung damit zu.',
-      'proof.title':'Zahlungsbeleg hochladen (optional)','proof.help':'Beleg oder Screenshot der SEPA-Überweisung hochladen — wir bestätigen schneller. Max. 4 MB.','proof.btn':'Hochladen','proof.needOrder':'Bestellnummer fehlt','proof.tooBig':'Datei zu groß (max 4 MB)','proof.sent':'Beleg gesendet ✓','proof.done':'Gesendet','proof.failed':'Senden fehlgeschlagen',
-      'email.subject':'Neue Bestellung',
+      'proof.title':'Zahlungsbeleg hochladen','proof.help':'Beleg oder Screenshot der SEPA-Überweisung (PNG, JPG oder PDF, max. 4 MB) hochladen. Erforderlich, damit wir deine Zahlung bestätigen können.','proof.required':'Bitte lade zuerst den Zahlungsbeleg hoch.','proof.badType':'Nur PNG, JPG oder PDF erlaubt.','proof.btn':'Hochladen','proof.needOrder':'Bestellnummer fehlt','proof.tooBig':'Datei zu groß (max. 4 MB)','proof.sent':'Beleg gesendet ✓','proof.done':'Gesendet','proof.failed':'Senden fehlgeschlagen, bitte erneut versuchen',
+      'email.subject':'Neue Bestellung','email.proofSubject':'Zahlungsbeleg',
       'email.body':'Hallo,\n\nich möchte folgende Produkte bestellen:\n\n{lines}\n\nGesamtsumme: €{total}\n\n--- Zahlung erfolgt per SEPA-Überweisung auf: ---\nName: {name}\nIBAN: {iban}\nVerwendungszweck: Produktname + Mein Name\n\nVielen Dank!'
     },
     en:{
@@ -115,14 +114,13 @@ const I18N = (function(){
       'sm.title':'Order successful!','sm.thanks':'Thank you,','sm.sent':'! Your order has been sent.',
       'sm.info':'Please transfer the amount via SEPA. After payment is received you will get your credentials by email within <strong>5–30 minutes</strong>.',
       'sm.bank':'Bank details (SEPA)','sm.l_name':'Name','sm.l_amount':'Amount','sm.l_ref':'Reference',
-      'sm.ref1':'Product name +','sm.ref2':'your name','sm.example':'e.g. "Microsoft – John Doe"','sm.ok':'Got it',
+      'sm.ref1':'Product name +','sm.ref2':'your name','sm.example':'e.g. "Microsoft – John Doe"','sm.ok':"I've sent it",
       'common.close':'Close','common.back':'Back','common.copy':'Copy','common.scrolltop':'Scroll to top',
       'toast.added':'Added','toast.added_suffix':'added','toast.empty':'Cart is empty',
       'toast.amount_copied':'Amount copied','toast.clipboard':'Copied to clipboard','toast.copied':'Copied','toast.copy_fail':'Copy failed',
       'toast.order_copied':'Order copied','toast.no_name':'Please enter your name','toast.no_email':'Please enter a valid email','toast.sending':'Sending…',
-      'sm.orderIdLbl':'ORDER NUMBER','sm.refHint':'Please use the order number as the SEPA reference — that\'s how we match your payment.',
-      'proof.title':'Upload payment proof (optional)','proof.help':'Upload a receipt or screenshot of the SEPA transfer — we\'ll confirm faster. Max 4 MB.','proof.btn':'Upload','proof.needOrder':'Order number missing','proof.tooBig':'File too large (max 4 MB)','proof.sent':'Proof sent ✓','proof.done':'Sent','proof.failed':'Upload failed',
-      'email.subject':'New order',
+      'proof.title':'Upload payment proof','proof.help':'Upload a receipt or screenshot of the SEPA transfer (PNG, JPG or PDF, max. 4 MB). Required so we can confirm your payment.','proof.required':'Please upload the payment proof first.','proof.badType':'Only PNG, JPG or PDF allowed.','proof.btn':'Upload','proof.needOrder':'Order number missing','proof.tooBig':'File too large (max. 4 MB)','proof.sent':'Proof sent ✓','proof.done':'Sent','proof.failed':'Sending failed, please try again',
+      'email.subject':'New order','email.proofSubject':'Payment proof',
       'email.body':'Hello,\n\nI would like to order the following products:\n\n{lines}\n\nTotal: €{total}\n\n--- Payment will be made via SEPA bank transfer to: ---\nName: {name}\nIBAN: {iban}\nReference: Product name + My name\n\nThank you!'
     },
     ru:{
@@ -176,14 +174,13 @@ const I18N = (function(){
       'sm.title':'Заказ успешно оформлен!','sm.thanks':'Спасибо,','sm.sent':'! Ваш заказ отправлен.',
       'sm.info':'Пожалуйста, переведите сумму через SEPA. После поступления оплаты вы получите данные для входа на email в течение <strong>5–30 минут</strong>.',
       'sm.bank':'Банковские реквизиты (SEPA)','sm.l_name':'Имя','sm.l_amount':'Сумма','sm.l_ref':'Назначение',
-      'sm.ref1':'Название продукта +','sm.ref2':'ваше имя','sm.example':'напр. «Microsoft – Иван Иванов»','sm.ok':'Понятно',
+      'sm.ref1':'Название продукта +','sm.ref2':'ваше имя','sm.example':'напр. «Microsoft – Иван Иванов»','sm.ok':'Я отправил(а)',
       'common.close':'Закрыть','common.back':'Назад','common.copy':'Копировать','common.scrolltop':'Наверх',
       'toast.added':'Добавлено','toast.added_suffix':'добавлено','toast.empty':'Корзина пуста',
       'toast.amount_copied':'Сумма скопирована','toast.clipboard':'Скопировано в буфер','toast.copied':'Скопировано','toast.copy_fail':'Не удалось скопировать',
       'toast.order_copied':'Заказ скопирован','toast.no_name':'Пожалуйста, введите ваше имя','toast.no_email':'Пожалуйста, введите корректный email','toast.sending':'Отправка…',
-      'sm.orderIdLbl':'НОМЕР ЗАКАЗА','sm.refHint':'Пожалуйста, укажите номер заказа в назначении SEPA-платежа — так мы быстро сопоставим вашу оплату.',
-      'proof.title':'Загрузить подтверждение оплаты (необязательно)','proof.help':'Загрузите чек или скриншот SEPA-перевода — мы подтвердим быстрее. Макс. 4 МБ.','proof.btn':'Загрузить','proof.needOrder':'Не указан номер заказа','proof.tooBig':'Файл слишком большой (макс 4 МБ)','proof.sent':'Чек отправлен ✓','proof.done':'Отправлено','proof.failed':'Не удалось загрузить',
-      'email.subject':'Новый заказ',
+      'proof.title':'Загрузить подтверждение оплаты','proof.help':'Загрузите чек или скриншот SEPA-перевода (PNG, JPG или PDF, макс. 4 МБ). Необходимо, чтобы мы подтвердили вашу оплату.','proof.required':'Сначала загрузите подтверждение оплаты.','proof.badType':'Разрешены только PNG, JPG или PDF.','proof.btn':'Загрузить','proof.needOrder':'Не указан номер заказа','proof.tooBig':'Файл слишком большой (макс. 4 МБ)','proof.sent':'Чек отправлен ✓','proof.done':'Отправлено','proof.failed':'Не удалось отправить, попробуйте ещё раз',
+      'email.subject':'Новый заказ','email.proofSubject':'Подтверждение оплаты',
       'email.body':'Здравствуйте,\n\nпрошу оформить следующий заказ:\n\n{lines}\n\nИтого: €{total}\n\n--- Оплата будет произведена через SEPA-перевод на: ---\nИмя: {name}\nIBAN: {iban}\nНазначение: Название продукта + Моё имя\n\nСпасибо!'
     }
   };
@@ -641,6 +638,8 @@ const BANK = {name:'Dong Huy Truong', iban:'BE05 9675 8234 0775'};
 const WORKER_URL = 'https://store.tdh1812.workers.dev';
 
 let CURRENT_ORDER_ID = ''; // giữ Order ID đang xử lý để upload bằng chứng dùng lại
+let CURRENT_ORDER = null;  // toàn bộ dữ liệu đơn hiện tại (để gửi kèm bằng chứng)
+let CURRENT_PROOF_FILE = null; // file bằng chứng khách đã chọn
 
 function generateOrderId(){
   const d = new Date();
@@ -860,9 +859,11 @@ function submitOrder(){
   if(!email || !email.includes('@')){ showToast(I18N.t('toast.no_email')); return; }
   const orderId = generateOrderId();
   CURRENT_ORDER_ID = orderId;
-  const orderText = buildOrderText();
   const total = cart.reduce((s,c)=>s+c.qty*c.price,0).toFixed(2);
   const lines = cart.map(c=>`${c.qty}× ${c.name} (${c.variant}) = €${(c.qty*c.price).toFixed(2)}`).join('\n');
+  // Lưu lại toàn bộ thông tin đơn để gửi kèm bằng chứng ở bước xác nhận
+  CURRENT_ORDER = { orderId, name, email, total, lines, items: cart.map(c=>({name:c.name,variant:c.variant,qty:c.qty,price:c.price})) };
+  CURRENT_PROOF_FILE = null;
   const submitBtn = document.querySelector('#customerModal .btn-primary');
   submitBtn.disabled = true;
   submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>'+I18N.t('toast.sending');
@@ -874,9 +875,8 @@ function submitOrder(){
     closeCheckoutModal();
     document.getElementById('successAmount').textContent = total;
     document.getElementById('successCustomerName').textContent = name;
-    const oidEl = document.getElementById('successOrderId'); if(oidEl) oidEl.textContent = orderId;
-    const oidBtn = document.querySelector('[data-copy-orderid]'); if(oidBtn) oidBtn.setAttribute('data-copy', orderId);
-    const refEl = document.getElementById('successRef'); if(refEl) refEl.textContent = orderId;
+    // reset trạng thái upload bằng chứng (bắt buộc trước khi xác nhận)
+    resetProofUI();
     document.getElementById('successModal').classList.add('open');
     lockBodyScroll();
   };
@@ -894,54 +894,102 @@ function submitOrder(){
     Bankverbindung: `Name: ${BANK.name} | IBAN: ${BANK.iban}`
   };
 
-  // Nếu có Worker → gửi qua Worker (Brevo + lưu đơn + Web3Forms). Không có → Web3Forms trực tiếp.
-  const endpoint = WORKER_URL ? (WORKER_URL.replace(/\/$/,'') + '/order') : 'https://api.web3forms.com/submit';
-  const body = WORKER_URL
-    ? JSON.stringify({ orderId, name, email, items: cart.map(c=>({name:c.name,variant:c.variant,qty:c.qty,price:c.price})), total, lines })
-    : JSON.stringify(payload);
+  // Gửi thẳng Web3Forms để báo admin (luôn chạy, không phụ thuộc Worker)
+  const notifyAdmin = ()=> fetch('https://api.web3forms.com/submit', {
+    method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'},
+    body: JSON.stringify(payload)
+  }).then(r=>r.json()).catch(()=>null);
 
-  fetch(endpoint, {
-    method:'POST',
-    headers:{'Content-Type':'application/json','Accept':'application/json'},
-    body
-  })
-  .then(r=>r.json())
-  .then(()=> showSuccess())
-  .catch(()=>{
-    submitBtn.disabled=false;
-    submitBtn.innerHTML='<i class="fa-solid fa-paper-plane"></i>'+I18N.t('cm.submit');
-    const fallbackBody = `Order ID: ${orderId}\n\n` + orderText + `\n\n--- Kundendaten ---\nName: ${name}\nE-Mail: ${email}`;
-    window.location.href = `mailto:${ORDER_EMAIL}?subject=${encodeURIComponent(I18N.t('email.subject')+' '+orderId+' — '+name)}&body=${encodeURIComponent(fallbackBody)}`;
-    showSuccess();
-  });
+  // Nếu có Worker → gửi qua Worker để kích hoạt email xác nhận Brevo (+ lưu đơn).
+  const callWorker = ()=> WORKER_URL ? fetch(WORKER_URL.replace(/\/$/,'') + '/order', {
+    method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'},
+    body: JSON.stringify({ orderId, name, email, items: cart.map(c=>({name:c.name,variant:c.variant,qty:c.qty,price:c.price})), total, lines })
+  }).then(r=>r.json()).catch(()=>null) : Promise.resolve(null);
+
+  // Chạy song song: báo admin (Web3Forms) + email khách (Brevo qua Worker).
+  Promise.allSettled([notifyAdmin(), callWorker()])
+    .then(()=> showSuccess())
+    .catch(()=> showSuccess());
 }
 
-// Upload bằng chứng thanh toán: gửi file qua Web3Forms (multipart) hoặc Worker
-async function uploadPaymentProof(file){
-  if(!file || !CURRENT_ORDER_ID){ showToast(I18N.t('proof.needOrder')); return; }
-  if(file.size > 4*1024*1024){ showToast(I18N.t('proof.tooBig')); return; }
-  const btn = document.getElementById('uploadProofBtn'); if(btn){ btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> '+I18N.t('toast.sending'); }
+// ── Bằng chứng thanh toán (BẮT BUỘC) ───────────────────────────────
+// Reset giao diện upload mỗi lần mở modal thành công
+function resetProofUI(){
+  CURRENT_PROOF_FILE = null;
+  const input = document.getElementById('proofFile'); if(input) input.value='';
+  const nameBox = document.getElementById('proofFileName'); if(nameBox){ nameBox.style.display='none'; nameBox.querySelector('span').textContent=''; }
+  const btn = document.getElementById('confirmSentBtn');
+  if(btn){ btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-paper-plane"></i><span data-i18n="sm.ok">'+I18N.t('sm.ok')+'</span>'; }
+  const hint = document.getElementById('proofHint'); if(hint){ hint.style.display='block'; hint.textContent=I18N.t('proof.required'); hint.style.color='var(--text-3)'; }
+}
+
+// Khi khách chọn file: kiểm tra định dạng + dung lượng, rồi mở khoá nút xác nhận
+function onProofSelected(file){
+  const btn = document.getElementById('confirmSentBtn');
+  const nameBox = document.getElementById('proofFileName');
+  const hint = document.getElementById('proofHint');
+  CURRENT_PROOF_FILE = null;
+  if(btn) btn.disabled = true;
+  if(!file) return;
+  const okType = /^image\/(png|jpe?g)$/i.test(file.type) || file.type==='application/pdf' || /\.(png|jpe?g|pdf)$/i.test(file.name);
+  if(!okType){ showToast(I18N.t('proof.badType')); if(nameBox) nameBox.style.display='none'; return; }
+  if(file.size > 4*1024*1024){ showToast(I18N.t('proof.tooBig')); if(nameBox) nameBox.style.display='none'; return; }
+  CURRENT_PROOF_FILE = file;
+  if(nameBox){ nameBox.style.display='block'; nameBox.querySelector('span').textContent = file.name; }
+  if(hint){ hint.style.display='none'; }
+  if(btn) btn.disabled = false;
+}
+
+// Nút "Ich habe es gesendet": gửi LẠI toàn bộ thông tin đơn + file bằng chứng (multipart) → admin
+async function confirmAndSendProof(){
+  if(!CURRENT_PROOF_FILE){ showToast(I18N.t('proof.required')); return; }
+  const o = CURRENT_ORDER || { orderId: CURRENT_ORDER_ID, name:'', email:'', total:'0.00', lines:'' };
+  const btn = document.getElementById('confirmSentBtn');
+  if(btn){ btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> '+I18N.t('toast.sending'); }
+
+  // đọc file thành base64 để nhúng vào message (Web3Forms free không hỗ trợ attachment multipart)
+  const readFileB64 = (file)=> new Promise((resolve)=>{
+    const reader = new FileReader();
+    reader.onload = ()=> resolve(reader.result);
+    reader.onerror = ()=> resolve(null);
+    reader.readAsDataURL(file);
+  });
+
   try{
+    const fileInfo = CURRENT_PROOF_FILE.name + ' (' + (CURRENT_PROOF_FILE.size/1024).toFixed(0) + ' KB)';
+
+    // Gửi thông tin đơn + thông tin file qua Web3Forms JSON (luôn hoạt động)
+    const payload = {
+      access_key: WEB3FORMS_KEY,
+      subject: `${I18N.t('email.proofSubject')} ${o.orderId} — ${o.name}`,
+      from_name: o.name || 'Kunde',
+      replyto: o.email || '',
+      OrderID: o.orderId,
+      Kundenname: o.name || '',
+      'Kunden-Email': o.email || '',
+      Bestellung: o.lines || '',
+      Gesamtsumme: `€${o.total}`,
+      Bankverbindung: `Name: ${BANK.name} | IBAN: ${BANK.iban}`,
+      Zahlungsbeleg: fileInfo,
+      Hinweis: 'Kunde hat den Betrag überwiesen und den Zahlungsbeleg hochgeladen.'
+    };
+    const r = await fetch('https://api.web3forms.com/submit', {
+      method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'},
+      body: JSON.stringify(payload)
+    });
+    if(!r.ok) throw new Error('HTTP '+r.status);
+
+    // báo Worker cập nhật trạng thái + đính kèm file thật (best-effort)
     if(WORKER_URL){
-      const fd = new FormData();
-      fd.append('orderId', CURRENT_ORDER_ID);
-      fd.append('proof', file);
-      await fetch(WORKER_URL.replace(/\/$/,'') + '/order/' + encodeURIComponent(CURRENT_ORDER_ID) + '/proof', { method:'POST', body: fd });
-    } else {
-      // Web3Forms hỗ trợ multipart attachment
-      const fd = new FormData();
-      fd.append('access_key', WEB3FORMS_KEY);
-      fd.append('subject', `Zahlungsbeleg — ${CURRENT_ORDER_ID}`);
-      fd.append('OrderID', CURRENT_ORDER_ID);
-      fd.append('message', `Bằng chứng thanh toán cho đơn ${CURRENT_ORDER_ID}`);
-      fd.append('attachment', file);
-      await fetch('https://api.web3forms.com/submit', { method:'POST', body: fd });
+      const fd2 = new FormData(); fd2.append('proof', CURRENT_PROOF_FILE);
+      fetch(WORKER_URL.replace(/\/$/,'') + '/order/' + encodeURIComponent(o.orderId) + '/proof', { method:'POST', body: fd2 }).catch(()=>{});
     }
     showToast(I18N.t('proof.sent'));
     if(btn){ btn.innerHTML='<i class="fa-solid fa-check"></i> '+I18N.t('proof.done'); }
+    setTimeout(closeSuccessModal, 900);
   }catch(e){
     showToast(I18N.t('proof.failed'));
-    if(btn){ btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-upload"></i> '+I18N.t('proof.btn'); }
+    if(btn){ btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-paper-plane"></i><span>'+I18N.t('sm.ok')+'</span>'; }
   }
 }
 

@@ -3,7 +3,7 @@
 ## Từ bản monolith → bản tách module
 File `index.html` cũ (1.8 MB) đã tách:
 - CSS → `css/style.css`
-- JS  → `js/app.js` (+ `js/presets.js`)
+- JS  → `js/app.js`
 - `index.html` còn ~430 KB, **phải ở gốc repo**.
 
 ### Các bước
@@ -19,4 +19,4 @@ File `index.html` cũ (1.8 MB) đã tách:
 Vì JS/CSS dùng đường dẫn tương đối (`css/...`, `js/...`), nếu Pages chạy ở subpath `/Repo/` vẫn đúng vì `index.html` ở gốc repo. Nếu bạn đặt site ở thư mục con khác, kiểm lại đường dẫn.
 
 ### Không mất dữ liệu
-`products.json` giữ nguyên. Admin sản phẩm hoạt động như cũ. Admin đơn hàng là trang mới `admin/orders.html`.
+`products.json` giữ nguyên. Admin hiện là trang sửa mẫu email online `admin/index.html` (lưu qua Worker `/config`).

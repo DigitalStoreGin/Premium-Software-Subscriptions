@@ -13,8 +13,10 @@ Cửa hàng phần mềm trên GitHub Pages + tự động hoá đơn hàng qua 
 Xem `PROJECT_MAP.md`.
 
 ## Quản lý
-- Sản phẩm: `/admin/` (mật khẩu admin).
-- Đơn hàng: `/admin/orders.html` (nhập Worker URL + ADMIN_TOKEN).
+- Mẫu email & nội dung shop: `/admin/` — đăng nhập bằng **Worker URL + ADMIN_TOKEN**, sửa lời cảm ơn,
+  mục "Das könnte Sie auch interessieren", hỗ trợ, chữ ký… Lưu online (Cloudflare KV) nên dùng được trên
+  điện thoại hoặc bất kỳ máy nào; email khách tự cập nhật theo.
+- Đơn hàng gửi về email admin qua Web3Forms (kèm bằng chứng chuyển khoản). Không còn trang quản lý đơn riêng.
 
 ## ⚠️ Bảo mật
 Brevo key từng dán trong chat ĐÃ LỘ — phải tạo key mới. Chi tiết: `SECURITY_REPORT.md`.

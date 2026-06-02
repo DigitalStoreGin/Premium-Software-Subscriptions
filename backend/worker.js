@@ -27,6 +27,12 @@ export default {
     try {
       if (url.pathname === '/order' && request.method === 'POST') return createOrder(request, env, cors);
 
+      // Email-Template / Shop-Texte (online editierbar über Admin)
+      if (url.pathname === '/config') {
+        if (request.method === 'GET') return getConfig(env, cors);
+        if (request.method === 'POST') return requireAdmin(request, env, cors, () => saveConfig(request, env, cors));
+      }
+
       const m = url.pathname.match(/^\/order\/([^\/]+)(\/proof|\/status)?$/);
       if (m) {
         const id = decodeURIComponent(m[1]); const sub = m[2];
@@ -90,48 +96,77 @@ async function createOrder(request, env, cors) {
   };
   if (env.ORDERS) await env.ORDERS.put(orderId, JSON.stringify(order));
 
-  // (A) Web3Forms — báo admin
-  const lines = norm.map(i => `${i.qty}× ${i.name}${i.variant ? ' (' + i.variant + ')' : ''} = €${num(i.qty * i.price)}`).join('\n');
-  if (env.WEB3FORMS_KEY) {
-    await fetch('https://api.web3forms.com/submit', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        access_key: env.WEB3FORMS_KEY, subject: `Neue Bestellung ${orderId} — ${name}`,
-        from_name: name, replyto: email, OrderID: orderId, Kundenname: name, 'Kunden-Email': email,
-        Bestellung: lines, Gesamtsumme: `€${num(order.total)}`, Verwendungszweck: orderId,
-      }),
-    }).catch(() => {});
-  }
-
-  // (B) Brevo — email xác nhận cho khách (HTML render sẵn, không cần Brevo template)
+  // Brevo — email xác nhận cho khách (dùng cấu hình online editierbar).
+  // Web3Forms (báo admin) do frontend gửi trực tiếp → tránh gửi trùng.
+  const cfg = await loadConfig(env);
+  let brevo = { skipped: true };
   if (env.BREVO_API_KEY && env.BREVO_SENDER_EMAIL) {
-    await fetch('https://api.brevo.com/v3/smtp/email', {
-      method: 'POST', headers: { 'Content-Type': 'application/json', 'api-key': env.BREVO_API_KEY },
-      body: JSON.stringify({
-        sender: { name: env.BREVO_SENDER_NAME || 'DigitalStore', email: env.BREVO_SENDER_EMAIL },
-        to: [{ email, name }],
-        replyTo: env.ADMIN_EMAIL ? { email: env.ADMIN_EMAIL } : undefined,
-        subject: `Bestellbestätigung ${orderId} — DigitalStore`,
-        htmlContent: renderEmail({ name, orderId, items: norm, total: order.total, supportEmail: env.SUPPORT_EMAIL || 'cfvblue@gmail.com' }),
-      }),
-    }).catch(() => {});
+    try {
+      const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'api-key': env.BREVO_API_KEY },
+        body: JSON.stringify({
+          sender: { name: env.BREVO_SENDER_NAME || cfg.brandName || 'DigitalStore', email: env.BREVO_SENDER_EMAIL },
+          to: [{ email, name }],
+          replyTo: env.ADMIN_EMAIL ? { email: env.ADMIN_EMAIL } : undefined,
+          subject: `${cfg.subject || 'Bestellbestätigung'} — ${cfg.brandName || 'DigitalStore'}`,
+          htmlContent: renderEmail({ name, items: norm, total: order.total, cfg, supportEmail: env.SUPPORT_EMAIL || cfg.supportEmail || 'cfvblue@gmail.com' }),
+        }),
+      });
+      brevo = { ok: res.ok, status: res.status };
+      if (!res.ok) brevo.body = (await res.text().catch(() => '')).slice(0, 300);
+    } catch (e) { brevo = { ok: false, error: String(e && e.message || e) }; }
   }
-  return json({ ok: true, order_id: orderId, status: order.status }, 200, cors);
+  return json({ ok: true, order_id: orderId, status: order.status, brevo }, 200, cors);
 }
 
-// 8 sản phẩm gợi ý tĩnh (đúng như mẫu email)
-const UPSELL = [
-  { n: 'Google One (Gemini Pro + 5TB)', d: 'Gemini 3.1 KI mit 1M Kontext, 5 TB Cloud, Dream Lab, Lyria 3 & Jules Agent', p: '25.00', t: '12 Monate' },
-  { n: 'Microsoft 365 Premium', d: 'Word, Excel, PowerPoint, Teams, 1 TB OneDrive, Copilot KI — bis zu 5 Geräte', p: '32.00', t: '1 Jahr' },
-  { n: 'Cursor Pro', d: 'Führender KI-Code-Editor mit Claude Opus 4.7, GPT-5.5, Gemini 2.5 Pro', p: '55.00', t: '1 Jahr' },
-  { n: 'ChatGPT Team', d: 'Unbegrenzt GPT-5, 60+ App-Integrationen, voller Datenschutz', p: '72.00', t: '6 Monate' },
-  { n: 'Claude Team Standard', d: 'KI-Codierung, Datenanalyse, Berichte & Geschäftsanwendungen', p: '72.00', t: '6 Monate' },
-  { n: 'Claude Team Premium', d: 'Claude Opus 4.7, erweiterte Limits, voller Funktionsumfang', p: '360.00', t: '6 Monate' },
-  { n: 'Adobe Creative Cloud', d: 'Photoshop, Illustrator, Premiere Pro & alle CC-Apps, 2 Geräte', p: '190.00', t: '12 Monate' },
-  { n: 'Adobe Acrobat Pro', d: 'PDF erstellen, bearbeiten, signieren & konvertieren', p: '170.00', t: '12 Monate' },
-];
+// ───────── Email-/Shop-Konfiguration (KV) ─────────
+const CONFIG_KEY = '__email_config';
+const DEFAULT_CONFIG = {
+  brandName: 'DigitalStore',
+  subject: 'Bestellbestätigung',
+  intro: 'vielen herzlichen Dank für Ihren Einkauf bei DigitalStore! Wir freuen uns sehr über Ihr Vertrauen.',
+  deliveryNote: 'Ihre Zugangsdaten bzw. Ihren Aktivierungscode erhalten Sie innerhalb von 5–30 Minuten per E-Mail. Bei Fragen stehen wir Ihnen jederzeit zur Verfügung.',
+  orderTitle: 'Ihre Bestellung',
+  totalLabel: 'Gesamtsumme',
+  upsellTitle: 'Das könnte Sie auch interessieren',
+  upsell: [
+    { n: 'Google One (Gemini Pro + 5TB)', d: 'Gemini 3.1 KI mit 1M Kontext, 5 TB Cloud, Dream Lab, Lyria 3 & Jules Agent', p: '25.00', t: '12 Monate' },
+    { n: 'Microsoft 365 Premium', d: 'Word, Excel, PowerPoint, Teams, 1 TB OneDrive, Copilot KI — bis zu 5 Geräte', p: '32.00', t: '1 Jahr' },
+    { n: 'Cursor Pro', d: 'Führender KI-Code-Editor mit Claude Opus 4.7, GPT-5.5, Gemini 2.5 Pro', p: '55.00', t: '1 Jahr' },
+    { n: 'ChatGPT Team', d: 'Unbegrenzt GPT-5, 60+ App-Integrationen, voller Datenschutz', p: '72.00', t: '6 Monate' },
+    { n: 'Claude Team Standard', d: 'KI-Codierung, Datenanalyse, Berichte & Geschäftsanwendungen', p: '72.00', t: '6 Monate' },
+    { n: 'Claude Team Premium', d: 'Claude Opus 4.7, erweiterte Limits, voller Funktionsumfang', p: '360.00', t: '6 Monate' },
+    { n: 'Adobe Acrobat Pro', d: 'PDF erstellen, bearbeiten, signieren & konvertieren', p: '170.00', t: '12 Monate' },
+    { n: 'NordVPN', d: '6 Geräte gleichzeitig, Threat Protection, No-Logs', p: '7.00', t: 'Trial 3M' },
+  ],
+  upsellNote: 'Alle genannten Produkte sind bei uns zu einem stark reduzierten Preis erhältlich — wesentlich günstiger als der offizielle Preis, mit vollem Funktionsumfang.',
+  supportTitle: 'Persönlicher Support',
+  supportText: 'Bei Fragen oder Problemen antworten wir meist innerhalb weniger Minuten. Schreiben Sie uns jederzeit.',
+  supportEmail: 'cfvblue@gmail.com',
+  signature: 'Ihr DigitalStore-Team',
+};
+async function loadConfig(env) {
+  if (!env.ORDERS) return { ...DEFAULT_CONFIG };
+  try { const c = await env.ORDERS.get(CONFIG_KEY, { type: 'json' }); return c ? { ...DEFAULT_CONFIG, ...c } : { ...DEFAULT_CONFIG }; }
+  catch { return { ...DEFAULT_CONFIG }; }
+}
+async function getConfig(env, cors) {
+  const cfg = await loadConfig(env);
+  return json({ ok: true, config: cfg }, 200, cors);
+}
+async function saveConfig(request, env, cors) {
+  let b; try { b = await request.json(); } catch { return json({ error: 'bad_json' }, 400, cors); }
+  if (!env.ORDERS) return json({ error: 'storage_unavailable' }, 500, cors);
+  const cfg = { ...DEFAULT_CONFIG, ...(b && b.config ? b.config : b) };
+  // chỉ giữ các trường hợp lệ của upsell
+  if (Array.isArray(cfg.upsell)) cfg.upsell = cfg.upsell.map(u => ({ n: String(u.n || ''), d: String(u.d || ''), p: String(u.p || ''), t: String(u.t || '') })).filter(u => u.n);
+  await env.ORDERS.put(CONFIG_KEY, JSON.stringify(cfg));
+  return json({ ok: true, config: cfg }, 200, cors);
+}
 
-function renderEmail({ name, orderId, items, total, supportEmail }) {
+function renderEmail({ name, items, total, supportEmail, cfg }) {
+  cfg = cfg || DEFAULT_CONFIG;
+  const brand = esc(cfg.brandName || 'DigitalStore');
   const boughtRows = (items.length ? items : [{ name: '—', variant: '', qty: 1, price: 0 }]).map(i => `
     <tr>
       <td style="font-size:14px;color:#0a0a0a;padding:10px 14px;border-bottom:1px solid #e7e7ea">
@@ -140,7 +175,7 @@ function renderEmail({ name, orderId, items, total, supportEmail }) {
       <td style="font-size:14px;font-weight:bold;color:#0a0a0a;padding:10px 14px;border-bottom:1px solid #e7e7ea;text-align:right;white-space:nowrap">€${num(i.qty * i.price)}</td>
     </tr>`).join('');
 
-  const upsellRows = UPSELL.map(u => `
+  const upsellRows = (cfg.upsell || []).map(u => `
     <tr><td style="padding:0 0 8px">
       <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;border-radius:8px">
         <tr>
@@ -162,36 +197,36 @@ function renderEmail({ name, orderId, items, total, supportEmail }) {
 <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#fff;border-radius:12px;overflow:hidden">
   <tr><td style="background:#0a0a0a;padding:18px 24px">
     <table cellpadding="0" cellspacing="0"><tr>
-      <td style="width:32px;height:32px;background:#fff;border-radius:8px;text-align:center;font-weight:700;color:#0a0a0a;font-size:16px">D</td>
-      <td style="padding-left:10px;color:#fff;font-size:16px;font-weight:700">DigitalStore — Bestellbestätigung</td>
+      <td style="width:32px;height:32px;background:#fff;border-radius:8px;text-align:center;font-weight:700;color:#0a0a0a;font-size:16px">${brand.slice(0, 1) || 'D'}</td>
+      <td style="padding-left:10px;color:#fff;font-size:16px;font-weight:700">${brand} — ${esc(cfg.subject || 'Bestellbestätigung')}</td>
     </tr></table>
   </td></tr>
   <tr><td style="padding:24px">
     <h1 style="font-size:20px;margin:0 0 14px">Sehr geehrte/r ${esc(name)},</h1>
-    <p style="font-size:14px;line-height:1.6;color:#3f3f46;margin:0 0 12px">vielen herzlichen Dank für Ihren Einkauf bei DigitalStore! Wir freuen uns sehr über Ihr Vertrauen.</p>
-    <p style="font-size:14px;line-height:1.6;color:#3f3f46;margin:0 0 18px">Ihre Bestellnummer lautet <strong style="font-family:ui-monospace,monospace">${esc(orderId)}</strong>. Ihre Zugangsdaten bzw. Ihren Aktivierungscode erhalten Sie innerhalb von <strong>5–30 Minuten</strong> per E-Mail.</p>
+    <p style="font-size:14px;line-height:1.6;color:#3f3f46;margin:0 0 12px">${esc(cfg.intro || '')}</p>
+    <p style="font-size:14px;line-height:1.6;color:#3f3f46;margin:0 0 18px">${esc(cfg.deliveryNote || '')}</p>
 
-    <div style="font-size:11px;font-weight:700;color:#71717a;letter-spacing:.08em;text-transform:uppercase;margin:0 0 8px">Ihre Bestellung</div>
+    <div style="font-size:11px;font-weight:700;color:#71717a;letter-spacing:.08em;text-transform:uppercase;margin:0 0 8px">${esc(cfg.orderTitle || 'Ihre Bestellung')}</div>
     <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e7e7ea;border-radius:8px;overflow:hidden;margin-bottom:6px">
       ${boughtRows}
       <tr>
-        <td style="font-size:15px;font-weight:bold;color:#0a0a0a;padding:12px 14px;background:#fafafa">Gesamtsumme</td>
+        <td style="font-size:15px;font-weight:bold;color:#0a0a0a;padding:12px 14px;background:#fafafa">${esc(cfg.totalLabel || 'Gesamtsumme')}</td>
         <td style="font-size:15px;font-weight:bold;color:#0a0a0a;padding:12px 14px;background:#fafafa;text-align:right">€${num(total)}</td>
       </tr>
     </table>
 
-    <hr style="border:none;border-top:1px solid #e7e7ea;margin:22px 0">
-    <div style="font-size:11px;font-weight:700;color:#71717a;letter-spacing:.08em;text-transform:uppercase;margin:0 0 12px">Das könnte Sie auch interessieren</div>
+    ${upsellRows ? `<hr style="border:none;border-top:1px solid #e7e7ea;margin:22px 0">
+    <div style="font-size:11px;font-weight:700;color:#71717a;letter-spacing:.08em;text-transform:uppercase;margin:0 0 12px">${esc(cfg.upsellTitle || 'Das könnte Sie auch interessieren')}</div>
     <table width="100%" cellpadding="0" cellspacing="0">${upsellRows}</table>
-    <p style="font-size:12px;color:#a1a1aa;line-height:1.5;margin:6px 0 18px">Alle genannten Produkte sind bei uns zu einem stark reduzierten Preis erhältlich — wesentlich günstiger als der offizielle Preis, mit vollem Funktionsumfang.</p>
+    ${cfg.upsellNote ? `<p style="font-size:12px;color:#a1a1aa;line-height:1.5;margin:6px 0 18px">${esc(cfg.upsellNote)}</p>` : ''}` : ''}
 
-    <div style="background:#f4f4f5;border-radius:8px;padding:14px 16px;margin-bottom:18px">
-      <p style="font-size:13px;font-weight:600;color:#0a0a0a;margin:0 0 4px">✉ Persönlicher Support</p>
-      <p style="font-size:13px;color:#52525b;margin:0 0 10px 0">Bei Fragen oder Problemen antworten wir meist innerhalb weniger Minuten. Schreiben Sie uns jederzeit.</p>
+    <div style="background:#f4f4f5;border-radius:8px;padding:14px 16px;margin:18px 0">
+      <p style="font-size:13px;font-weight:600;color:#0a0a0a;margin:0 0 4px">✉ ${esc(cfg.supportTitle || 'Persönlicher Support')}</p>
+      <p style="font-size:13px;color:#52525b;margin:0 0 10px 0">${esc(cfg.supportText || '')}</p>
       <a href="mailto:${esc(supportEmail)}" style="display:inline-block;background:#000;color:#fff;text-decoration:none;font-size:13px;padding:8px 16px;border-radius:6px;font-weight:500">E-Mail senden</a>
     </div>
 
-    <p style="font-size:14px;color:#3f3f46;margin:0">Mit freundlichen Grüßen,<br><strong>Ihr DigitalStore-Team</strong></p>
+    <p style="font-size:14px;color:#3f3f46;margin:0">Mit freundlichen Grüßen,<br><strong>${esc(cfg.signature || 'Ihr DigitalStore-Team')}</strong></p>
   </td></tr>
 </table>
 </td></tr></table></body></html>`;
