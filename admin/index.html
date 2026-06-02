@@ -66,8 +66,8 @@ label.field > span{display:block;font-size:12.5px;font-weight:600;color:var(--te
 .pill.hidden::before{background:var(--gray)}
 
 /* ---------- Toast ---------- */
-#toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(140%);background:#1a1a1a;color:#fff;padding:13px 20px;border-radius:11px;font-size:14px;font-weight:500;box-shadow:var(--shadow-lg);z-index:9000;transition:transform .3s cubic-bezier(.2,.8,.2,1);max-width:90vw;display:flex;align-items:center;gap:10px}
-#toast.show{transform:translateX(-50%) translateY(0)}
+#toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(300%);background:#1a1a1a;color:#fff;padding:13px 20px;border-radius:11px;font-size:14px;font-weight:500;box-shadow:var(--shadow-lg);z-index:9000;transition:transform .3s cubic-bezier(.2,.8,.2,1);max-width:90vw;display:flex;align-items:center;gap:10px;visibility:hidden}
+#toast.show{transform:translateX(-50%) translateY(0);visibility:visible}
 #toast.err{background:#b42318}
 #toast.ok{background:#0a7d4b}
 
@@ -216,16 +216,22 @@ tbody tr:hover{background:var(--surface-2)}
 }
 
 /* ============ EMAIL TEMPLATE EDITOR ============ */
+.drawer.et-full{width:95vw;max-width:1400px}
 .et-section{margin-bottom:18px}
 .et-section h3{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);font-weight:700;margin-bottom:10px}
 .et-upsell-item{border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px;background:var(--surface-2)}
 .et-upsell-grid{display:grid;grid-template-columns:1fr 100px 100px;gap:8px}
 .et-upsell-grid .full{grid-column:1/-1}
 @media(max-width:560px){.et-upsell-grid{grid-template-columns:1fr}}
-.et-preview-frame{width:100%;height:480px;border:1px solid var(--line);border-radius:10px;background:#fff}
+.et-preview-frame{width:100%;height:calc(100vh - 180px);min-height:500px;border:1px solid var(--line);border-radius:10px;background:#fff}
 .et-status{font-size:13px;font-weight:600;padding:10px 0}
-.et-live-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-@media(max-width:1100px){.et-live-grid{grid-template-columns:1fr}}
+.et-live-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+#etPreviewPane{position:sticky;top:0;align-self:start}
+@media(max-width:900px){.et-live-grid{grid-template-columns:1fr}#etPreviewPane{position:static}}
+/* language toggle */
+.lang-btn{font-size:12px;font-weight:700;letter-spacing:.02em;min-width:36px;text-align:center}
+/* hide red bar from toast overflow */
+body{overflow-x:hidden}
 </style>
 </head>
 <body>
@@ -325,30 +331,31 @@ tbody tr:hover{background:var(--surface-2)}
         <div>Quản lý sản phẩm<small id="repoLabel">—</small></div>
       </div>
       <span id="dirtyDot" class="dirty-dot hidden" title="Có thay đổi chưa lưu"></span>
+      <button id="langBtn" class="btn btn-ghost btn-sm lang-btn" title="Sprache / Language">VI</button>
       <button id="emailTplBtn" class="btn btn-ghost btn-sm"><i class="fa-solid fa-envelope"></i><span class="label-hide">E-Mail</span></button>
       <button id="previewBtn" class="btn btn-ghost btn-sm"><i class="fa-solid fa-eye"></i><span class="label-hide">Preview</span></button>
       <button id="settingsBtn" class="btn btn-ghost btn-sm"><i class="fa-solid fa-gear"></i></button>
-      <button id="saveBtn" class="btn btn-success btn-sm" disabled><i class="fa-solid fa-cloud-arrow-up"></i><span>Lưu</span></button>
+      <button id="saveBtn" class="btn btn-success btn-sm" disabled><i class="fa-solid fa-cloud-arrow-up"></i><span data-at="btn.save">Lưu</span></button>
     </div>
   </header>
 
   <div class="wrap">
     <div class="stats">
-      <div class="stat"><div class="n" id="stTotal">0</div><div class="l">Tổng sản phẩm</div></div>
-      <div class="stat"><div class="n" id="stAvail">0</div><div class="l"><span class="pill available" style="padding:0;background:none"></span>Đang bán</div></div>
-      <div class="stat"><div class="n" id="stOos">0</div><div class="l"><span class="pill out_of_stock" style="padding:0;background:none"></span>Hết hàng</div></div>
-      <div class="stat"><div class="n" id="stHidden">0</div><div class="l"><span class="pill hidden" style="padding:0;background:none"></span>Đang ẩn</div></div>
+      <div class="stat"><div class="n" id="stTotal">0</div><div class="l" data-at="stat.total">Tổng sản phẩm</div></div>
+      <div class="stat"><div class="n" id="stAvail">0</div><div class="l"><span class="pill available" style="padding:0;background:none"></span><span data-at="st.available">Verfügbar</span></div></div>
+      <div class="stat"><div class="n" id="stOos">0</div><div class="l"><span class="pill out_of_stock" style="padding:0;background:none"></span><span data-at="st.out_of_stock">Nicht verfügbar</span></div></div>
+      <div class="stat"><div class="n" id="stHidden">0</div><div class="l"><span class="pill hidden" style="padding:0;background:none"></span><span data-at="st.hidden">Ẩn</span></div></div>
     </div>
 
     <div class="toolbar">
-      <div class="searchbox"><i class="fa-solid fa-magnifying-glass"></i><input id="search" placeholder="Tìm theo tên hoặc mô tả…"></div>
-      <select id="filterStatus" class="select" style="width:auto"><option value="all">Mọi trạng thái</option><option value="available">Đang bán</option><option value="out_of_stock">Hết hàng</option><option value="hidden">Đang ẩn</option></select>
-      <button id="addBtn" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i>Thêm sản phẩm</button>
+      <div class="searchbox"><i class="fa-solid fa-magnifying-glass"></i><input id="search" data-at-ph="search.ph" placeholder="Tìm theo tên hoặc mô tả…"></div>
+      <select id="filterStatus" class="select" style="width:auto"><option value="all" data-at="filter.all">Mọi trạng thái</option><option value="available" data-at="st.available">Verfügbar</option><option value="out_of_stock" data-at="st.out_of_stock">Nicht verfügbar</option><option value="hidden" data-at="st.hidden">Ẩn</option></select>
+      <button id="addBtn" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i><span data-at="btn.add">Thêm sản phẩm</span></button>
     </div>
 
     <div class="card">
       <table>
-        <thead><tr><th>Sản phẩm</th><th>Danh mục</th><th>Giá</th><th>Trạng thái</th><th style="text-align:right">Thao tác</th></tr></thead>
+        <thead><tr><th data-at="th.product">Sản phẩm</th><th data-at="th.cat">Danh mục</th><th data-at="th.price">Giá</th><th data-at="th.status">Trạng thái</th><th style="text-align:right" data-at="th.action">Thao tác</th></tr></thead>
         <tbody id="tbody"></tbody>
       </table>
       <div id="emptyState" class="empty hidden"><i class="fa-solid fa-box-open"></i><p>Không có sản phẩm phù hợp.</p></div>
@@ -385,11 +392,11 @@ tbody tr:hover{background:var(--surface-2)}
 
     <label class="field"><span>Trạng thái</span>
       <div class="seg" id="fStatusSeg">
-        <button type="button" data-v="available"><i class="fa-solid fa-circle-check"></i>Đang bán</button>
-        <button type="button" data-v="out_of_stock"><i class="fa-solid fa-clock"></i>Hết hàng</button>
-        <button type="button" data-v="hidden"><i class="fa-solid fa-eye-slash"></i>Ẩn</button>
+        <button type="button" data-v="available"><i class="fa-solid fa-circle-check"></i><span data-at="seg.available">Verfügbar</span></button>
+        <button type="button" data-v="out_of_stock"><i class="fa-solid fa-clock"></i><span data-at="seg.oos">Nicht verfügbar</span></button>
+        <button type="button" data-v="hidden"><i class="fa-solid fa-eye-slash"></i><span data-at="seg.hidden">Ẩn</span></button>
       </div>
-      <div class="help">“Hết hàng” vẫn hiển thị nhưng không cho mua · “Ẩn” thì biến mất hoàn toàn khỏi web.</div>
+      <div class="help">“Hết hàng” = sichtbar, nicht kaufbar · “Ẩn” = komplett ausgeblendet.</div>
     </label>
 
     <label class="field"><span>Mô tả</span><textarea id="fDesc" class="textarea" placeholder="Mô tả ngắn hiển thị trên thẻ sản phẩm…"></textarea></label>
@@ -413,7 +420,7 @@ tbody tr:hover{background:var(--surface-2)}
     <div class="section-label"><i class="fa-solid fa-tags"></i>Gói & giá</div>
     <div id="fVariants"></div>
     <button id="addVariant" class="btn btn-ghost btn-sm"><i class="fa-solid fa-plus"></i>Thêm gói</button>
-    <div class="help" style="margin-top:8px">Mỗi gói có nhãn, giá (€) và trạng thái riêng (available / unavailable / on request).</div>
+    <div class="help" style="margin-top:8px">Mỗi gói có nhãn, giá (€) và trạng thái riêng (verfügbar / nicht verfügbar / ẩn).</div>
   </div>
   <div class="drawer-foot">
     <button id="editDelete" class="btn btn-danger" style="margin-right:auto"><i class="fa-solid fa-trash"></i>Xoá</button>
@@ -462,7 +469,7 @@ tbody tr:hover{background:var(--surface-2)}
 
 <!-- ============ EMAIL TEMPLATE DRAWER ============ -->
 <div id="etOverlay" class="overlay"></div>
-<aside id="etDrawer" class="drawer">
+<aside id="etDrawer" class="drawer et-full">
   <div class="drawer-head">
     <h2><i class="fa-solid fa-envelope" style="margin-right:8px"></i>Sửa mẫu email xác nhận</h2>
     <button class="icon-x" id="etClose"><i class="fa-solid fa-xmark"></i></button>
@@ -473,47 +480,46 @@ tbody tr:hover{background:var(--surface-2)}
       Dữ liệu lưu online (Cloudflare) nên sửa từ điện thoại hay máy nào cũng đồng bộ.
     </div>
 
-    <div class="callout" style="margin:0 0 16px 0">Chỉnh sửa bên trái, xem trước cập nhật song song bên phải.</div>
     <div class="et-live-grid">
+    <div id="etPreviewPane">
+      <iframe id="etPreviewFrame" class="et-preview-frame" title="Email preview"></iframe>
+    </div>
+
     <div id="etEditPane">
       <div class="et-section">
-        <h3>Kết nối Worker</h3>
+        <h3 data-at="et.worker">Kết nối Worker</h3>
         <label class="field"><span>Worker URL</span><input id="etWorker" class="input" placeholder="https://store.tdh1812.workers.dev"></label>
         <label class="field"><span>Admin Token</span><input id="etToken" class="input" type="password" placeholder="••••••••"></label>
-        <button class="btn btn-ghost btn-sm" onclick="etLoadConfig()" style="margin-bottom:14px"><i class="fa-solid fa-plug"></i> Tải cấu hình</button>
+        <button class="btn btn-ghost btn-sm" onclick="etLoadConfig()" style="margin-bottom:14px"><i class="fa-solid fa-plug"></i> <span data-at="et.load">Tải cấu hình</span></button>
       </div>
 
       <div class="et-section">
-        <h3>Thông tin chung</h3>
-        <label class="field"><span>Tên cửa hàng</span><input id="et_brandName" class="input"></label>
-        <label class="field"><span>Tiêu đề email</span><input id="et_subject" class="input"></label>
-        <label class="field"><span>Lời cảm ơn / mở đầu</span><textarea id="et_intro" class="textarea"></textarea></label>
-        <label class="field"><span>Ghi chú giao hàng</span><textarea id="et_deliveryNote" class="textarea"></textarea></label>
+        <h3 data-at="et.general">Thông tin chung</h3>
+        <label class="field"><span data-at="et.brand">Tên cửa hàng</span><input id="et_brandName" class="input"></label>
+        <label class="field"><span data-at="et.subject">Tiêu đề email</span><input id="et_subject" class="input"></label>
+        <label class="field"><span data-at="et.intro">Lời cảm ơn / mở đầu</span><textarea id="et_intro" class="textarea"></textarea></label>
+        <label class="field"><span data-at="et.delivery">Ghi chú giao hàng</span><textarea id="et_deliveryNote" class="textarea"></textarea></label>
         <div class="grid2">
-          <label class="field"><span>Tiêu đề "Đơn hàng"</span><input id="et_orderTitle" class="input"></label>
-          <label class="field"><span>Nhãn tổng tiền</span><input id="et_totalLabel" class="input"></label>
+          <label class="field"><span data-at="et.orderTitle">Tiêu đề bảng đơn</span><input id="et_orderTitle" class="input"></label>
+          <label class="field"><span data-at="et.totalLabel">Nhãn tổng tiền</span><input id="et_totalLabel" class="input"></label>
         </div>
       </div>
 
       <div class="et-section">
-        <h3>"Das könnte Sie auch interessieren"</h3>
-        <label class="field"><span>Tiêu đề mục gợi ý</span><input id="et_upsellTitle" class="input"></label>
+        <h3 data-at="et.upsell">Gợi ý sản phẩm</h3>
+        <label class="field"><span data-at="et.upsellHead">Tiêu đề mục gợi ý</span><input id="et_upsellTitle" class="input"></label>
         <div id="etUpsellList"></div>
-        <button class="btn btn-ghost btn-sm" onclick="etAddUpsell()"><i class="fa-solid fa-plus"></i> Thêm sản phẩm</button>
-        <label class="field" style="margin-top:14px"><span>Ghi chú dưới mục gợi ý</span><textarea id="et_upsellNote" class="textarea"></textarea></label>
+        <button class="btn btn-ghost btn-sm" onclick="etAddUpsell()"><i class="fa-solid fa-plus"></i> <span data-at="et.addProd">Thêm sản phẩm</span></button>
+        <label class="field" style="margin-top:14px"><span data-at="et.upsellNote">Ghi chú dưới mục gợi ý</span><textarea id="et_upsellNote" class="textarea"></textarea></label>
       </div>
 
       <div class="et-section">
-        <h3>Hỗ trợ & chữ ký</h3>
-        <label class="field"><span>Tiêu đề hỗ trợ</span><input id="et_supportTitle" class="input"></label>
-        <label class="field"><span>Nội dung hỗ trợ</span><textarea id="et_supportText" class="textarea"></textarea></label>
-        <label class="field"><span>Email hỗ trợ</span><input id="et_supportEmail" class="input"></label>
-        <label class="field"><span>Chữ ký cuối email</span><input id="et_signature" class="input"></label>
+        <h3 data-at="et.support">Hỗ trợ & chữ ký</h3>
+        <label class="field"><span data-at="et.supportTitle">Tiêu đề hỗ trợ</span><input id="et_supportTitle" class="input"></label>
+        <label class="field"><span data-at="et.supportText">Nội dung hỗ trợ</span><textarea id="et_supportText" class="textarea"></textarea></label>
+        <label class="field"><span data-at="et.supportEmail">Email hỗ trợ</span><input id="et_supportEmail" class="input"></label>
+        <label class="field"><span data-at="et.sig">Chữ ký cuối email</span><input id="et_signature" class="input"></label>
       </div>
-    </div>
-
-    <div id="etPreviewPane">
-      <iframe id="etPreviewFrame" class="et-preview-frame" title="Email preview"></iframe>
     </div>
     </div>
   </div>
@@ -580,7 +586,73 @@ function toast(msg, type){
 }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 function fmtPrice(n){ return '€'+Number(n||0).toFixed(2); }
-const STATUS_LABEL = { available:'Đang bán', out_of_stock:'Hết hàng', hidden:'Đang ẩn' };
+/* ---------- Admin i18n ---------- */
+const ADMIN_LANGS = ['vi','de','en'];
+const AI = {
+  vi:{
+    'app.title':'Quản lý sản phẩm','stat.total':'Tổng sản phẩm',
+    'st.available':'Verfügbar','st.out_of_stock':'Nicht verfügbar','st.hidden':'Ẩn',
+    'search.ph':'Tìm theo tên hoặc mô tả…','filter.all':'Mọi trạng thái',
+    'th.product':'Sản phẩm','th.cat':'Danh mục','th.price':'Giá','th.status':'Trạng thái','th.action':'Thao tác',
+    'btn.add':'Thêm sản phẩm','btn.save':'Lưu','btn.edit':'Sửa','btn.done':'Xong','btn.cancel':'Huỷ','btn.del':'Xoá',
+    'seg.available':'Verfügbar','seg.oos':'Nicht verfügbar','seg.hidden':'Ẩn',
+    'seg.help':'"Nicht verfügbar" = hiển thị nhưng không mua được · "Ẩn" = ẩn hoàn toàn.',
+    'v.available':'Verfügbar','v.unavailable':'Nicht verfügbar','v.hidden':'Ẩn',
+    'editor.add':'Thêm sản phẩm','editor.edit':'Sửa sản phẩm',
+    'et.worker':'Kết nối Worker','et.load':'Tải cấu hình','et.general':'Thông tin chung',
+    'et.brand':'Tên cửa hàng','et.subject':'Tiêu đề email','et.intro':'Lời cảm ơn / mở đầu',
+    'et.delivery':'Ghi chú giao hàng','et.orderTitle':'Tiêu đề bảng đơn','et.totalLabel':'Nhãn tổng tiền',
+    'et.upsell':'Gợi ý sản phẩm','et.upsellHead':'Tiêu đề mục gợi ý','et.addProd':'Thêm sản phẩm',
+    'et.upsellNote':'Ghi chú dưới mục gợi ý','et.support':'Hỗ trợ & chữ ký',
+    'et.supportTitle':'Tiêu đề hỗ trợ','et.supportText':'Nội dung hỗ trợ','et.supportEmail':'Email hỗ trợ','et.sig':'Chữ ký cuối email',
+  },
+  de:{
+    'app.title':'Produktverwaltung','stat.total':'Gesamt',
+    'st.available':'Verfügbar','st.out_of_stock':'Nicht verfügbar','st.hidden':'Ausgeblendet',
+    'search.ph':'Nach Name oder Beschreibung suchen…','filter.all':'Alle Status',
+    'th.product':'Produkt','th.cat':'Kategorie','th.price':'Preis','th.status':'Status','th.action':'Aktionen',
+    'btn.add':'Produkt hinzufügen','btn.save':'Speichern','btn.edit':'Bearbeiten','btn.done':'Fertig','btn.cancel':'Abbrechen','btn.del':'Löschen',
+    'seg.available':'Verfügbar','seg.oos':'Nicht verfügbar','seg.hidden':'Ausgeblendet',
+    'seg.help':'"Nicht verfügbar" = sichtbar, nicht kaufbar · "Ausgeblendet" = komplett unsichtbar.',
+    'v.available':'Verfügbar','v.unavailable':'Nicht verfügbar','v.hidden':'Ausgeblendet',
+    'editor.add':'Produkt hinzufügen','editor.edit':'Produkt bearbeiten',
+    'et.worker':'Worker-Verbindung','et.load':'Konfiguration laden','et.general':'Allgemein',
+    'et.brand':'Shop-Name','et.subject':'E-Mail-Betreff','et.intro':'Begrüßung / Einleitung',
+    'et.delivery':'Lieferhinweis','et.orderTitle':'Bestelltitel','et.totalLabel':'Gesamtsumme-Label',
+    'et.upsell':'Produktempfehlungen','et.upsellHead':'Überschrift Empfehlungen','et.addProd':'Produkt hinzufügen',
+    'et.upsellNote':'Hinweis unter Empfehlungen','et.support':'Support & Signatur',
+    'et.supportTitle':'Support-Titel','et.supportText':'Support-Text','et.supportEmail':'Support-E-Mail','et.sig':'Signatur',
+  },
+  en:{
+    'app.title':'Product Management','stat.total':'Total',
+    'st.available':'Available','st.out_of_stock':'Unavailable','st.hidden':'Hidden',
+    'search.ph':'Search by name or description…','filter.all':'All statuses',
+    'th.product':'Product','th.cat':'Category','th.price':'Price','th.status':'Status','th.action':'Actions',
+    'btn.add':'Add product','btn.save':'Save','btn.edit':'Edit','btn.done':'Done','btn.cancel':'Cancel','btn.del':'Delete',
+    'seg.available':'Available','seg.oos':'Unavailable','seg.hidden':'Hidden',
+    'seg.help':'"Unavailable" = visible but not purchasable · "Hidden" = completely invisible.',
+    'v.available':'Available','v.unavailable':'Unavailable','v.hidden':'Hidden',
+    'editor.add':'Add product','editor.edit':'Edit product',
+    'et.worker':'Worker Connection','et.load':'Load config','et.general':'General',
+    'et.brand':'Shop name','et.subject':'Email subject','et.intro':'Greeting / introduction',
+    'et.delivery':'Delivery note','et.orderTitle':'Order title','et.totalLabel':'Total label',
+    'et.upsell':'Product recommendations','et.upsellHead':'Recommendations heading','et.addProd':'Add product',
+    'et.upsellNote':'Note below recommendations','et.support':'Support & signature',
+    'et.supportTitle':'Support title','et.supportText':'Support text','et.supportEmail':'Support email','et.sig':'Signature',
+  }
+};
+let ADMIN_LANG = localStorage.getItem('pm_admin_lang') || 'vi';
+function T(k){ return (AI[ADMIN_LANG]||AI.vi)[k] || (AI.vi)[k] || k; }
+function translateAdmin(){
+  document.querySelectorAll('[data-at]').forEach(el=>{
+    const k=el.getAttribute('data-at'); const v=T(k); if(v) el.textContent=v;
+  });
+  document.querySelectorAll('[data-at-ph]').forEach(el=>{
+    const k=el.getAttribute('data-at-ph'); const v=T(k); if(v) el.placeholder=v;
+  });
+  const lb=$('#langBtn'); if(lb) lb.textContent=ADMIN_LANG.toUpperCase();
+}
+const STATUS_LABEL = new Proxy({}, { get:(_,k)=> T('st.'+k) || k });
 const CAT_LABEL = { ai:'AI & Code', streaming:'Streaming', office:'Office', design:'Design', vpn:'VPN', other:'Khác' };
 
 function priceRange(p){
@@ -690,7 +762,7 @@ function normalize(arr){
     features: Array.isArray(p.features)?p.features:[],
     variants: Array.isArray(p.variants)&&p.variants.length ? p.variants.map(v=>({
       label:v.label||'', price:Number(v.price)||0,
-      status:['available','unavailable','order','hidden'].includes(v.status)?v.status:'available',
+      status:v.status==='order'?'unavailable':(['available','unavailable','hidden'].includes(v.status)?v.status:'available'),
       ...(v.note?{note:v.note}:{})
     })) : [{label:'Standard', price:0, status:'available'}]
   })).map(p=>{ if(p.id==null) p.id=Math.floor(Math.random()*1e6); return p; });
@@ -868,7 +940,7 @@ async function enterApp(){
     const raw = await loadProductsJson();
     STATE.products = normalize(raw);
     if(!raw.length) toast('Chưa đọc được products.json — bắt đầu với danh sách trống','err');
-    render();
+    render(); translateAdmin();
   }catch(e){ toast('Lỗi tải dữ liệu: '+e.message,'err'); }
 }
 
@@ -911,7 +983,7 @@ function render(){
       <td class="price">${priceRange(p)}</td>
       <td class="row-status">${statusSelect(p)}</td>
       <td><div class="row-actions">
-        <button class="btn btn-ghost btn-sm" data-edit="${p.id}"><i class="fa-solid fa-pen"></i>Sửa</button>
+        <button class="btn btn-ghost btn-sm" data-edit="${p.id}"><i class="fa-solid fa-pen"></i>${T('btn.edit')}</button>
         <button class="btn btn-danger btn-sm" data-del="${p.id}"><i class="fa-solid fa-trash"></i></button>
       </div></td>
     </tr>`).join('');
@@ -922,7 +994,7 @@ function render(){
       <div class="top">
         <div class="thumb">${p.img?`<img src="${esc(p.img)}" alt="">`:'<i class="fa-solid fa-image" style="color:var(--text-3)"></i>'}</div>
         <div style="flex:1;min-width:0">
-          <div class="nm">${esc(p.name)||'(chưa đặt tên)'}${p.bs?'<i class="fa-solid fa-star bs-star"></i>':''}</div>
+          <div class="nm">${esc(p.name)||'—'}${p.bs?'<i class="fa-solid fa-star bs-star"></i>':''}</div>
           <div class="sub">${CAT_LABEL[p.cat]||esc(p.cat)} · ${variantSummary(p)}</div>
           <div class="price">${priceRange(p)}</div>
         </div>
@@ -933,6 +1005,7 @@ function render(){
         <button class="btn btn-danger btn-sm" data-del="${p.id}"><i class="fa-solid fa-trash"></i></button>
       </div>
     </div>`).join('');
+  translateAdmin();
 }
 
 /* table/card delegated events */
@@ -949,7 +1022,13 @@ document.addEventListener('click', e=>{
 });
 $('#search').oninput=render;
 $('#filterStatus').onchange=render;
-$('#addBtn').onclick = ()=> openEditor(null);   // mở trình tạo sản phẩm mới
+$('#addBtn').onclick = ()=> openEditor(null);
+$('#langBtn').onclick = ()=>{
+  const i = ADMIN_LANGS.indexOf(ADMIN_LANG);
+  ADMIN_LANG = ADMIN_LANGS[(i+1) % ADMIN_LANGS.length];
+  localStorage.setItem('pm_admin_lang', ADMIN_LANG);
+  translateAdmin(); render();
+};   // mở trình tạo sản phẩm mới
 
 function delProduct(id){
   const p=STATE.products.find(x=>x.id==id); if(!p) return;
@@ -970,7 +1049,7 @@ function openEditor(id){
                   : JSON.parse(JSON.stringify(STATE.products.find(x=>x.id==id)));
   STATE.editingId = isNew ? null : p.id;
   STATE.draft = p;
-  $('#editTitle').textContent = isNew ? 'Thêm sản phẩm' : 'Sửa sản phẩm';
+  $('#editTitle').textContent = isNew ? T('editor.add') : T('editor.edit');
   $('#editDelete').style.display = isNew ? 'none' : '';
   $('#fName').value=p.name; $('#fCat').value=p.cat; $('#fBs').value=String(!!p.bs);
   $('#fDesc').value=p.desc; $('#fImg').value=p.img; STATE.imgData=p.img;
@@ -1018,10 +1097,9 @@ function renderVariants(variants){
       <input class="input vlabel" placeholder="Nhãn gói (vd 12 tháng)" value="${esc(v.label)}">
       <input class="input vprice" type="number" step="0.01" min="0" placeholder="0.00" value="${v.price}">
       <select class="select vstatus" style="font-weight:600;color:${vStatusColor(v.status)}">
-        <option value="available" ${v.status==='available'?'selected':''}>● Còn hàng</option>
-        <option value="unavailable" ${v.status==='unavailable'?'selected':''}>● Hết hàng</option>
-        <option value="order" ${v.status==='order'?'selected':''}>● Đặt trước</option>
-        <option value="hidden" ${v.status==='hidden'?'selected':''}>● Ẩn gói</option>
+        <option value="available" ${v.status==='available'?'selected':''}>● ${T('v.available')}</option>
+        <option value="unavailable" ${v.status==='unavailable'||v.status==='order'?'selected':''}>● ${T('v.unavailable')}</option>
+        <option value="hidden" ${v.status==='hidden'?'selected':''}>● ${T('v.hidden')}</option>
       </select>
       <button class="vdel" data-vdel="${i}" title="Xoá gói"><i class="fa-solid fa-xmark"></i></button>
     </div>`).join('');
@@ -1288,6 +1366,7 @@ function etRenderPreview(){
   const f=$('#etPreviewFrame'); f.srcdoc=html;
 }
 
+translateAdmin();
 boot();
 </script>
 </body>

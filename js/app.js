@@ -958,26 +958,40 @@ async function confirmAndSendProof(){
   });
 
   try{
-    // Upload file chứng từ lên Cloudflare R2 qua Worker
-    const fd = new FormData();
-    fd.append('proof', CURRENT_PROOF_FILE);
-    const uploadRes = await fetch(WORKER_URL.replace(/\/$/,'') + '/order/' + encodeURIComponent(o.orderId) + '/proof', { method:'POST', body: fd });
-    if(!uploadRes.ok) throw new Error('upload-'+uploadRes.status);
-
-    // Gửi thông báo cho admin qua Web3Forms (gồm thông tin đơn + tên file)
     const fileInfo = CURRENT_PROOF_FILE.name + ' (' + (CURRENT_PROOF_FILE.size/1024).toFixed(0) + ' KB)';
-    fetch('https://api.web3forms.com/submit', {
+    let r2ok = false;
+
+    // 1) Try uploading proof to Cloudflare R2 via Worker
+    try{
+      const fd = new FormData();
+      fd.append('proof', CURRENT_PROOF_FILE);
+      const uploadRes = await fetch(WORKER_URL.replace(/\/$/,'') + '/order/' + encodeURIComponent(o.orderId) + '/proof', { method:'POST', body: fd });
+      r2ok = uploadRes.ok;
+    }catch(e){ r2ok = false; }
+
+    // 2) Read file as base64 for Web3Forms fallback
+    const b64 = await new Promise(resolve=>{
+      const reader = new FileReader();
+      reader.onload = ()=> resolve(reader.result);
+      reader.onerror = ()=> resolve(null);
+      reader.readAsDataURL(CURRENT_PROOF_FILE);
+    });
+
+    // 3) Always notify admin via Web3Forms (with file info + base64 preview if small enough)
+    const w3payload = {
+      access_key: WEB3FORMS_KEY,
+      subject: `${I18N.t('email.proofSubject')} ${o.orderId} — ${o.name}`,
+      from_name: o.name || 'Kunde', replyto: o.email || '',
+      OrderID: o.orderId, Kundenname: o.name || '', 'Kunden-Email': o.email || '',
+      Bestellung: o.lines || '', Gesamtsumme: `€${o.total}`,
+      Zahlungsbeleg: fileInfo,
+      R2_Upload: r2ok ? 'OK — /order/' + o.orderId + '/proof' : 'Fehlgeschlagen'
+    };
+    if(b64 && b64.length < 100000) w3payload['Beleg_Base64'] = b64;
+    await fetch('https://api.web3forms.com/submit', {
       method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'},
-      body: JSON.stringify({
-        access_key: WEB3FORMS_KEY,
-        subject: `${I18N.t('email.proofSubject')} ${o.orderId} — ${o.name}`,
-        from_name: o.name || 'Kunde', replyto: o.email || '',
-        OrderID: o.orderId, Kundenname: o.name || '', 'Kunden-Email': o.email || '',
-        Bestellung: o.lines || '', Gesamtsumme: `€${o.total}`,
-        Zahlungsbeleg: fileInfo,
-        Hinweis: 'Zahlungsbeleg wurde auf R2 hochgeladen. Bitte prüfen unter /order/' + o.orderId + '/proof'
-      })
-    }).catch(()=>{});
+      body: JSON.stringify(w3payload)
+    });
 
     showToast(I18N.t('proof.sent'));
     if(btn){ btn.innerHTML='<i class="fa-solid fa-check"></i> '+I18N.t('proof.done'); }
