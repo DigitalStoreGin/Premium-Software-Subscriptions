@@ -1281,7 +1281,8 @@ function etRenderPreview(){
   <table width="100%" style="border:1px solid #e7e7ea;border-radius:8px;overflow:hidden;margin-bottom:6px">${bought}
   <tr><td style="font-size:15px;font-weight:bold;padding:12px 14px;background:#fafafa">${esc(c.totalLabel||'Gesamtsumme')}</td><td style="font-size:15px;font-weight:bold;padding:12px 14px;background:#fafafa;text-align:right">€${fmtNum(total)}</td></tr></table>
   ${ups?`<hr style="border:none;border-top:1px solid #e7e7ea;margin:22px 0"><div style="font-size:11px;font-weight:700;color:#71717a;letter-spacing:.08em;text-transform:uppercase;margin:0 0 12px">${esc(c.upsellTitle||'')}</div><table width="100%">${ups}</table>${c.upsellNote?`<p style="font-size:12px;color:#a1a1aa;line-height:1.5;margin:6px 0 18px">${esc(c.upsellNote)}</p>`:''}`:''}
-  <div style="background:#f4f4f5;border-radius:8px;padding:14px 16px;margin:18px 0"><p style="font-size:13px;font-weight:600;margin:0 0 4px">✉ ${esc(c.supportTitle||'')}</p><p style="font-size:13px;color:#52525b;margin:0 0 10px">${esc(c.supportText||'')}</p><a href="#" style="display:inline-block;background:#000;color:#fff;text-decoration:none;font-size:13px;padding:8px 16px;border-radius:6px">E-Mail senden</a></div>
+  <div style="background:#f4f4f5;border-radius:10px;padding:16px 18px;margin:18px 0 12px"><p style="font-size:13px;font-weight:600;margin:0 0 6px">✉ ${esc(c.supportTitle||'')}</p><p style="font-size:13px;color:#52525b;line-height:1.6;margin:0">${esc(c.supportText||'')}</p></div>
+  <div style="text-align:center;margin:0 0 18px"><a href="#" style="display:inline-block;background:#000;color:#fff;text-decoration:none;font-size:14px;padding:11px 26px;border-radius:10px;font-weight:600;letter-spacing:.01em">E-Mail senden</a></div>
   <p style="font-size:14px;color:#3f3f46;margin:0">Mit freundlichen Grüßen,<br><strong>${esc(c.signature||'')}</strong></p>
   </td></tr></table></td></tr></table></body>`;
   const f=$('#etPreviewFrame'); f.srcdoc=html;

@@ -248,10 +248,12 @@ function renderEmail({ name, items, total, supportEmail, cfg }) {
     <table width="100%" cellpadding="0" cellspacing="0">${upsellRows}</table>
     ${cfg.upsellNote ? `<p style="font-size:12px;color:#a1a1aa;line-height:1.5;margin:6px 0 18px">${esc(cfg.upsellNote)}</p>` : ''}` : ''}
 
-    <div style="background:#f4f4f5;border-radius:8px;padding:14px 16px;margin:18px 0">
-      <p style="font-size:13px;font-weight:600;color:#0a0a0a;margin:0 0 4px">✉ ${esc(cfg.supportTitle || 'Persönlicher Support')}</p>
-      <p style="font-size:13px;color:#52525b;margin:0 0 10px 0">${esc(cfg.supportText || '')}</p>
-      <a href="mailto:${esc(supportEmail)}" style="display:inline-block;background:#000;color:#fff;text-decoration:none;font-size:13px;padding:8px 16px;border-radius:6px;font-weight:500">E-Mail senden</a>
+    <div style="background:#f4f4f5;border-radius:10px;padding:16px 18px;margin:18px 0 12px">
+      <p style="font-size:13px;font-weight:600;color:#0a0a0a;margin:0 0 6px">✉ ${esc(cfg.supportTitle || 'Persönlicher Support')}</p>
+      <p style="font-size:13px;color:#52525b;line-height:1.6;margin:0">${esc(cfg.supportText || '')}</p>
+    </div>
+    <div style="text-align:center;margin:0 0 18px">
+      <a href="mailto:${esc(supportEmail)}" style="display:inline-block;background:#000;color:#fff;text-decoration:none;font-size:14px;padding:11px 26px;border-radius:10px;font-weight:600;letter-spacing:.01em">E-Mail senden</a>
     </div>
 
     <p style="font-size:14px;color:#3f3f46;margin:0">Mit freundlichen Grüßen,<br><strong>${esc(cfg.signature || 'Ihr DigitalStore-Team')}</strong></p>
