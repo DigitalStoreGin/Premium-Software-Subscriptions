@@ -1,0 +1,20 @@
+name = "store"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+
+[vars]
+ALLOWED_ORIGIN = "https://digitalstoregin.github.io"
+
+# KV namespace thật của bạn (binding ORDERS)
+[[kv_namespaces]]
+binding = "ORDERS"
+id = "bd8530d0f1b84b58a56284db011bdc81"
+
+# SECRETS — KHÔNG ghi vào đây. Đặt bằng wrangler secret put:
+#   wrangler secret put BREVO_API_KEY        (key Brevo MỚI sau khi xoá key đã lộ)
+#   wrangler secret put BREVO_SENDER_EMAIL   (email đã verify trên Brevo)
+#   wrangler secret put BREVO_SENDER_NAME    (vd DigitalStore)
+#   wrangler secret put WEB3FORMS_KEY        (8a7b89a3-...)
+#   wrangler secret put ADMIN_TOKEN          (chuỗi ngẫu nhiên dài, dùng cho admin)
+#   wrangler secret put ADMIN_EMAIL          (cfvblue@gmail.com)
+#   wrangler secret put SUPPORT_EMAIL        (cfvblue@gmail.com)

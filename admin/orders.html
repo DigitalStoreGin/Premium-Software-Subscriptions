@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DigitalStore — Bestellverwaltung</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#f4f4f5;color:#0a0a0a;font-size:14px}
+.top{background:#0a0a0a;color:#fff;padding:14px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.top .mark{width:30px;height:30px;background:#fff;color:#0a0a0a;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700}
+.top h1{font-size:16px;font-weight:700;flex:1}
+.wrap{max-width:1100px;margin:0 auto;padding:20px}
+.card{background:#fff;border:1px solid #e7e7ea;border-radius:12px;padding:16px;margin-bottom:16px}
+.field{margin-bottom:10px}
+.field label{display:block;font-size:12px;color:#52525b;margin-bottom:4px;font-weight:600}
+.input{width:100%;padding:9px 11px;border:1px solid #e7e7ea;border-radius:8px;font-size:13px;font-family:inherit;outline:none}
+.input:focus{border-color:#0a0a0a}
+.btn{padding:8px 14px;border-radius:8px;border:1px solid #e7e7ea;background:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{background:#fafafa}
+.btn-primary{background:#0a0a0a;color:#fff;border-color:#0a0a0a}
+.btn-sm{padding:5px 9px;font-size:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:10px 8px;border-bottom:1px solid #eee;vertical-align:top}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#71717a}
+.mono{font-family:ui-monospace,monospace}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700}
+.s-awaiting_payment{background:#fef3c7;color:#92400e}
+.s-proof_uploaded{background:#dbeafe;color:#1e40af}
+.s-verified{background:#e0e7ff;color:#3730a3}
+.s-credentials_sent{background:#d1fae5;color:#065f46}
+.s-completed{background:#dcfce7;color:#166534}
+.s-cancelled{background:#fee2e2;color:#991b1b}
+.s-created{background:#f4f4f5;color:#52525b}
+.muted{color:#a1a1aa;font-size:12px}
+.hidden{display:none}
+@media(max-width:720px){ table thead{display:none} table,tbody,tr,td{display:block;width:100%} tr{border:1px solid #eee;border-radius:8px;margin-bottom:10px;padding:8px} td{border:none;padding:4px 6px} }
+</style>
+</head>
+<body>
+<header class="top">
+  <span class="mark">D</span>
+  <h1>Bestellverwaltung</h1>
+  <span id="langsw" class="row"></span>
+  <button class="btn btn-sm" onclick="loadOrders()"><i class="fa-solid fa-rotate"></i><span data-i18n="refresh">Aktualisieren</span></button>
+</header>
+
+<div class="wrap">
+  <!-- Cấu hình kết nối -->
+  <div class="card" id="cfgCard">
+    <div class="row" style="justify-content:space-between">
+      <strong data-i18n="conn">Verbindung</strong>
+      <button class="btn btn-sm" onclick="toggleCfg()"><i class="fa-solid fa-gear"></i></button>
+    </div>
+    <div id="cfgBody" style="margin-top:12px">
+      <div class="field"><label data-i18n="workerUrl">Worker URL</label><input id="cWorker" class="input" placeholder="https://store.tdh1812.workers.dev"></div>
+      <div class="field"><label data-i18n="adminToken">Admin Token (x-admin-token)</label><input id="cToken" class="input" type="password" placeholder="••••••••"></div>
+      <button class="btn btn-primary" onclick="saveCfg()"><i class="fa-solid fa-check"></i><span data-i18n="save">Speichern</span></button>
+      <p class="muted" style="margin-top:8px" data-i18n="tokenNote">Token chỉ lưu trong trình duyệt này (localStorage). Là giá trị bạn đặt qua "wrangler secret put ADMIN_TOKEN".</p>
+    </div>
+  </div>
+
+  <div id="status" class="muted" style="margin-bottom:10px"></div>
+
+  <div class="card">
+    <table>
+      <thead><tr>
+        <th data-i18n="th.order">Bestellung</th><th data-i18n="th.customer">Kunde</th>
+        <th data-i18n="th.total">Summe</th><th data-i18n="th.status">Status</th>
+        <th data-i18n="th.proof">Beleg</th><th data-i18n="th.actions">Aktionen</th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div id="empty" class="muted hidden" style="padding:20px;text-align:center" data-i18n="empty">Keine Bestellungen.</div>
+  </div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+const LS={url:'pm_worker_url',tok:'pm_admin_token',lang:'pm_orders_lang'};
+let ORDERS=[];
+
+const I18N={
+  de:{refresh:'Aktualisieren',conn:'Verbindung',workerUrl:'Worker URL',adminToken:'Admin Token (x-admin-token)',save:'Speichern',tokenNote:'Token wird nur in diesem Browser gespeichert (localStorage). Wert von "wrangler secret put ADMIN_TOKEN".','th.order':'Bestellung','th.customer':'Kunde','th.total':'Summe','th.status':'Status','th.proof':'Beleg','th.actions':'Aktionen',empty:'Keine Bestellungen.',advance:'Weiter',creds:'Zugangsdaten senden',del:'Löschen',confirmDel:'Bestellung löschen?',loaded:'{n} Bestellungen geladen',needCfg:'Bitte Worker URL + Admin Token eingeben.',err:'Fehler: ',sent:'Status aktualisiert',credSubject:'Ihre Zugangsdaten — Bestellung {id}',credBody:'Sehr geehrte/r {name},\n\nvielen Dank für Ihre Zahlung. Hier sind Ihre Zugangsdaten für Bestellung {id}:\n\n[ZUGANGSDATEN HIER EINFÜGEN]\n\nMit freundlichen Grüßen,\nIhr DigitalStore-Team'},
+  en:{refresh:'Refresh',conn:'Connection',workerUrl:'Worker URL',adminToken:'Admin Token (x-admin-token)',save:'Save',tokenNote:'Token stored only in this browser (localStorage). Value from "wrangler secret put ADMIN_TOKEN".','th.order':'Order','th.customer':'Customer','th.total':'Total','th.status':'Status','th.proof':'Proof','th.actions':'Actions',empty:'No orders.',advance:'Advance',creds:'Send credentials',del:'Delete',confirmDel:'Delete order?',loaded:'{n} orders loaded',needCfg:'Please enter Worker URL + Admin Token.',err:'Error: ',sent:'Status updated',credSubject:'Your credentials — order {id}',credBody:'Dear {name},\n\nthank you for your payment. Here are your credentials for order {id}:\n\n[INSERT CREDENTIALS HERE]\n\nBest regards,\nThe DigitalStore Team'},
+  vi:{refresh:'Tải lại',conn:'Kết nối',workerUrl:'Worker URL',adminToken:'Admin Token (x-admin-token)',save:'Lưu',tokenNote:'Token chỉ lưu trong trình duyệt này (localStorage). Là giá trị bạn đặt qua "wrangler secret put ADMIN_TOKEN".','th.order':'Đơn','th.customer':'Khách','th.total':'Tổng','th.status':'Trạng thái','th.proof':'Bằng chứng','th.actions':'Thao tác',empty:'Chưa có đơn.',advance:'Tiến bước',creds:'Gửi thông tin kích hoạt',del:'Xoá',confirmDel:'Xoá đơn này?',loaded:'Đã tải {n} đơn',needCfg:'Nhập Worker URL + Admin Token.',err:'Lỗi: ',sent:'Đã cập nhật trạng thái',credSubject:'Thông tin kích hoạt — đơn {id}',credBody:'Chào {name},\n\ncảm ơn bạn đã thanh toán. Thông tin kích hoạt cho đơn {id}:\n\n[DÁN THÔNG TIN KÍCH HOẠT VÀO ĐÂY]\n\nTrân trọng,\nDigitalStore'}
+};
+let lang=localStorage.getItem(LS.lang)||'de';
+function t(k,v){let s=(I18N[lang]&&I18N[lang][k])||I18N.de[k]||k;if(v)for(const x in v)s=s.split('{'+x+'}').join(v[x]);return s;}
+function applyI18n(){document.querySelectorAll('[data-i18n]').forEach(e=>e.textContent=t(e.getAttribute('data-i18n')));document.documentElement.lang=lang;
+  $('#langsw').innerHTML=['vi','de','en'].map(l=>`<button class="btn btn-sm" style="${l===lang?'background:#fff;color:#0a0a0a':'background:#222;color:#fff;border-color:#333'}" onclick="setLang('${l}')">${l.toUpperCase()}</button>`).join('');}
+function setLang(l){lang=l;localStorage.setItem(LS.lang,l);applyI18n();renderOrders();}
+
+const STATUS_FLOW=['created','awaiting_payment','proof_uploaded','verified','credentials_sent','completed'];
+function nextStatus(s){const i=STATUS_FLOW.indexOf(s);return i>=0&&i<STATUS_FLOW.length-1?STATUS_FLOW[i+1]:null;}
+
+function toggleCfg(){$('#cfgBody').classList.toggle('hidden');}
+function saveCfg(){
+  localStorage.setItem(LS.url,$('#cWorker').value.trim().replace(/\/$/,''));
+  localStorage.setItem(LS.tok,$('#cToken').value.trim());
+  $('#cfgBody').classList.add('hidden'); loadOrders();
+}
+function cfg(){return {url:localStorage.getItem(LS.url)||'',tok:localStorage.getItem(LS.tok)||''};}
+
+async function api(path,opts={}){
+  const {url,tok}=cfg();
+  const r=await fetch(url+path,{...opts,headers:{'x-admin-token':tok,...(opts.body?{'Content-Type':'application/json'}:{}),...(opts.headers||{})}});
+  if(!r.ok){const e=new Error('HTTP '+r.status);e.status=r.status;throw e;}
+  return r.json();
+}
+async function loadOrders(){
+  const {url,tok}=cfg();
+  if(!url||!tok){ $('#status').textContent=t('needCfg'); $('#cfgBody').classList.remove('hidden'); return; }
+  $('#status').textContent='…';
+  try{ const d=await api('/orders'); ORDERS=d.orders||[]; $('#status').textContent=t('loaded',{n:ORDERS.length}); renderOrders(); }
+  catch(e){ $('#status').textContent=t('err')+(e.status===401?'401 (token sai)':e.message); }
+}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function renderOrders(){
+  const tb=$('#tbody'); $('#empty').classList.toggle('hidden',ORDERS.length>0);
+  tb.innerHTML=ORDERS.map(o=>{
+    const items=(o.items||[]).map(i=>`${i.qty}× ${esc(i.name)}`).join(', ');
+    const nx=nextStatus(o.status);
+    const credBtn=`<button class="btn btn-sm" onclick='sendCreds(${JSON.stringify(o.order_id)},${JSON.stringify(o.customer&&o.customer.name||"")},${JSON.stringify(o.customer&&o.customer.email||"")})'><i class="fa-solid fa-key"></i>${t('creds')}</button>`;
+    return `<tr>
+      <td><div class="mono"><strong>${esc(o.order_id)}</strong></div><div class="muted">${items}</div><div class="muted">${new Date(o.created_at).toLocaleString()}</div></td>
+      <td>${esc(o.customer&&o.customer.name||'')}<div class="muted">${esc(o.customer&&o.customer.email||'')}</div></td>
+      <td class="mono">€${Number(o.total||0).toFixed(2)}</td>
+      <td><span class="badge s-${o.status}">${o.status}</span></td>
+      <td>${o.proof?'<i class="fa-solid fa-paperclip"></i>':'—'}</td>
+      <td><div class="row">
+        ${nx?`<button class="btn btn-sm btn-primary" onclick="advance('${o.order_id}','${nx}')">${t('advance')} → ${nx}</button>`:''}
+        ${credBtn}
+        <button class="btn btn-sm" style="color:#dc2626" onclick="delOrder('${o.order_id}')"><i class="fa-solid fa-trash"></i></button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+async function advance(id,status){
+  try{ await api('/order/'+encodeURIComponent(id)+'/status',{method:'POST',body:JSON.stringify({status})}); $('#status').textContent=t('sent'); loadOrders(); }
+  catch(e){ $('#status').textContent=t('err')+e.message; }
+}
+async function delOrder(id){
+  if(!confirm(t('confirmDel'))) return;
+  try{ await api('/order/'+encodeURIComponent(id),{method:'DELETE'}); loadOrders(); }
+  catch(e){ $('#status').textContent=t('err')+e.message; }
+}
+function sendCreds(id,name,email){
+  const subject=t('credSubject',{id}); const body=t('credBody',{id,name:name||''});
+  window.location.href=`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
+// init
+$('#cWorker').value=localStorage.getItem(LS.url)||'https://store.tdh1812.workers.dev';
+$('#cToken').value=localStorage.getItem(LS.tok)||'';
+applyI18n();
+if(cfg().url&&cfg().tok){ $('#cfgBody').classList.add('hidden'); loadOrders(); }
+</script>
+</body>
+</html>
