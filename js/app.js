@@ -896,44 +896,21 @@ function submitOrder(){
     Bankverbindung: `Name: ${BANK.name} | IBAN: ${BANK.iban}`
   };
 
-  // Gửi thẳng Web3Forms để báo admin (không chặn luồng nếu fail).
+  // Bước 1: Chỉ gửi Web3Forms báo admin + lưu đơn trên Worker (KHÔNG gửi Brevo).
+  // Brevo (email xác nhận khách) sẽ gửi ở bước 2 khi khách upload chứng từ.
   const notifyAdmin = ()=> fetch('https://api.web3forms.com/submit', {
     method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'},
     body: JSON.stringify(payload)
   }).then(r=>r.json()).catch(()=>null);
 
-  // Worker là bước quan trọng: phải thành công thì mới mở bước upload chứng từ.
-  const callWorker = ()=> WORKER_URL ? fetch(WORKER_URL.replace(/\/$/,'') + '/order', {
+  const saveOrder = ()=> WORKER_URL ? fetch(WORKER_URL.replace(/\/$/,'') + '/order', {
     method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'},
-    body: JSON.stringify({ orderId, name, email, items: cart.map(c=>({name:c.name,variant:c.variant,qty:c.qty,price:c.price})), total, lines })
-  }).then(async (r)=>{
-    const data = await r.json().catch(()=>null);
-    return { ok:r.ok, status:r.status, data };
-  }).catch((e)=>({ ok:false, status:0, error:String(e && e.message || e) })) : Promise.resolve({ ok:false, status:0, error:'no_worker_url' });
+    body: JSON.stringify({ orderId, name, email, items: cart.map(c=>({name:c.name,variant:c.variant,qty:c.qty,price:c.price})), total, lines, skipBrevo: true })
+  }).then(r=>r.json()).catch(()=>null) : Promise.resolve(null);
 
-  callWorker().then((res)=>{
-    // luôn thử báo admin, nhưng không chặn giao diện
-    notifyAdmin().catch(()=>{});
-
-    if(!res || !res.ok){
-      submitBtn.disabled=false;
-      submitBtn.innerHTML='<i class="fa-solid fa-paper-plane"></i>'+I18N.t('cm.submit');
-      showToast(I18N.t('proof.failed'));
-      return;
-    }
-    // Worker thành công nhưng Brevo lỗi -> báo rõ để user xử lý.
-    if(res.data && res.data.brevo && res.data.brevo.ok === false){
-      submitBtn.disabled=false;
-      submitBtn.innerHTML='<i class="fa-solid fa-paper-plane"></i>'+I18N.t('cm.submit');
-      showToast('Brevo fehlgeschlagen (' + (res.data.brevo.status || 'error') + ')');
-      return;
-    }
-    showSuccess();
-  }).catch(()=>{
-    submitBtn.disabled=false;
-    submitBtn.innerHTML='<i class="fa-solid fa-paper-plane"></i>'+I18N.t('cm.submit');
-    showToast(I18N.t('proof.failed'));
-  });
+  Promise.allSettled([notifyAdmin(), saveOrder()])
+    .then(()=> showSuccess())
+    .catch(()=> showSuccess());
 }
 
 // ── Bằng chứng thanh toán (BẮT BUỘC) ───────────────────────────────
@@ -981,26 +958,21 @@ async function confirmAndSendProof(){
 
   try{
     const fileInfo = CURRENT_PROOF_FILE.name + ' (' + (CURRENT_PROOF_FILE.size/1024).toFixed(0) + ' KB)';
-    let r2ok = false;
 
-    // 1) Upload proof to Cloudflare R2 via Worker (must be successful)
-    let uploadData = null;
+    // 1) Upload proof lên Cloudflare R2 qua Worker
     const fd = new FormData();
     fd.append('proof', CURRENT_PROOF_FILE);
     const uploadRes = await fetch(WORKER_URL.replace(/\/$/,'') + '/order/' + encodeURIComponent(o.orderId) + '/proof', { method:'POST', body: fd });
-    uploadData = await uploadRes.json().catch(()=>null);
-    r2ok = !!(uploadRes.ok && uploadData && uploadData.ok && uploadData.r2 === true);
-    if(!r2ok) throw new Error('r2_upload_failed');
+    const uploadData = await uploadRes.json().catch(()=>null);
+    if(!(uploadRes.ok && uploadData && uploadData.ok && uploadData.r2 === true)) throw new Error('r2_upload_failed');
 
-    // 2) Read file as base64 for Web3Forms fallback
-    const b64 = await new Promise(resolve=>{
-      const reader = new FileReader();
-      reader.onload = ()=> resolve(reader.result);
-      reader.onerror = ()=> resolve(null);
-      reader.readAsDataURL(CURRENT_PROOF_FILE);
-    });
+    // 2) Gửi email xác nhận đơn hàng cho khách qua Worker/Brevo (bước này mới gửi Brevo)
+    const brevoRes = await fetch(WORKER_URL.replace(/\/$/,'') + '/order/' + encodeURIComponent(o.orderId) + '/confirm', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ orderId: o.orderId })
+    }).then(r=>r.json()).catch(()=>null);
 
-    // 3) Always notify admin via Web3Forms (with file info + base64 preview if small enough)
+    // 3) Gửi Web3Forms báo admin kèm thông tin chứng từ
     const w3payload = {
       access_key: WEB3FORMS_KEY,
       subject: `${I18N.t('email.proofSubject')} ${o.orderId} — ${o.name}`,
@@ -1008,13 +980,13 @@ async function confirmAndSendProof(){
       OrderID: o.orderId, Kundenname: o.name || '', 'Kunden-Email': o.email || '',
       Bestellung: o.lines || '', Gesamtsumme: `€${o.total}`,
       Zahlungsbeleg: fileInfo,
-      R2_Upload: 'OK — /order/' + o.orderId + '/proof'
+      R2_Upload: 'OK — /order/' + o.orderId + '/proof',
+      Brevo_Status: brevoRes && brevoRes.brevo ? (brevoRes.brevo.ok ? 'OK' : 'Failed') : 'Skipped'
     };
-    if(b64 && b64.length < 100000) w3payload['Beleg_Base64'] = b64;
-    await fetch('https://api.web3forms.com/submit', {
+    fetch('https://api.web3forms.com/submit', {
       method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'},
       body: JSON.stringify(w3payload)
-    });
+    }).catch(()=>{});
 
     showToast(I18N.t('proof.sent'));
     if(btn){ btn.innerHTML='<i class="fa-solid fa-check"></i> '+I18N.t('proof.done'); }

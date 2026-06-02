@@ -199,6 +199,7 @@ tbody tr:hover{background:var(--surface-2)}
   .mcards{display:flex}
   .topbar .menu-btn{display:flex}
   .topbar .label-hide{display:none}
+  .drawer{width:100vw;max-width:100vw}
   .drawer-body{padding:16px}
   .grid2{grid-template-columns:1fr}
   .variant-row{grid-template-columns:1fr 84px;grid-auto-flow:row}
@@ -207,12 +208,30 @@ tbody tr:hover{background:var(--surface-2)}
   .preview-grid{grid-template-columns:1fr}
   .drawer-foot{flex-wrap:wrap}
   .drawer-foot .btn{flex:1;justify-content:center}
-  .toolbar .btn{flex:1}
+  .toolbar{flex-direction:column}
+  .toolbar .searchbox{width:100%;min-width:0}
+  .toolbar .btn{width:100%;justify-content:center}
+  .topbar-inner{padding:10px 14px;gap:8px}
+  .brand{font-size:13px;gap:8px}
+  .brand .mark{width:26px;height:26px;font-size:12px;border-radius:6px}
+  .brand small{font-size:9.5px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .btn-sm{padding:6px 10px;font-size:12px}
+  .mcard{padding:12px}
+  .mcard .nm{font-size:14px}
+  .mcard .ctrl{flex-wrap:wrap}
+  .mcard .ctrl .select{min-width:0;flex:1}
 }
 @media(max-width:420px){
   .stats{grid-template-columns:1fr 1fr;gap:8px}
+  .stat{padding:12px}
   .stat .n{font-size:20px}
+  .stat .l{font-size:11px}
   .variant-row{grid-template-columns:1fr 72px}
+  .wrap{padding:14px 12px 80px}
+  .topbar-inner{padding:8px 12px;gap:6px}
+  .brand{font-size:12px}
+  .brand small{display:none}
+  .lang-btn{padding:5px 8px!important;font-size:11px!important;min-width:30px}
 }
 
 /* ============ EMAIL TEMPLATE EDITOR ============ */

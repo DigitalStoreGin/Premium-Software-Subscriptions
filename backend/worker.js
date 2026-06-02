@@ -35,11 +35,12 @@ export default {
       // Online sync for admin GitHub connection/token (password-hash auth)
       if (url.pathname === '/admin-sync' && request.method === 'POST') return adminSync(request, env, cors);
 
-      const m = url.pathname.match(/^\/order\/([^\/]+)(\/proof|\/status)?$/);
+      const m = url.pathname.match(/^\/order\/([^\/]+)(\/proof|\/status|\/confirm)?$/);
       if (m) {
         const id = decodeURIComponent(m[1]); const sub = m[2];
         if (sub === '/proof' && request.method === 'POST') return uploadProof(request, env, cors, id);
         if (sub === '/proof' && request.method === 'GET') return requireAdmin(request, env, cors, () => getProofFile(request, env, cors, id));
+        if (sub === '/confirm' && request.method === 'POST') return confirmOrder(request, env, cors, id);
         if (sub === '/status' && request.method === 'POST') return requireAdmin(request, env, cors, () => updateStatus(request, env, cors, id));
         if (!sub && request.method === 'GET') return lookupOrder(env, cors, id);
         if (!sub && request.method === 'DELETE') return requireAdmin(request, env, cors, () => deleteOrder(env, cors, id));
@@ -105,27 +106,47 @@ async function createOrder(request, env, cors) {
   };
   if (env.ORDERS) await env.ORDERS.put(orderId, JSON.stringify(order));
 
-  // Brevo — email xác nhận cho khách (dùng cấu hình online editierbar).
-  // Web3Forms (báo admin) do frontend gửi trực tiếp → tránh gửi trùng.
-  const cfg = await loadConfig(env);
-  let brevo = { skipped: true };
-  if (env.BREVO_API_KEY && env.BREVO_SENDER_EMAIL) {
-    try {
-      const res = await fetch('https://api.brevo.com/v3/smtp/email', {
-        method: 'POST', headers: { 'Content-Type': 'application/json', 'api-key': env.BREVO_API_KEY },
-        body: JSON.stringify({
-          sender: { name: env.BREVO_SENDER_NAME || cfg.brandName || 'DigitalStore', email: env.BREVO_SENDER_EMAIL },
-          to: [{ email, name }],
-          replyTo: env.ADMIN_EMAIL ? { email: env.ADMIN_EMAIL } : undefined,
-          subject: `${cfg.subject || 'Bestellbestätigung'} — ${cfg.brandName || 'DigitalStore'}`,
-          htmlContent: renderEmail({ name, items: norm, total: order.total, cfg, supportEmail: env.SUPPORT_EMAIL || cfg.supportEmail || 'cfvblue@gmail.com' }),
-        }),
-      });
-      brevo = { ok: res.ok, status: res.status };
-      if (!res.ok) brevo.body = (await res.text().catch(() => '')).slice(0, 300);
-    } catch (e) { brevo = { ok: false, error: String(e && e.message || e) }; }
+  // skipBrevo=true → chỉ lưu đơn, KHÔNG gửi email (email gửi ở bước /confirm sau khi upload chứng từ).
+  if (b.skipBrevo) {
+    return json({ ok: true, order_id: orderId, status: order.status, brevo: { skipped: true } }, 200, cors);
   }
+
+  // Brevo — email xác nhận cho khách (dùng cấu hình online editierbar).
+  const brevo = await sendBrevoEmail(env, order);
   return json({ ok: true, order_id: orderId, status: order.status, brevo }, 200, cors);
+}
+
+// ───────── POST /order/:id/confirm (gửi Brevo email xác nhận sau khi khách upload chứng từ) ─────────
+async function confirmOrder(request, env, cors, id) {
+  if (!env.ORDERS) return json({ error: 'storage_unavailable' }, 500, cors);
+  const order = await env.ORDERS.get(id, { type: 'json' });
+  if (!order) return json({ error: 'order_not_found' }, 404, cors);
+  const brevo = await sendBrevoEmail(env, order);
+  return json({ ok: true, order_id: id, brevo }, 200, cors);
+}
+
+// ───────── Brevo helper ─────────
+async function sendBrevoEmail(env, order) {
+  let brevo = { skipped: true };
+  if (!env.BREVO_API_KEY || !env.BREVO_SENDER_EMAIL) return brevo;
+  const cfg = await loadConfig(env);
+  const { name, email } = order.customer || {};
+  if (!email) return brevo;
+  try {
+    const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'api-key': env.BREVO_API_KEY },
+      body: JSON.stringify({
+        sender: { name: env.BREVO_SENDER_NAME || cfg.brandName || 'DigitalStore', email: env.BREVO_SENDER_EMAIL },
+        to: [{ email, name }],
+        replyTo: env.ADMIN_EMAIL ? { email: env.ADMIN_EMAIL } : undefined,
+        subject: `${cfg.subject || 'Bestellbestätigung'} — ${cfg.brandName || 'DigitalStore'}`,
+        htmlContent: renderEmail({ name, items: order.items || [], total: order.total, cfg, supportEmail: env.SUPPORT_EMAIL || cfg.supportEmail || 'cfvblue@gmail.com' }),
+      }),
+    });
+    brevo = { ok: res.ok, status: res.status };
+    if (!res.ok) brevo.body = (await res.text().catch(() => '')).slice(0, 300);
+  } catch (e) { brevo = { ok: false, error: String(e && e.message || e) }; }
+  return brevo;
 }
 
 // ───────── Email-/Shop-Konfiguration (KV) ─────────
