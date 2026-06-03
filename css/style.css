@@ -101,8 +101,12 @@ section{padding:96px 24px;position:relative}
 .badge-status.available::before{background:var(--success)}
 .badge-status.unavailable{background:var(--danger-bg);color:#b91c1c}
 .badge-status.unavailable::before{background:var(--danger)}
+.badge-status.out_of_stock{background:#fef2f2;color:#b91c1c}
+.badge-status.out_of_stock::before{background:#ef4444}
 .badge-status.order{background:var(--info-bg);color:#1d4ed8}
 .badge-status.order::before{background:var(--info)}
+.add-cart.request-btn{background:#fff;color:var(--text);border:1px solid var(--line-2)}
+.add-cart.request-btn:hover{background:var(--bg-2);border-color:var(--text-3);transform:translateY(-1px)}
 .product.is-oos .product-img img{filter:grayscale(0.75);opacity:0.6}
 .product.is-oos .product-title{color:var(--text-2)}
 .product-body{padding:18px;flex:1;display:flex;flex-direction:column}
@@ -389,9 +393,8 @@ footer{padding:64px 24px 32px;border-top:1px solid var(--line);background:var(--
   .icon-btn,.lang-btn{height:34px;width:34px;padding:0;justify-content:center}
   .lang-btn{width:auto;padding:0 8px}
   #orderTopBtn{padding:6px 10px;font-size:12px}
-  /* Product card stacks footer when very tight */
-  .product-footer{flex-direction:column;align-items:stretch;gap:10px}
-  .product-footer .add-cart{width:100%;justify-content:center}
+  .product-footer{gap:8px}
+  .product-footer .add-cart{padding:7px 10px;font-size:12px}
 }
 
 /* LANGUAGE SWITCHER */

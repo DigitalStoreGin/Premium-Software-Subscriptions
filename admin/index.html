@@ -95,7 +95,7 @@ label.field > span{display:block;font-size:12.5px;font-weight:600;color:var(--te
 .wrap{max-width:1200px;margin:0 auto;padding:22px 20px 80px}
 
 /* stats */
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
 .stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:15px 16px}
 .stat .n{font-size:24px;font-weight:700;letter-spacing:-.02em}
 .stat .l{font-size:12.5px;color:var(--text-2);margin-top:2px;display:flex;align-items:center;gap:6px}
@@ -362,13 +362,14 @@ body{overflow-x:hidden}
     <div class="stats">
       <div class="stat"><div class="n" id="stTotal">0</div><div class="l" data-at="stat.total">Tổng sản phẩm</div></div>
       <div class="stat"><div class="n" id="stAvail">0</div><div class="l"><span class="pill available" style="padding:0;background:none"></span><span data-at="st.available">Verfügbar</span></div></div>
-      <div class="stat"><div class="n" id="stOos">0</div><div class="l"><span class="pill out_of_stock" style="padding:0;background:none"></span><span data-at="st.out_of_stock">Nicht verfügbar</span></div></div>
+      <div class="stat"><div class="n" id="stUnavail">0</div><div class="l"><span class="pill unavailable" style="padding:0;background:none"></span><span data-at="st.unavailable">Nicht verfügbar</span></div></div>
+      <div class="stat"><div class="n" id="stOos">0</div><div class="l"><span class="pill out_of_stock" style="padding:0;background:none"></span><span data-at="st.out_of_stock">Ausverkauft</span></div></div>
       <div class="stat"><div class="n" id="stHidden">0</div><div class="l"><span class="pill hidden" style="padding:0;background:none"></span><span data-at="st.hidden">Ẩn</span></div></div>
     </div>
 
     <div class="toolbar">
       <div class="searchbox"><i class="fa-solid fa-magnifying-glass"></i><input id="search" data-at-ph="search.ph" placeholder="Tìm theo tên hoặc mô tả…"></div>
-      <select id="filterStatus" class="select" style="width:auto"><option value="all" data-at="filter.all">Mọi trạng thái</option><option value="available" data-at="st.available">Verfügbar</option><option value="out_of_stock" data-at="st.out_of_stock">Nicht verfügbar</option><option value="hidden" data-at="st.hidden">Ẩn</option></select>
+      <select id="filterStatus" class="select" style="width:auto"><option value="all" data-at="filter.all">Mọi trạng thái</option><option value="available" data-at="st.available">Verfügbar</option><option value="unavailable" data-at="st.unavailable">Nicht verfügbar</option><option value="out_of_stock" data-at="st.out_of_stock">Ausverkauft</option><option value="hidden" data-at="st.hidden">Ẩn</option></select>
       <button id="addBtn" class="btn btn-primary btn-sm"><i class="fa-solid fa-plus"></i><span data-at="btn.add">Thêm sản phẩm</span></button>
     </div>
 
@@ -412,10 +413,11 @@ body{overflow-x:hidden}
     <label class="field"><span>Trạng thái</span>
       <div class="seg" id="fStatusSeg">
         <button type="button" data-v="available"><i class="fa-solid fa-circle-check"></i><span data-at="seg.available">Verfügbar</span></button>
-        <button type="button" data-v="out_of_stock"><i class="fa-solid fa-clock"></i><span data-at="seg.oos">Nicht verfügbar</span></button>
+        <button type="button" data-v="unavailable"><i class="fa-solid fa-ban"></i><span data-at="seg.unavail">Nicht verfügbar</span></button>
+        <button type="button" data-v="out_of_stock"><i class="fa-solid fa-box-open"></i><span data-at="seg.oos">Ausverkauft</span></button>
         <button type="button" data-v="hidden"><i class="fa-solid fa-eye-slash"></i><span data-at="seg.hidden">Ẩn</span></button>
       </div>
-      <div class="help">“Hết hàng” = sichtbar, nicht kaufbar · “Ẩn” = komplett ausgeblendet.</div>
+      <div class="help">“Hết hàng” = sichtbar, nicht kaufbar · “Ẩn” = Anfrage möglich. "Hidden" = unsichtbar.</div>
     </label>
 
     <label class="field"><span>Mô tả</span><textarea id="fDesc" class="textarea" placeholder="Mô tả ngắn hiển thị trên thẻ sản phẩm…"></textarea></label>
@@ -439,7 +441,7 @@ body{overflow-x:hidden}
     <div class="section-label"><i class="fa-solid fa-tags"></i>Gói & giá</div>
     <div id="fVariants"></div>
     <button id="addVariant" class="btn btn-ghost btn-sm"><i class="fa-solid fa-plus"></i>Thêm gói</button>
-    <div class="help" style="margin-top:8px">Mỗi gói có nhãn, giá (€) và trạng thái riêng (verfügbar / nicht verfügbar / ẩn).</div>
+    <div class="help" style="margin-top:8px">Mỗi gói có nhãn, giá và 4 trạng thái: verfügbar / nicht verfügbar / ausverkauft / ẩn.</div>
   </div>
   <div class="drawer-foot">
     <button id="editDelete" class="btn btn-danger" style="margin-right:auto"><i class="fa-solid fa-trash"></i>Xoá</button>
@@ -610,13 +612,13 @@ const ADMIN_LANGS = ['vi','de','en'];
 const AI = {
   vi:{
     'app.title':'Quản lý sản phẩm','stat.total':'Tổng sản phẩm',
-    'st.available':'Verfügbar','st.out_of_stock':'Nicht verfügbar','st.hidden':'Ẩn',
+    'st.available':'Verfügbar','st.unavailable':'Nicht verfügbar','st.out_of_stock':'Ausverkauft','st.hidden':'Ẩn',
     'search.ph':'Tìm theo tên hoặc mô tả…','filter.all':'Mọi trạng thái',
     'th.product':'Sản phẩm','th.cat':'Danh mục','th.price':'Giá','th.status':'Trạng thái','th.action':'Thao tác',
     'btn.add':'Thêm sản phẩm','btn.save':'Lưu','btn.edit':'Sửa','btn.done':'Xong','btn.cancel':'Huỷ','btn.del':'Xoá',
-    'seg.available':'Verfügbar','seg.oos':'Nicht verfügbar','seg.hidden':'Ẩn',
-    'seg.help':'"Nicht verfügbar" = hiển thị nhưng không mua được · "Ẩn" = ẩn hoàn toàn.',
-    'v.available':'Verfügbar','v.unavailable':'Nicht verfügbar','v.hidden':'Ẩn',
+    'seg.available':'Verfügbar','seg.unavail':'Nicht verfügbar','seg.oos':'Ausverkauft','seg.hidden':'Ẩn',
+    'seg.help':'"Nicht verfügbar"/"Ausverkauft" = hiển thị, có nút Anfragen · "Ẩn" = ẩn hoàn toàn.',
+    'v.available':'Verfügbar','v.unavailable':'Nicht verfügbar','v.out_of_stock':'Ausverkauft','v.hidden':'Ẩn',
     'editor.add':'Thêm sản phẩm','editor.edit':'Sửa sản phẩm',
     'et.worker':'Kết nối Worker','et.load':'Tải cấu hình','et.general':'Thông tin chung',
     'et.brand':'Tên cửa hàng','et.subject':'Tiêu đề email','et.intro':'Lời cảm ơn / mở đầu',
@@ -627,13 +629,13 @@ const AI = {
   },
   de:{
     'app.title':'Produktverwaltung','stat.total':'Gesamt',
-    'st.available':'Verfügbar','st.out_of_stock':'Nicht verfügbar','st.hidden':'Ausgeblendet',
+    'st.available':'Verfügbar','st.unavailable':'Nicht verfügbar','st.out_of_stock':'Ausverkauft','st.hidden':'Ausgeblendet',
     'search.ph':'Nach Name oder Beschreibung suchen…','filter.all':'Alle Status',
     'th.product':'Produkt','th.cat':'Kategorie','th.price':'Preis','th.status':'Status','th.action':'Aktionen',
     'btn.add':'Produkt hinzufügen','btn.save':'Speichern','btn.edit':'Bearbeiten','btn.done':'Fertig','btn.cancel':'Abbrechen','btn.del':'Löschen',
-    'seg.available':'Verfügbar','seg.oos':'Nicht verfügbar','seg.hidden':'Ausgeblendet',
-    'seg.help':'"Nicht verfügbar" = sichtbar, nicht kaufbar · "Ausgeblendet" = komplett unsichtbar.',
-    'v.available':'Verfügbar','v.unavailable':'Nicht verfügbar','v.hidden':'Ausgeblendet',
+    'seg.available':'Verfügbar','seg.unavail':'Nicht verfügbar','seg.oos':'Ausverkauft','seg.hidden':'Ausgeblendet',
+    'seg.help':'"Nicht verfügbar"/"Ausverkauft" = sichtbar, Anfrage möglich · "Ausgeblendet" = unsichtbar.',
+    'v.available':'Verfügbar','v.unavailable':'Nicht verfügbar','v.out_of_stock':'Ausverkauft','v.hidden':'Ausgeblendet',
     'editor.add':'Produkt hinzufügen','editor.edit':'Produkt bearbeiten',
     'et.worker':'Worker-Verbindung','et.load':'Konfiguration laden','et.general':'Allgemein',
     'et.brand':'Shop-Name','et.subject':'E-Mail-Betreff','et.intro':'Begrüßung / Einleitung',
@@ -644,13 +646,13 @@ const AI = {
   },
   en:{
     'app.title':'Product Management','stat.total':'Total',
-    'st.available':'Available','st.out_of_stock':'Unavailable','st.hidden':'Hidden',
+    'st.available':'Available','st.unavailable':'Unavailable','st.out_of_stock':'Sold out','st.hidden':'Hidden',
     'search.ph':'Search by name or description…','filter.all':'All statuses',
     'th.product':'Product','th.cat':'Category','th.price':'Price','th.status':'Status','th.action':'Actions',
     'btn.add':'Add product','btn.save':'Save','btn.edit':'Edit','btn.done':'Done','btn.cancel':'Cancel','btn.del':'Delete',
-    'seg.available':'Available','seg.oos':'Unavailable','seg.hidden':'Hidden',
-    'seg.help':'"Unavailable" = visible but not purchasable · "Hidden" = completely invisible.',
-    'v.available':'Available','v.unavailable':'Unavailable','v.hidden':'Hidden',
+    'seg.available':'Available','seg.unavail':'Unavailable','seg.oos':'Sold out','seg.hidden':'Hidden',
+    'seg.help':'"Unavailable"/"Sold out" = visible, request possible · "Hidden" = invisible.',
+    'v.available':'Available','v.unavailable':'Unavailable','v.out_of_stock':'Sold out','v.hidden':'Hidden',
     'editor.add':'Add product','editor.edit':'Edit product',
     'et.worker':'Worker Connection','et.load':'Load config','et.general':'General',
     'et.brand':'Shop name','et.subject':'Email subject','et.intro':'Greeting / introduction',
@@ -776,12 +778,12 @@ function repoPagesBase(){ return location.pathname.replace(/admin\/?[^/]*$/, '')
 function normalize(arr){
   return (arr||[]).map(p=>({
     id: p.id, name: p.name||'', cat: p.cat||'other',
-    status: ['available','out_of_stock','hidden'].includes(p.status)?p.status:'available',
+    status: ['available','unavailable','out_of_stock','hidden'].includes(p.status)?p.status:'available',
     bs: !!p.bs, img: p.img||'', desc: p.desc||'',
     features: Array.isArray(p.features)?p.features:[],
     variants: Array.isArray(p.variants)&&p.variants.length ? p.variants.map(v=>({
       label:v.label||'', price:Number(v.price)||0,
-      status:v.status==='order'?'unavailable':(['available','unavailable','hidden'].includes(v.status)?v.status:'available'),
+      status:v.status==='order'?'unavailable':(['available','unavailable','out_of_stock','hidden'].includes(v.status)?v.status:'available'),
       ...(v.note?{note:v.note}:{})
     })) : [{label:'Standard', price:0, status:'available'}]
   })).map(p=>{ if(p.id==null) p.id=Math.floor(Math.random()*1e6); return p; });
@@ -977,7 +979,7 @@ function filtered(){
 }
 function statusSelect(p){
   return `<select class="select" data-status="${p.id}">`+
-    ['available','out_of_stock','hidden'].map(s=>`<option value="${s}" ${p.status===s?'selected':''}>${STATUS_LABEL[s]}</option>`).join('')+
+    ['available','unavailable','out_of_stock','hidden'].map(s=>`<option value="${s}" ${p.status===s?'selected':''}>${STATUS_LABEL[s]}</option>`).join('')+
   `</select>`;
 }
 function render(){
@@ -985,6 +987,7 @@ function render(){
   // stats (full list, not filtered)
   $('#stTotal').textContent=STATE.products.length;
   $('#stAvail').textContent=STATE.products.filter(p=>p.status==='available').length;
+  $('#stUnavail').textContent=STATE.products.filter(p=>p.status==='unavailable').length;
   $('#stOos').textContent=STATE.products.filter(p=>p.status==='out_of_stock').length;
   $('#stHidden').textContent=STATE.products.filter(p=>p.status==='hidden').length;
 
@@ -1109,7 +1112,7 @@ $('#fImgFile').onchange=e=>{
 };
 
 /* variants */
-function vStatusColor(s){ return s==='available'?'var(--green)':s==='unavailable'?'var(--amber)':s==='hidden'?'var(--gray)':'var(--text-2)'; }
+function vStatusColor(s){ return s==='available'?'var(--green)':s==='unavailable'?'var(--amber)':s==='out_of_stock'?'var(--danger, #b91c1c)':s==='hidden'?'var(--gray)':'var(--text-2)'; }
 function renderVariants(variants){
   $('#fVariants').innerHTML = variants.map((v,i)=>`
     <div class="variant-row" data-i="${i}">
@@ -1118,6 +1121,7 @@ function renderVariants(variants){
       <select class="select vstatus" style="font-weight:600;color:${vStatusColor(v.status)}">
         <option value="available" ${v.status==='available'?'selected':''}>● ${T('v.available')}</option>
         <option value="unavailable" ${v.status==='unavailable'||v.status==='order'?'selected':''}>● ${T('v.unavailable')}</option>
+        <option value="out_of_stock" ${v.status==='out_of_stock'?'selected':''}>● ${T('v.out_of_stock')}</option>
         <option value="hidden" ${v.status==='hidden'?'selected':''}>● ${T('v.hidden')}</option>
       </select>
       <button class="vdel" data-vdel="${i}" title="Xoá gói"><i class="fa-solid fa-xmark"></i></button>

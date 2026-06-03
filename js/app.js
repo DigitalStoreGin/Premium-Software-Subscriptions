@@ -21,7 +21,8 @@ const I18N = (function(){
       'prod.search':'Produkt suchen — z.B. YouTube, ChatGPT, VPN',
       'prod.cat.all':'Alle','prod.cat.streaming':'Streaming','prod.cat.ai':'KI & Code','prod.cat.office':'Office','prod.cat.design':'Design','prod.cat.vpn':'VPN','prod.cat.other':'Sonstige','prod.cat.bs':'Best Seller',
       'prod.empty':'Keine Produkte gefunden','prod.add':'Hinzufügen',
-      'status.available':'Verfügbar','status.unavailable':'Nicht verfügbar','status.order':'Auf Bestellung','status.outofstock':'Ausverkauft',
+      'status.available':'Verfügbar','status.unavailable':'Nicht verfügbar','status.outofstock':'Ausverkauft','status.order':'Auf Bestellung',
+      'prod.request':'Anfragen','prod.request.subject':'Bestellanfrage — {product}','prod.request.body':'Hallo DigitalStore-Team,\n\nich interessiere mich für folgendes Produkt:\n\nProdukt: {product}\nVariante: {variant}\nPreis: €{price}\n\nBitte informieren Sie mich, sobald es wieder verfügbar ist, oder senden Sie mir alternative Angebote.\n\nVielen Dank!\n\nMit freundlichen Grüßen',
       'how.tag':"So funktioniert's",'how.title':'In 3 einfachen Schritten','how.sub':'Vom Bestellen bis zur Aktivierung — wir haben den Prozess so einfach wie möglich gestaltet.',
       'how.s1.t':'Produkt auswählen','how.s1.d':'Füge gewünschte Produkte zum Warenkorb hinzu und überprüfe deine Auswahl.',
       'how.s2.t':'Bestellung & Überweisung','how.s2.d':'Sende deine Bestellung per E-Mail. Du erhältst sofort die Zahlungsanleitung und überweist auf unser Konto.',
@@ -81,7 +82,8 @@ const I18N = (function(){
       'prod.search':'Search products — e.g. YouTube, ChatGPT, VPN',
       'prod.cat.all':'All','prod.cat.streaming':'Streaming','prod.cat.ai':'AI & Code','prod.cat.office':'Office','prod.cat.design':'Design','prod.cat.vpn':'VPN','prod.cat.other':'Other','prod.cat.bs':'Best Seller',
       'prod.empty':'No products found','prod.add':'Add',
-      'status.available':'Available','status.unavailable':'Unavailable','status.order':'On request','status.outofstock':'Out of stock',
+      'status.available':'Available','status.unavailable':'Unavailable','status.outofstock':'Out of stock','status.order':'On request',
+      'prod.request':'Request','prod.request.subject':'Order inquiry — {product}','prod.request.body':'Hello DigitalStore Team,\n\nI am interested in the following product:\n\nProduct: {product}\nVariant: {variant}\nPrice: €{price}\n\nPlease let me know once it is available again or send me alternative offers.\n\nThank you!\n\nBest regards',
       'how.tag':'How it works','how.title':'In 3 easy steps','how.sub':'From order to activation — we made the process as simple as possible.',
       'how.s1.t':'Choose a product','how.s1.d':'Add the products you want to your cart and review your selection.',
       'how.s2.t':'Order & transfer','how.s2.d':'Send your order by email. You will receive payment instructions immediately and transfer to our account.',
@@ -141,7 +143,8 @@ const I18N = (function(){
       'prod.search':'Поиск продукта — напр. YouTube, ChatGPT, VPN',
       'prod.cat.all':'Все','prod.cat.streaming':'Стриминг','prod.cat.ai':'ИИ и код','prod.cat.office':'Офис','prod.cat.design':'Дизайн','prod.cat.vpn':'VPN','prod.cat.other':'Другое','prod.cat.bs':'Бестселлер',
       'prod.empty':'Продукты не найдены','prod.add':'В корзину',
-      'status.available':'В наличии','status.unavailable':'Недоступно','status.order':'Под заказ','status.outofstock':'Нет в наличии',
+      'status.available':'В наличии','status.unavailable':'Недоступно','status.outofstock':'Нет в наличии','status.order':'Под заказ',
+      'prod.request':'Запросить','prod.request.subject':'Запрос на заказ — {product}','prod.request.body':'Здравствуйте, команда DigitalStore!\n\nМеня интересует следующий продукт:\n\nПродукт: {product}\nВариант: {variant}\nЦена: €{price}\n\nПожалуйста, сообщите, когда он снова будет доступен, или предложите альтернативы.\n\nСпасибо!\n\nС уважением',
       'how.tag':'Как это работает','how.title':'В 3 простых шага','how.sub':'От заказа до активации — мы сделали процесс максимально простым.',
       'how.s1.t':'Выберите продукт','how.s1.d':'Добавьте нужные продукты в корзину и проверьте свой выбор.',
       'how.s2.t':'Заказ и перевод','how.s2.d':'Отправьте заказ по email. Вы сразу получите инструкции по оплате и переведёте на наш счёт.',
@@ -598,7 +601,7 @@ let products = [];
 // Ensure every product/variant has sane defaults (esp. the product-level status).
 function normalizeProducts(arr){
   return (arr||[]).map(p => ({
-    status: 'available',          // available | out_of_stock | hidden
+    status: 'available',          // available | unavailable | out_of_stock | hidden
     bs: false,
     cat: 'other',
     features: [],
@@ -650,7 +653,7 @@ function generateOrderId(){
   return `DS-${y}${m}${day}-${rnd}`;
 }
 
-function statusText(s){const m=(typeof I18N!=='undefined'&&I18N&&I18N.t)?{available:I18N.t('status.available'),unavailable:I18N.t('status.unavailable'),order:I18N.t('status.order')}:{available:'Verfügbar',unavailable:'Nicht verfügbar',order:'Auf Bestellung'};return m[s]||s}
+function statusText(s){const m=(typeof I18N!=='undefined'&&I18N&&I18N.t)?{available:I18N.t('status.available'),unavailable:I18N.t('status.unavailable'),out_of_stock:I18N.t('status.outofstock'),order:I18N.t('status.order')}:{available:'Verfügbar',unavailable:'Nicht verfügbar',out_of_stock:'Ausverkauft',order:'Auf Bestellung'};return m[s]||s}
 function catLabel(c){const k='prod.cat.'+c;return(typeof I18N!=='undefined'&&I18N&&I18N.t)?I18N.t(k):({streaming:'Streaming',ai:'KI & Code',office:'Office',design:'Design',vpn:'VPN',other:'Sonstige'}[c]||c)}
 
 // RENDER
@@ -673,12 +676,10 @@ function renderProducts(){
     const dflt = list.find(x=>x.v.status==='available') || list[0];
     const defaultIdx = dflt.origIdx;
     const defaultV = dflt.v;
-    // blocked = không cho mua (hết hàng, không khả dụng, hoặc mọi gói đều ẩn)
     const blocked = p.status==='out_of_stock' || p.status==='unavailable' || vis.length===0;
     const oos = blocked;
-    const blockTxt = p.status==='unavailable' ? I18N.t('status.unavailable') : I18N.t('status.outofstock');
-    const badgeCls = blocked ? 'unavailable' : defaultV.status;
-    const badgeTxt = blocked ? blockTxt : statusText(defaultV.status);
+    const badgeCls = p.status==='out_of_stock' ? 'out_of_stock' : (blocked ? 'unavailable' : defaultV.status==='out_of_stock' ? 'out_of_stock' : defaultV.status);
+    const badgeTxt = blocked ? statusText(p.status==='out_of_stock'?'out_of_stock':'unavailable') : statusText(defaultV.status==='out_of_stock'?'out_of_stock':defaultV.status);
     return `
     <article class="product reveal${oos?' is-oos':''}" data-id="${p.id}">
       ${p.bs ? '<div class="badge-bs">'+I18N.t('prod.cat.bs')+'</div>' : ''}
@@ -692,16 +693,16 @@ function renderProducts(){
           ${getFeatures(p).map(f=>{const isWarn=f.startsWith('Nur für')||f.startsWith('Upgrade')||f==='Zugangsdaten';const isCode=f.startsWith('Code:');return isWarn?`<div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:6px;padding:4px 8px;color:#92400e;font-size:11px;font-weight:600;margin-top:2px"><i class="fa-solid fa-triangle-exclamation" style="color:#d97706;margin-right:2px"></i>${f}</div>`:isCode?`<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:4px 8px;color:#1e40af;font-size:11px;font-weight:600;margin-top:2px"><i class="fa-solid fa-tag" style="color:#3b82f6;margin-right:2px"></i>${f}</div>`:`<div><i class="fa-solid fa-check"></i>${f}</div>`;}).join('')}${defaultV.note?`<div class="variant-feature"><i class="fa-solid fa-check"></i>${tNote(defaultV.note)}</div>`:''}
         </div>
         <div class="variants">
-          ${list.map(x=>`<button class="variant ${x.origIdx===defaultIdx?'selected':''}${(oos||x.v.status==='unavailable')?' unavailable':''}" data-id="${p.id}" data-idx="${x.origIdx}"${oos?' disabled':''}>${tVariant(x.v.label)} · €${x.v.price.toFixed(2)}</button>`).join('')}
+          ${list.map(x=>{const vb=oos||x.v.status==='unavailable'||x.v.status==='out_of_stock';return`<button class="variant ${x.origIdx===defaultIdx?'selected':''}${vb?' unavailable':''}" data-id="${p.id}" data-idx="${x.origIdx}">${tVariant(x.v.label)} · €${x.v.price.toFixed(2)}</button>`;}).join('')}
         </div>
         <div class="product-footer">
           <div>
             <span class="price">€<span data-price-id="${p.id}">${defaultV.price.toFixed(2)}</span></span>
             <span class="price-period" data-period-id="${p.id}">${tVariant(defaultV.label)}</span>
           </div>
-          <button class="add-cart" data-add="${p.id}" data-variant-idx="${defaultIdx}" ${(oos||defaultV.status==='unavailable')?'disabled':''}>
-            <i class="fa-solid fa-plus"></i>${blocked ? blockTxt : I18N.t('prod.add')}
-          </button>
+          ${(oos||defaultV.status==='unavailable'||defaultV.status==='out_of_stock')
+            ? `<button class="add-cart request-btn" data-request="${p.id}" data-variant-idx="${defaultIdx}"><i class="fa-solid fa-envelope"></i>${I18N.t('prod.request')}</button>`
+            : `<button class="add-cart" data-add="${p.id}" data-variant-idx="${defaultIdx}"><i class="fa-solid fa-plus"></i>${I18N.t('prod.add')}</button>`}
         </div>
       </div>
     </article>`;
@@ -726,9 +727,19 @@ function attachVariantListeners(){
       const bs = card.querySelector('.badge-status');
       bs.className = `badge-status ${v.status}`;
       bs.textContent = statusText(v.status);
+      const isBlocked = v.status==='unavailable' || v.status==='out_of_stock';
       const add = card.querySelector('.add-cart');
-      add.disabled = v.status==='unavailable';
-      add.dataset.variantIdx = idx;
+      if(isBlocked){
+        add.className = 'add-cart request-btn';
+        add.removeAttribute('data-add'); add.dataset.request = pid; add.dataset.variantIdx = idx;
+        add.disabled = false;
+        add.innerHTML = '<i class="fa-solid fa-envelope"></i>' + I18N.t('prod.request');
+      } else {
+        add.className = 'add-cart';
+        add.removeAttribute('data-request'); add.dataset.add = pid; add.dataset.variantIdx = idx;
+        add.disabled = false;
+        add.innerHTML = '<i class="fa-solid fa-plus"></i>' + I18N.t('prod.add');
+      }
       const featEl = card.querySelector(`[data-features-id="${pid}"]`);
       const old = featEl.querySelector('.variant-feature');
       if(old) old.remove();
@@ -741,11 +752,29 @@ function attachAddListeners(){
   document.querySelectorAll('.add-cart').forEach(btn=>{
     btn.addEventListener('click',()=>{
       if(btn.disabled) return;
+      if(btn.dataset.request){
+        const pid = +btn.dataset.request;
+        const idx = +btn.dataset.variantIdx;
+        requestOrder(pid, idx);
+        return;
+      }
       const pid = +btn.dataset.add;
       const idx = +btn.dataset.variantIdx;
       addToCart(pid, idx);
     });
   });
+}
+
+function requestOrder(pid, vIdx){
+  const p = products.find(x=>x.id===pid);
+  if(!p) return;
+  const v = (p.variants && p.variants[vIdx]) ? p.variants[vIdx] : {label:'',price:0};
+  const subj = I18N.t('prod.request.subject').replace('{product}', p.name);
+  const body = I18N.t('prod.request.body')
+    .replace('{product}', p.name)
+    .replace('{variant}', v.label || '-')
+    .replace('{price}', v.price ? v.price.toFixed(2) : '—');
+  window.location.href = 'mailto:' + ORDER_EMAIL + '?subject=' + encodeURIComponent(subj) + '&body=' + encodeURIComponent(body);
 }
 
 // CART
