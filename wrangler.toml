@@ -1,0 +1,20 @@
+# Root config — Cloudflare GitHub deploy dùng file này (KHÔNG deploy từ backend/ riêng).
+# Giữ bindings KV + R2 để dashboard luôn hiện flow ORDERS / PROOFS.
+name = "store"
+main = "backend/worker.js"
+compatibility_date = "2024-11-01"
+
+[vars]
+ALLOWED_ORIGIN = "*"
+BREVO_SENDER_EMAIL = "cfvblue@gmail.com"
+BREVO_SENDER_NAME = "DigitalStore"
+ADMIN_EMAIL = "cfvblue@gmail.com"
+SUPPORT_EMAIL = "cfvblue@gmail.com"
+
+[[kv_namespaces]]
+binding = "ORDERS"
+id = "bd8530d0f1b84b58a56284db011bdc81"
+
+[[r2_buckets]]
+binding = "PROOFS"
+bucket_name = "digitalstore-proof"

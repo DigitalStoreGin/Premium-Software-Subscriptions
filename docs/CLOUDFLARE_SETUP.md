@@ -2,26 +2,49 @@
 
 ## 0. Chuẩn bị
 - Node ≥ 18, `npm i -g wrangler`, `wrangler login`.
-- KV namespace đã có: id `bd8530d0f1b84b58a56284db011bdc81` (binding `ORDERS`) — đã điền sẵn trong `wrangler.toml`.
+- KV: `bd8530d0f1b84b58a56284db011bdc81` (binding `ORDERS`), R2: `digitalstore-proof` (binding `PROOFS`).
+- File cấu hình chính: **`wrangler.toml` ở thư mục gốc repo** (để GitHub deploy không mất bindings).
+
+## ⚠️ Dashboard báo "Bindings (0)" / mất flow KV–R2
+GitHub kết nối Worker nhưng deploy **không** đọc `backend/wrangler.toml` → version không có KV/R2.
+
+**Cách sửa (một lần):**
+```bash
+# Từ thư mục gốc repo (có wrangler.toml)
+wrangler deploy
+```
+Sau đó refresh Cloudflare → Workers → **store** → Overview: phải thấy **ORDERS** (KV) và **PROOFS** (R2).
 
 ## 1. Connect worker
 ```bash
-cd backend
-wrangler whoami        # xác nhận đã đăng nhập
+wrangler whoami
 ```
-`wrangler.toml` đã đặt `name = "store"` → URL sẽ là `https://store.<account>.workers.dev`
-(của bạn: `https://store.tdh1812.workers.dev`).
+URL: `https://store.tdh1812.workers.dev`
 
-## 2. Set secrets (KHÔNG ghi vào file)
+## 2. Secrets — lưu trên Cloudflare (online, không local)
+
+**Cách A — Dashboard (khuyên dùng, không mất khi đổi máy):**
+1. [Cloudflare Dashboard](https://dash.cloudflare.com) → **Workers & Pages** → **store**
+2. **Settings** → **Variables and Secrets**
+3. Thêm **Secret** (Encrypt):
+
+| Tên | Giá trị |
+|-----|--------|
+| `BREVO_API_KEY` | API key Brevo (`xkeysib-...`) |
+| `WEB3FORMS_KEY` | Key Web3Forms |
+| `ADMIN_TOKEN` | `Lol.Huy1812.Lol` |
+| `ADMIN_PASS_HASH` | SHA-256 của mật khẩu admin (64 ký tự hex), **không** gõ plain password |
+
+4. **Environment variables** (plain text, đã có trong `wrangler.toml`): `BREVO_SENDER_EMAIL`, `BREVO_SENDER_NAME`, `ADMIN_EMAIL`, `SUPPORT_EMAIL`
+
+**Cách B — CLI:**
 ```bash
-wrangler secret put BREVO_API_KEY        # ⚠️ DÁN KEY BREVO MỚI (key cũ đã lộ → xoá trên Brevo)
-wrangler secret put BREVO_SENDER_EMAIL   # email đã verify trên Brevo
-wrangler secret put BREVO_SENDER_NAME    # DigitalStore
-wrangler secret put WEB3FORMS_KEY        # 8a7b89a3-6dd5-4b90-bd30-e5f7139910de
-wrangler secret put ADMIN_TOKEN          # chuỗi ngẫu nhiên dài (openssl rand -hex 24)
-wrangler secret put ADMIN_EMAIL          # cfvblue@gmail.com
-wrangler secret put SUPPORT_EMAIL        # cfvblue@gmail.com
+wrangler secret put BREVO_API_KEY
+wrangler secret put WEB3FORMS_KEY
+wrangler secret put ADMIN_TOKEN
+wrangler secret put ADMIN_PASS_HASH
 ```
+Hoặc: `powershell -File scripts/set-cloudflare-secrets.ps1`
 
 ## 3. Paste worker URL vào frontend
 Trong `js/app.js`:
@@ -32,8 +55,10 @@ const WORKER_URL = 'https://store.tdh1812.workers.dev';
 
 ## 4. Deploy
 ```bash
+# Luôn chạy từ thư mục gốc repo (file wrangler.toml gốc)
 wrangler deploy
-curl https://store.tdh1812.workers.dev/order/NONE   # → {"error":"not_found"} là OK
+curl https://store.tdh1812.workers.dev/config      # → {"ok":true,...}
+curl https://store.tdh1812.workers.dev/order/NONE  # → {"error":"not_found"} là OK
 ```
 
 ## 5. Commit & push
@@ -66,3 +91,6 @@ curl https://store.tdh1812.workers.dev/order/NONE        # → {"error":"not_fou
 | CORS bị chặn | `ALLOWED_ORIGIN` trong wrangler.toml phải khớp origin GitHub Pages (vd `https://digitalstoregin.github.io`) → deploy lại. |
 | 401 khi lưu /config | sai `x-admin-token` (phải khớp secret `ADMIN_TOKEN`). |
 | 500 storage_unavailable | KV id sai trong wrangler.toml. |
+| Bindings (0) trên dashboard | Deploy lại từ **gốc repo** (`wrangler deploy`), không chỉ push GitHub nếu chưa có `wrangler.toml` gốc. |
+| Secrets trống sau deploy | Set lại trên Dashboard → Variables and Secrets (secrets **không** nằm trong git). |
+| GET /config → 404 | Worker đang chạy bản “autoconfig” không có code — `wrangler deploy` từ repo. |
