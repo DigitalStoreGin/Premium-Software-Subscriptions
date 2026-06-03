@@ -656,6 +656,23 @@ function generateOrderId(){
 function statusText(s){const m=(typeof I18N!=='undefined'&&I18N&&I18N.t)?{available:I18N.t('status.available'),unavailable:I18N.t('status.unavailable'),out_of_stock:I18N.t('status.outofstock'),order:I18N.t('status.order')}:{available:'Verfügbar',unavailable:'Nicht verfügbar',out_of_stock:'Ausverkauft',order:'Auf Bestellung'};return m[s]||s}
 function catLabel(c){const k='prod.cat.'+c;return(typeof I18N!=='undefined'&&I18N&&I18N.t)?I18N.t(k):({streaming:'Streaming',ai:'KI & Code',office:'Office',design:'Design',vpn:'VPN',other:'Sonstige'}[c]||c)}
 
+// Bestimmt welchen Button eine Produktkarte bekommt:
+//   available           → "+ Hinzufügen"
+//   unavailable (Prod)  → disabled "Nicht verfügbar"
+//   unavailable (Var)   → disabled "Nicht verfügbar"
+//   out_of_stock (Prod) → "Anfragen" (mailto)
+//   out_of_stock (Var)  → "Anfragen" (mailto)
+function buildCartButton(p, v, idx, pUnavail, pSoldOut){
+  const vs = v.status;
+  if(pSoldOut || vs==='out_of_stock'){
+    return `<button class="add-cart request-btn" data-request="${p.id}" data-variant-idx="${idx}"><i class="fa-solid fa-envelope"></i>${I18N.t('prod.request')}</button>`;
+  }
+  if(pUnavail || vs==='unavailable'){
+    return `<button class="add-cart" disabled><i class="fa-solid fa-ban"></i>${I18N.t('status.unavailable')}</button>`;
+  }
+  return `<button class="add-cart" data-add="${p.id}" data-variant-idx="${idx}"><i class="fa-solid fa-plus"></i>${I18N.t('prod.add')}</button>`;
+}
+
 // RENDER
 function renderProducts(){
   const filtered = products.filter(p=>{
@@ -676,10 +693,14 @@ function renderProducts(){
     const dflt = list.find(x=>x.v.status==='available') || list[0];
     const defaultIdx = dflt.origIdx;
     const defaultV = dflt.v;
-    const blocked = p.status==='out_of_stock' || p.status==='unavailable' || vis.length===0;
-    const oos = blocked;
-    const badgeCls = p.status==='out_of_stock' ? 'out_of_stock' : (blocked ? 'unavailable' : defaultV.status==='out_of_stock' ? 'out_of_stock' : defaultV.status);
-    const badgeTxt = blocked ? statusText(p.status==='out_of_stock'?'out_of_stock':'unavailable') : statusText(defaultV.status==='out_of_stock'?'out_of_stock':defaultV.status);
+    // Product-level: unavailable = mờ + disabled, out_of_stock = mờ + Anfragen
+    const pUnavail = p.status==='unavailable';
+    const pSoldOut = p.status==='out_of_stock';
+    const oos = pUnavail || pSoldOut || vis.length===0;
+    // Effective status for badge: product-level overrides variant-level
+    const effStatus = pSoldOut ? 'out_of_stock' : pUnavail ? 'unavailable' : defaultV.status;
+    const badgeCls = effStatus;
+    const badgeTxt = statusText(effStatus);
     return `
     <article class="product reveal${oos?' is-oos':''}" data-id="${p.id}">
       ${p.bs ? '<div class="badge-bs">'+I18N.t('prod.cat.bs')+'</div>' : ''}
@@ -693,16 +714,14 @@ function renderProducts(){
           ${getFeatures(p).map(f=>{const isWarn=f.startsWith('Nur für')||f.startsWith('Upgrade')||f==='Zugangsdaten';const isCode=f.startsWith('Code:');return isWarn?`<div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:6px;padding:4px 8px;color:#92400e;font-size:11px;font-weight:600;margin-top:2px"><i class="fa-solid fa-triangle-exclamation" style="color:#d97706;margin-right:2px"></i>${f}</div>`:isCode?`<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:4px 8px;color:#1e40af;font-size:11px;font-weight:600;margin-top:2px"><i class="fa-solid fa-tag" style="color:#3b82f6;margin-right:2px"></i>${f}</div>`:`<div><i class="fa-solid fa-check"></i>${f}</div>`;}).join('')}${defaultV.note?`<div class="variant-feature"><i class="fa-solid fa-check"></i>${tNote(defaultV.note)}</div>`:''}
         </div>
         <div class="variants">
-          ${list.map(x=>{const vb=oos||x.v.status==='unavailable'||x.v.status==='out_of_stock';return`<button class="variant ${x.origIdx===defaultIdx?'selected':''}${vb?' unavailable':''}" data-id="${p.id}" data-idx="${x.origIdx}">${tVariant(x.v.label)} · €${x.v.price.toFixed(2)}</button>`;}).join('')}
+          ${list.map(x=>{const vDis=oos||x.v.status==='unavailable'||x.v.status==='out_of_stock';return`<button class="variant ${x.origIdx===defaultIdx?'selected':''}${vDis?' unavailable':''}" data-id="${p.id}" data-idx="${x.origIdx}">${tVariant(x.v.label)} · €${x.v.price.toFixed(2)}</button>`;}).join('')}
         </div>
         <div class="product-footer">
           <div>
             <span class="price">€<span data-price-id="${p.id}">${defaultV.price.toFixed(2)}</span></span>
             <span class="price-period" data-period-id="${p.id}">${tVariant(defaultV.label)}</span>
           </div>
-          ${(oos||defaultV.status==='unavailable'||defaultV.status==='out_of_stock')
-            ? `<button class="add-cart request-btn" data-request="${p.id}" data-variant-idx="${defaultIdx}"><i class="fa-solid fa-envelope"></i>${I18N.t('prod.request')}</button>`
-            : `<button class="add-cart" data-add="${p.id}" data-variant-idx="${defaultIdx}"><i class="fa-solid fa-plus"></i>${I18N.t('prod.add')}</button>`}
+          ${buildCartButton(p, defaultV, defaultIdx, pUnavail, pSoldOut)}
         </div>
       </div>
     </article>`;
@@ -724,16 +743,26 @@ function attachVariantListeners(){
       btn.classList.add('selected');
       card.querySelector(`[data-price-id="${pid}"]`).textContent = v.price.toFixed(2);
       card.querySelector(`[data-period-id="${pid}"]`).textContent = tVariant(v.label);
+      const pUnavail = p.status==='unavailable';
+      const pSoldOut = p.status==='out_of_stock';
+      const effSt = pSoldOut ? 'out_of_stock' : pUnavail ? 'unavailable' : v.status;
       const bs = card.querySelector('.badge-status');
-      bs.className = `badge-status ${v.status}`;
-      bs.textContent = statusText(v.status);
-      const isBlocked = v.status==='unavailable' || v.status==='out_of_stock';
+      bs.className = `badge-status ${effSt}`;
+      bs.textContent = statusText(effSt);
+      // Greyed card when product or variant is unavailable/sold-out
+      if(effSt==='unavailable'||effSt==='out_of_stock') card.classList.add('is-oos');
+      else card.classList.remove('is-oos');
       const add = card.querySelector('.add-cart');
-      if(isBlocked){
+      if(pSoldOut || v.status==='out_of_stock'){
         add.className = 'add-cart request-btn';
         add.removeAttribute('data-add'); add.dataset.request = pid; add.dataset.variantIdx = idx;
         add.disabled = false;
         add.innerHTML = '<i class="fa-solid fa-envelope"></i>' + I18N.t('prod.request');
+      } else if(pUnavail || v.status==='unavailable'){
+        add.className = 'add-cart';
+        add.removeAttribute('data-add'); add.removeAttribute('data-request');
+        add.disabled = true;
+        add.innerHTML = '<i class="fa-solid fa-ban"></i>' + I18N.t('status.unavailable');
       } else {
         add.className = 'add-cart';
         add.removeAttribute('data-request'); add.dataset.add = pid; add.dataset.variantIdx = idx;
