@@ -13,7 +13,7 @@ Write-Host "2) Set secrets (nhập giá trị khi được hỏi, hoặc dùng C
 $secrets = @(
   @{ Name = "BREVO_API_KEY"; Hint = "xkeysib-..." },
   @{ Name = "WEB3FORMS_KEY"; Hint = "access key Web3Forms" },
-  @{ Name = "ADMIN_TOKEN"; Hint = "Lol.Huy1812.Lol" },
+  @{ Name = "ADMIN_TOKEN"; Hint = "chuoi ngau nhien dai (token_urlsafe)" },
   @{ Name = "ADMIN_PASS_HASH"; Hint = "SHA-256 hash mật khẩu admin (64 hex)" }
 )
 foreach ($s in $secrets) {

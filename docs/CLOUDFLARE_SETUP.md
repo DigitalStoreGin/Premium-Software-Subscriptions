@@ -32,7 +32,7 @@ URL: `https://store.tdh1812.workers.dev`
 |-----|--------|
 | `BREVO_API_KEY` | API key Brevo (`xkeysib-...`) |
 | `WEB3FORMS_KEY` | Key Web3Forms |
-| `ADMIN_TOKEN` | `Lol.Huy1812.Lol` |
+| `ADMIN_TOKEN` | (đặt token ngẫu nhiên — KHÔNG ghi giá trị thật vào repo) |
 | `ADMIN_PASS_HASH` | SHA-256 của mật khẩu admin (64 ký tự hex), **không** gõ plain password |
 
 4. **Environment variables** (plain text, đã có trong `wrangler.toml`): `BREVO_SENDER_EMAIL`, `BREVO_SENDER_NAME`, `ADMIN_EMAIL`, `SUPPORT_EMAIL`
