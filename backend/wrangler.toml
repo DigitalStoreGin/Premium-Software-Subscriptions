@@ -4,6 +4,10 @@ compatibility_date = "2024-11-01"
 
 [vars]
 ALLOWED_ORIGIN = "*"
+BREVO_SENDER_EMAIL = "cfvblue@gmail.com"
+BREVO_SENDER_NAME = "DigitalStore"
+ADMIN_EMAIL = "cfvblue@gmail.com"
+SUPPORT_EMAIL = "cfvblue@gmail.com"
 
 # KV namespace (binding ORDERS)
 [[kv_namespaces]]
@@ -15,11 +19,8 @@ id = "bd8530d0f1b84b58a56284db011bdc81"
 binding = "PROOFS"
 bucket_name = "digitalstore-proof"
 
-# SECRETS — KHÔNG ghi vào đây. Đặt bằng wrangler secret put:
+# SECRETS (chỉ 4 giá trị nhạy cảm — phải set bằng wrangler secret put):
 #   wrangler secret put BREVO_API_KEY
-#   wrangler secret put BREVO_SENDER_EMAIL
-#   wrangler secret put BREVO_SENDER_NAME
 #   wrangler secret put WEB3FORMS_KEY
 #   wrangler secret put ADMIN_TOKEN
-#   wrangler secret put ADMIN_EMAIL
-#   wrangler secret put SUPPORT_EMAIL
+#   wrangler secret put ADMIN_PASS_HASH
