@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DigitalStore — Email Tool</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:#f4f4f5;color:#0a0a0a;font-size:14px;min-height:100vh}
+.app{display:flex;height:100vh;overflow:hidden}
+
+/* SIDEBAR */
+.sidebar{width:360px;flex-shrink:0;background:#fff;border-right:1px solid #e7e7ea;display:flex;flex-direction:column;overflow:hidden}
+.sidebar-header{padding:16px 20px;border-bottom:1px solid #e7e7ea;background:#0a0a0a;display:flex;align-items:center;gap:10px}
+.sidebar-header .logo{width:28px;height:28px;background:#fff;border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#0a0a0a;flex-shrink:0}
+.sidebar-header h1{font-size:14px;font-weight:600;color:#fff}
+.sidebar-header span{font-size:11px;color:#a1a1aa;margin-top:1px}
+.sidebar-body{flex:1;overflow-y:auto;padding:16px}
+.sidebar-body::-webkit-scrollbar{width:4px}
+.sidebar-body::-webkit-scrollbar-thumb{background:#e7e7ea;border-radius:4px}
+
+/* SECTIONS */
+.section{margin-bottom:20px}
+.section-title{font-size:11px;font-weight:600;color:#71717a;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px}
+.field{margin-bottom:10px}
+.field label{display:block;font-size:12px;color:#52525b;margin-bottom:4px}
+.field input,.field textarea,.field select{width:100%;padding:8px 10px;border:1px solid #e7e7ea;border-radius:7px;font-size:13px;font-family:inherit;color:#0a0a0a;background:#fff;outline:none;transition:border 0.15s}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:#0a0a0a}
+.field textarea{resize:vertical;min-height:56px;line-height:1.5}
+
+/* PRODUCTS BOUGHT */
+.prod-card{background:#fafafa;border:1px solid #e7e7ea;border-radius:8px;padding:10px;margin-bottom:8px;position:relative}
+.prod-card .prod-row{display:grid;grid-template-columns:1fr 90px 24px;gap:6px;align-items:center;margin-bottom:6px}
+.prod-card .prod-row:last-child{margin-bottom:0}
+.prod-card input{width:100%;padding:6px 8px;border:1px solid #e7e7ea;border-radius:6px;font-size:12px;font-family:inherit;background:#fff;outline:none}
+.prod-card input:focus{border-color:#0a0a0a}
+.prod-card .del-btn{background:none;border:none;color:#a1a1aa;cursor:pointer;font-size:16px;width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:4px;flex-shrink:0}
+.prod-card .del-btn:hover{color:#dc2626;background:#fee2e2}
+.add-prod-btn{width:100%;padding:8px;border:1px dashed #d4d4d8;border-radius:7px;background:transparent;color:#71717a;font-size:12px;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;transition:all 0.15s}
+.add-prod-btn:hover{border-color:#0a0a0a;color:#0a0a0a;background:#fafafa}
+
+/* UPSELL LIST */
+.upsell-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border:1px solid #e7e7ea;border-radius:7px;margin-bottom:5px;background:#fafafa;cursor:pointer;transition:all 0.15s;user-select:none}
+.upsell-item:hover{border-color:#0a0a0a;background:#fff}
+.upsell-item.checked{border-color:#0a0a0a;background:#fff}
+.upsell-item input[type=checkbox]{width:14px;height:14px;accent-color:#0a0a0a;flex-shrink:0;cursor:pointer}
+.upsell-item .ui-name{flex:1;font-size:12px;font-weight:500;color:#0a0a0a}
+.upsell-item .ui-price{font-size:12px;color:#71717a;white-space:nowrap}
+
+/* CUSTOM UPSELL */
+.custom-upsell-card{background:#fafafa;border:1px solid #e7e7ea;border-radius:8px;padding:10px;margin-bottom:6px}
+.custom-upsell-card .cu-row{display:grid;grid-template-columns:1fr 1fr 80px 24px;gap:5px;margin-bottom:5px;align-items:center}
+.custom-upsell-card .cu-row:last-child{margin-bottom:0}
+.custom-upsell-card input{width:100%;padding:5px 7px;border:1px solid #e7e7ea;border-radius:5px;font-size:11px;font-family:inherit;background:#fff;outline:none}
+.custom-upsell-card input:focus{border-color:#0a0a0a}
+
+/* TOOLBAR */
+.toolbar{padding:10px 16px;border-top:1px solid #e7e7ea;background:#fff;display:flex;gap:6px;flex-wrap:wrap}
+.btn{padding:8px 14px;border-radius:7px;border:1px solid #e7e7ea;background:#fff;color:#0a0a0a;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;transition:all 0.15s;white-space:nowrap}
+.btn:hover{border-color:#0a0a0a;background:#fafafa}
+.btn.primary{background:#0a0a0a;color:#fff;border-color:#0a0a0a}
+.btn.primary:hover{background:#1f1f23}
+.btn.success{background:#16a34a;color:#fff;border-color:#16a34a}
+.btn.success:hover{background:#15803d}
+
+/* PREVIEW */
+.preview{flex:1;display:flex;flex-direction:column;background:#f4f4f5;overflow:hidden}
+.preview-bar{padding:10px 20px;background:#fff;border-bottom:1px solid #e7e7ea;display:flex;align-items:center;gap:8px}
+.preview-bar .total-badge{margin-left:auto;font-size:12px;font-weight:600;color:#0a0a0a;background:#f4f4f5;padding:5px 10px;border-radius:20px;border:1px solid #e7e7ea}
+.preview-scroll{flex:1;overflow-y:auto;padding:24px}
+
+/* EMAIL PREVIEW */
+.email-wrap{max-width:580px;margin:0 auto;background:#fff;border-radius:10px;overflow:hidden;border:1px solid #e7e7ea}
+.email-subject-bar{background:#f4f4f5;padding:10px 20px;font-size:12px;color:#52525b;border-bottom:1px solid #e7e7ea}
+.email-subject-bar strong{color:#0a0a0a}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;right:20px;background:#16a34a;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:9999;font-family:inherit}
+.toast.show{opacity:1}
+
+/* EDITABLE */
+[contenteditable]{outline:none;border-radius:3px;transition:background 0.1s}
+[contenteditable]:hover{background:rgba(59,130,246,0.06)}
+[contenteditable]:focus{background:rgba(59,130,246,0.08);box-shadow:0 0 0 2px rgba(59,130,246,0.3)}
+
+.divider-line{border:none;border-top:1px solid #e7e7ea;margin:16px 0}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">D</div>
+      <div>
+        <h1>Email Tool</h1>
+        <span>DigitalStore</span>
+      </div>
+    </div>
+
+    <div class="sidebar-body">
+
+      <!-- INFO KHÁCH -->
+      <div class="section">
+        <div class="section-title">Thông tin khách hàng</div>
+        <div class="field">
+          <label>Tên khách hàng</label>
+          <input type="text" id="custName" placeholder="z.B. Max Müller" oninput="renderPreview()">
+        </div>
+        <div class="field">
+          <label>Dòng mở đầu email</label>
+          <textarea id="introText" rows="2" oninput="renderPreview()">vielen herzlichen Dank für Ihren Einkauf bei DigitalStore! Wir freuen uns sehr über Ihr Vertrauen.</textarea>
+        </div>
+        <div class="field">
+          <label>Ghi chú thêm (tuỳ chọn)</label>
+          <textarea id="extraNote" rows="2" placeholder="Thêm ghi chú..." oninput="renderPreview()"></textarea>
+        </div>
+        <div class="field">
+          <label>Thời gian giao hàng</label>
+          <input type="text" id="deliveryTime" value="5–30 Minuten" oninput="renderPreview()">
+        </div>
+      </div>
+
+      <!-- SẢN PHẨM ĐÃ MUA -->
+      <div class="section">
+        <div class="section-title">Sản phẩm đã mua</div>
+        <div id="boughtList"></div>
+        <button class="add-prod-btn" onclick="addBought()">＋ Thêm sản phẩm</button>
+      </div>
+
+      <!-- UPSELL CÓ SẴN -->
+      <div class="section">
+        <div class="section-title">Upsell — tick để hiển thị</div>
+        <div id="upsellPresetList"></div>
+      </div>
+
+      <!-- UPSELL TỰ THÊM -->
+      <div class="section">
+        <div class="section-title">Upsell tự thêm</div>
+        <div id="customUpsellList"></div>
+        <button class="add-prod-btn" onclick="addCustomUpsell()">＋ Thêm upsell mới</button>
+      </div>
+
+      <!-- CHỮ KÝ -->
+      <div class="section">
+        <div class="section-title">Chữ ký kết thúc</div>
+        <div class="field">
+          <label>Lời kết</label>
+          <input type="text" id="signOff" value="Mit freundlichen Grüßen," oninput="renderPreview()">
+        </div>
+        <div class="field">
+          <label>Tên đội nhóm / cá nhân</label>
+          <input type="text" id="signName" value="Ihr DigitalStore-Team" oninput="renderPreview()">
+        </div>
+        <div class="field">
+          <label>Footer</label>
+          <input type="text" id="footerText" value="© DigitalStore · Premium Software &amp; Subscriptions" oninput="renderPreview()">
+        </div>
+      </div>
+
+    </div><!-- end sidebar-body -->
+
+    <div class="toolbar">
+      <button class="btn primary" onclick="copyHtml()">📋 Copy HTML (Brevo)</button>
+      <button class="btn" onclick="copyText()">📄 Copy Text</button>
+      <button class="btn" onclick="downloadHtml()">⬇ Tải .html</button>
+    </div>
+  </div><!-- end sidebar -->
+
+  <!-- PREVIEW -->
+  <div class="preview">
+    <div class="preview-bar">
+      <span style="font-size:13px;font-weight:500">Preview email</span>
+      <span style="font-size:12px;color:#71717a">— Bấm trực tiếp vào text trong preview để chỉnh sửa nhanh</span>
+      <div class="total-badge" id="totalBadge">Tổng: €0.00</div>
+    </div>
+    <div class="preview-scroll">
+      <div class="email-wrap">
+        <div class="email-subject-bar">
+          <strong>Betreff:</strong> <span id="subjectLine">Vielen Dank für Ihre Bestellung bei DigitalStore! 🎉</span>
+        </div>
+        <div id="emailBody" style="padding:0"></div>
+      </div>
+      <p style="text-align:center;font-size:11px;color:#a1a1aa;margin-top:12px">Click vào bất kỳ text nào trong preview để chỉnh sửa trực tiếp</p>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const PRESETS = [
+  {name:"Google One (Gemini Pro + 5TB)", price:25.00, period:"12 Monate", desc:"Gemini 3.1 KI mit 1M Kontext, 5 TB Cloud, Dream Lab, Lyria 3 &amp; Jules Agent"},
+  {name:"Microsoft 365 Premium",         price:32.00, period:"1 Jahr",    desc:"Word, Excel, PowerPoint, Teams, 1 TB OneDrive, Copilot KI — bis zu 5 Geräte"},
+  {name:"YouTube Premium",               price:43.00, period:"6 Monate",  desc:"Werbefreies Streaming, Offline-Downloads, Hintergrundwiedergabe &amp; Jump Ahead"},
+  {name:"Cursor Pro",                    price:55.00, period:"1 Jahr",    desc:"Führender KI-Code-Editor mit Claude Opus 4.7, GPT-5.5, Gemini 2.5 Pro"},
+  {name:"Spotify Premium",               price:40.00, period:"6 Monate",  desc:"Werbefreies Musik-Streaming, Offline-Modus, unbegrenzte Skips"},
+  {name:"ChatGPT Plus",                  price:25.80, period:"12 Monate", desc:"GPT-4o unbegrenzt, DALL·E, Advanced Data Analysis"},
+  {name:"ChatGPT Team",                  price:72.00, period:"6 Monate",  desc:"Unbegrenzt GPT-5, 60+ App-Integrationen, voller Datenschutz"},
+  {name:"Claude Team Standard",          price:72.00, period:"6 Monate",  desc:"KI-Codierung, Datenanalyse, Berichte &amp; Geschäftsanwendungen"},
+  {name:"Claude Team Premium",           price:360.00,period:"6 Monate",  desc:"Claude Opus 4.7, erweiterte Limits, voller Funktionsumfang"},
+  {name:"Canva Pro",                     price:35.00, period:"1 Jahr",    desc:"Premium-Design-Tools, Brand Kit, unbegrenzte Inhalte"},
+  {name:"Canva Edu",                     price:15.00, period:"1 Jahr",    desc:"Alle Canva Pro Features — für Bildungseinrichtungen"},
+  {name:"Adobe Creative Cloud",          price:190.00,period:"12 Monate", desc:"Photoshop, Illustrator, Premiere Pro &amp; alle CC-Apps, 2 Geräte"},
+  {name:"Adobe Acrobat Pro",             price:170.00,period:"12 Monate", desc:"PDF erstellen, bearbeiten, signieren &amp; konvertieren"},
+  {name:"SurfShark VPN",                 price:5.00,  period:"Trial 2M",  desc:"Unbegrenzte Geräte, Antivirus, No-Logs-Richtlinie"},
+  {name:"NordVPN",                       price:7.00,  period:"Trial 3M",  desc:"6 Geräte gleichzeitig, Threat Protection, No-Logs"},
+  {name:"Zoom Pro",                      price:28.00, period:"12 Monate", desc:"Meetings bis 100 Teilnehmer, Cloud-Aufnahmen"},
+  {name:"LinkedIn Sales Navigator",      price:32.00, period:"12 Monate", desc:"Erweiterte Suche, InMail-Nachrichten, Lead-Tracking"},
+  {name:"Microsoft 365 Personal",        price:45.00, period:"12 Monate", desc:"Office-Apps + 1 TB OneDrive, 1 Gerät"},
+  {name:"Google Colab Pro",              price:35.00, period:"12 Monate", desc:"Schnelle GPUs &amp; TPUs für Deep Learning, 100 GB Drive"},
+  {name:"Discord Nitro",                 price:8.00,  period:"3 Monate",  desc:"500 MB Upload, 4K Streaming, Animierte Avatare, 2 Server-Boosts"},
+  {name:"Picsart Pro",                   price:20.00, period:"12 Monate", desc:"KI-Bildbearbeitung, Hintergrundentfernung, Design-Templates"},
+  {name:"ElevenReader",                  price:20.00, period:"12 Monate", desc:"KI-Vorlesefunktion, 1.000+ natürliche Stimmen in 29 Sprachen"},
+];
+
+let bought = [{name:'',variant:'',price:''}];
+let upsellChecked = new Set([0,1,2,3,7,11,12,13,14]);
+let customUpsells = [];
+
+function g(id){return document.getElementById(id)}
+function v(id){return g(id)?g(id).value.trim():''}
+function esc(s){return String(s||'').replace(/&(?!amp;|lt;|gt;|quot;)/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function addBought(){
+  bought.push({name:'',variant:'',price:''});
+  renderSidebar();renderPreview();
+}
+function removeBought(i){
+  if(bought.length===1){bought[0]={name:'',variant:'',price:''};renderSidebar();renderPreview();return;}
+  bought.splice(i,1);renderSidebar();renderPreview();
+}
+function addCustomUpsell(){
+  customUpsells.push({name:'',desc:'',price:'',period:''});
+  renderSidebar();renderPreview();
+}
+function removeCustomUpsell(i){
+  customUpsells.splice(i,1);renderSidebar();renderPreview();
+}
+
+function renderSidebar(){
+  // Bought
+  const bl = g('boughtList');
+  bl.innerHTML = bought.map((b,i)=>`
+    <div class="prod-card">
+      <div class="prod-row">
+        <input type="text" placeholder="Produktname" value="${esc(b.name)}"
+          oninput="bought[${i}].name=this.value;renderPreview()">
+        <input type="text" placeholder="€ Betrag" value="${esc(b.price)}"
+          oninput="bought[${i}].price=this.value;renderPreview()">
+        <button class="del-btn" onclick="removeBought(${i})" title="Entfernen">✕</button>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <input type="text" placeholder="Variante (z.B. 6 Monate)" value="${esc(b.variant)}"
+          oninput="bought[${i}].variant=this.value;renderPreview()">
+        <input type="text" placeholder="Status / Hinweis" value="${esc(b.note||'')}"
+          oninput="bought[${i}].note=this.value;renderPreview()">
+      </div>
+    </div>`).join('');
+
+  // Upsell presets
+  const ul = g('upsellPresetList');
+  ul.innerHTML = PRESETS.map((p,i)=>`
+    <div class="upsell-item ${upsellChecked.has(i)?'checked':''}" onclick="toggleUpsell(${i})">
+      <input type="checkbox" ${upsellChecked.has(i)?'checked':''} onclick="event.stopPropagation();toggleUpsell(${i})">
+      <span class="ui-name">${p.name}</span>
+      <span class="ui-price">€${p.price.toFixed(2)}</span>
+    </div>`).join('');
+
+  // Custom upsells
+  const cu = g('customUpsellList');
+  cu.innerHTML = customUpsells.map((u,i)=>`
+    <div class="custom-upsell-card">
+      <div class="cu-row">
+        <input type="text" placeholder="Produktname" value="${esc(u.name)}"
+          oninput="customUpsells[${i}].name=this.value;renderPreview()">
+        <input type="text" placeholder="Beschreibung" value="${esc(u.desc)}"
+          oninput="customUpsells[${i}].desc=this.value;renderPreview()">
+        <input type="text" placeholder="€ Preis" value="${esc(u.price)}"
+          oninput="customUpsells[${i}].price=this.value;renderPreview()">
+        <button class="del-btn" onclick="removeCustomUpsell(${i})">✕</button>
+      </div>
+      <input type="text" placeholder="Laufzeit (z.B. 12 Monate)" value="${esc(u.period)}"
+        oninput="customUpsells[${i}].period=this.value;renderPreview()"
+        style="width:100%;padding:5px 7px;border:1px solid #e7e7ea;border-radius:5px;font-size:11px;font-family:inherit;background:#fff;outline:none">
+    </div>`).join('');
+}
+
+function toggleUpsell(i){
+  if(upsellChecked.has(i)) upsellChecked.delete(i);
+  else upsellChecked.add(i);
+  renderSidebar();renderPreview();
+}
+
+function calcTotal(){
+  return bought.reduce((s,b)=>{
+    const n=parseFloat(String(b.price).replace(',','.'));
+    return s+(isNaN(n)?0:n);
+  },0);
+}
+
+function renderPreview(){
+  const name=v('custName');
+  const intro=v('introText')||'vielen herzlichen Dank für Ihren Einkauf bei DigitalStore!';
+  const note=v('extraNote');
+  const delivery=v('deliveryTime')||'5–30 Minuten';
+  const signOff=v('signOff')||'Mit freundlichen Grüßen,';
+  const signName=v('signName')||'Ihr DigitalStore-Team';
+  const footer=g('footerText')?g('footerText').value:'© DigitalStore';
+  const total=calcTotal();
+  g('totalBadge').textContent='Tổng: €'+total.toFixed(2);
+
+  const bRows=bought.filter(b=>b.name).map(b=>{
+    const p=parseFloat(String(b.price).replace(',','.'));
+    return `<tr>
+      <td style="font-size:13px;color:#0a0a0a;padding:6px 0;border-bottom:1px solid #e7e7ea">
+        ${esc(b.name)}${b.variant?' <span style="color:#71717a;font-size:12px">· '+esc(b.variant)+'</span>':''}
+        ${b.note?'<br><span style="font-size:11px;color:#a1a1aa">'+esc(b.note)+'</span>':''}
+      </td>
+      <td style="font-size:13px;font-weight:600;color:#0a0a0a;padding:6px 0;border-bottom:1px solid #e7e7ea;text-align:right;white-space:nowrap">
+        ${isNaN(p)?'-':'€'+p.toFixed(2)}
+      </td>
+    </tr>`;
+  }).join('');
+
+  const allUpsell=[
+    ...PRESETS.filter((_,i)=>upsellChecked.has(i)),
+    ...customUpsells.filter(u=>u.name).map(u=>({
+      name:u.name,desc:u.desc,
+      price:parseFloat(String(u.price).replace(',','.'))||0,
+      period:u.period
+    }))
+  ];
+
+  const uRows=allUpsell.map(p=>`
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f4f5;border-radius:8px;margin-bottom:7px">
+      <tr><td style="padding:10px 14px">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+          <td style="vertical-align:top">
+            <div style="font-size:13px;font-weight:600;color:#0a0a0a;margin-bottom:3px" contenteditable="true" onblur="syncUpsellName(this,'${esc(p.name)}')">${p.name}</div>
+            <div style="font-size:12px;color:#71717a" contenteditable="true">${p.desc||''}</div>
+          </td>
+          <td align="right" valign="top" style="padding-left:12px;white-space:nowrap">
+            <div style="font-size:13px;font-weight:600;color:#0a0a0a">€${typeof p.price==='number'?p.price.toFixed(2):p.price}</div>
+            <div style="font-size:11px;color:#a1a1aa">${p.period||''}</div>
+          </td>
+        </tr></table>
+      </td></tr>
+    </table>`).join('');
+
+  const html=`
+  <div style="background:#0a0a0a;padding:18px 24px;display:flex;align-items:center;gap:10px">
+    <span contenteditable="true" style="font-size:15px;font-weight:600;color:#fff">DigitalStore — Bestellbestätigung</span>
+  </div>
+  <div style="padding:24px;background:#fff">
+
+    <p contenteditable="true" style="font-size:16px;font-weight:600;color:#0a0a0a;margin:0 0 14px">Sehr geehrte/r ${esc(name)||'[Kundenname]'},</p>
+    <p contenteditable="true" style="color:#52525b;margin:0 0 18px">${esc(intro)}</p>
+
+    ${bRows?`
+    <p style="font-size:11px;font-weight:600;color:#71717a;text-transform:uppercase;letter-spacing:1px;margin:0 0 8px">Ihre Bestellung</p>
+    <div style="background:#f4f4f5;border-radius:8px;padding:12px 16px;margin-bottom:18px">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        ${bRows}
+        <tr>
+          <td style="font-size:14px;font-weight:600;color:#0a0a0a;padding:10px 0 2px">Gesamtsumme</td>
+          <td style="font-size:14px;font-weight:600;color:#0a0a0a;padding:10px 0 2px;text-align:right">€${total.toFixed(2)}</td>
+        </tr>
+      </table>
+    </div>`:''}
+
+    <p contenteditable="true" style="color:#52525b;margin:0 0 18px">
+      Ihre Zugangsdaten bzw. Ihren Aktivierungscode erhalten Sie innerhalb von
+      <strong>${esc(delivery)}</strong> per E-Mail.
+      Bei Fragen stehen wir Ihnen jederzeit zur Verfügung.
+    </p>
+
+    ${note?`<p contenteditable="true" style="color:#52525b;margin:0 0 18px">${esc(note)}</p>`:''}
+
+    ${uRows?`
+    <hr style="border:none;border-top:1px solid #e7e7ea;margin:18px 0">
+    <p style="font-size:11px;font-weight:600;color:#71717a;text-transform:uppercase;letter-spacing:1px;margin:0 0 10px">Das könnte Sie auch interessieren</p>
+    ${uRows}
+    <p contenteditable="true" style="font-size:11px;color:#a1a1aa;margin:10px 0 18px">
+      Alle genannten Produkte sind bei uns zu einem stark reduzierten Preis erhältlich — wesentlich günstiger als der offizielle Preis, mit vollem Funktionsumfang.
+    </p>`:''}
+
+    <div style="background:#f4f4f5;border-radius:8px;padding:14px 16px;margin-bottom:18px">
+      <p style="font-size:13px;font-weight:600;color:#0a0a0a;margin:0 0 4px">✉ Persönlicher Support</p>
+      <p contenteditable="true" style="font-size:13px;color:#52525b;margin:0">
+        Bei Fragen oder Problemen antworten wir meist innerhalb weniger Minuten. Schreiben Sie uns jederzeit.
+      </p>
+    </div>
+
+    <p style="font-size:13px;color:#52525b;margin:0">
+      <span contenteditable="true">${esc(signOff)}</span><br>
+      <strong contenteditable="true" style="color:#0a0a0a">${esc(signName)}</strong>
+    </p>
+  </div>
+  <div style="background:#fafafa;padding:14px 24px;border-top:1px solid #e7e7ea;text-align:center">
+    <p contenteditable="true" style="font-size:11px;color:#a1a1aa;margin:0">${g('footerText')?g('footerText').value:'© DigitalStore'}</p>
+  </div>`;
+
+  g('emailBody').innerHTML=html;
+}
+
+function getEmailHtml(){
+  const name=v('custName');
+  const intro=v('introText')||'vielen herzlichen Dank für Ihren Einkauf bei DigitalStore!';
+  const note=v('extraNote');
+  const delivery=v('deliveryTime')||'5–30 Minuten';
+  const signOff=v('signOff')||'Mit freundlichen Grüßen,';
+  const signName=v('signName')||'Ihr DigitalStore-Team';
+  const footer=g('footerText')?g('footerText').value:'© DigitalStore';
+  const total=calcTotal();
+
+  const bRows=bought.filter(b=>b.name).map(b=>{
+    const p=parseFloat(String(b.price).replace(',','.'));
+    return `<tr>
+      <td style="font-size:13px;color:#0a0a0a;padding:6px 0;border-bottom:1px solid #e7e7ea">
+        ${esc(b.name)}${b.variant?' <span style="color:#71717a;font-size:12px">· '+esc(b.variant)+'</span>':''}
+        ${b.note?'<br><span style="font-size:11px;color:#a1a1aa">'+esc(b.note)+'</span>':''}
+      </td>
+      <td style="font-size:13px;font-weight:bold;color:#0a0a0a;padding:6px 0;border-bottom:1px solid #e7e7ea;text-align:right;white-space:nowrap">
+        ${isNaN(p)?'-':'€'+p.toFixed(2)}
+      </td>
+    </tr>`;
+  }).join('');
+
+  const allUpsell=[
+    ...PRESETS.filter((_,i)=>upsellChecked.has(i)),
+    ...customUpsells.filter(u=>u.name).map(u=>({
+      name:u.name,desc:u.desc,
+      price:parseFloat(String(u.price).replace(',','.'))||0,
+      period:u.period
+    }))
+  ];
+
+  const uRows=allUpsell.map(p=>`
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f4f5;border-radius:8px;margin-bottom:7px">
+      <tr><td style="padding:10px 14px">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+          <td style="vertical-align:top">
+            <p style="font-size:13px;font-weight:bold;color:#0a0a0a;margin:0 0 3px">${esc(p.name)}</p>
+            <p style="font-size:12px;color:#71717a;margin:0">${p.desc||''}</p>
+          </td>
+          <td align="right" valign="top" style="padding-left:12px;white-space:nowrap">
+            <p style="font-size:13px;font-weight:bold;color:#0a0a0a;margin:0">€${typeof p.price==='number'?p.price.toFixed(2):p.price}</p>
+            <p style="font-size:11px;color:#a1a1aa;margin:0">${p.period||''}</p>
+          </td>
+        </tr></table>
+      </td></tr>
+    </table>`).join('');
+
+  return `<!DOCTYPE html>
+<html lang="de"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:32px 0;background:#f4f4f5;font-family:Arial,Helvetica,sans-serif">
+<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="center">
+<table width="580" cellpadding="0" cellspacing="0" border="0" style="max-width:580px;width:100%">
+
+<tr><td style="background:#0a0a0a;border-radius:10px 10px 0 0;padding:18px 24px">
+  <span style="font-size:15px;font-weight:bold;color:#fff;letter-spacing:-.02em">DigitalStore — Bestellbestätigung</span>
+</td></tr>
+
+<tr><td style="background:#fff;border:1px solid #e7e7ea;border-top:none;border-radius:0 0 10px 10px;padding:24px">
+
+  <p style="font-size:16px;font-weight:bold;color:#0a0a0a;margin:0 0 14px">Sehr geehrte/r ${esc(name)||'[Kundenname]'},</p>
+  <p style="color:#52525b;margin:0 0 18px">${esc(intro)}</p>
+
+  ${bRows?`
+  <p style="font-size:11px;font-weight:bold;color:#71717a;text-transform:uppercase;letter-spacing:1px;margin:0 0 8px">Ihre Bestellung</p>
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f4f5;border-radius:8px;margin-bottom:18px">
+    <tr><td style="padding:12px 16px">
+      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+        ${bRows}
+        <tr>
+          <td style="font-size:14px;font-weight:bold;color:#0a0a0a;padding:10px 0 2px">Gesamtsumme</td>
+          <td style="font-size:14px;font-weight:bold;color:#0a0a0a;padding:10px 0 2px;text-align:right">€${total.toFixed(2)}</td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>`:''}
+
+  <p style="color:#52525b;margin:0 0 18px">
+    Ihre Zugangsdaten bzw. Ihren Aktivierungscode erhalten Sie innerhalb von
+    <strong>${esc(delivery)}</strong> per E-Mail.
+    Bei Fragen stehen wir Ihnen jederzeit zur Verfügung.
+  </p>
+
+  ${note?`<p style="color:#52525b;margin:0 0 18px">${esc(note)}</p>`:''}
+
+  ${uRows?`
+  <table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="border-top:1px solid #e7e7ea;font-size:0;line-height:0;padding:0 0 18px">&nbsp;</td></tr></table>
+  <p style="font-size:11px;font-weight:bold;color:#71717a;text-transform:uppercase;letter-spacing:1px;margin:0 0 10px">Das könnte Sie auch interessieren</p>
+  ${uRows}
+  <p style="font-size:11px;color:#a1a1aa;margin:10px 0 18px">
+    Alle genannten Produkte sind bei uns zu einem stark reduzierten Preis erhältlich — wesentlich günstiger als der offizielle Preis, mit vollem Funktionsumfang.
+  </p>`:''}
+
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4f4f5;border-radius:8px;margin-bottom:18px">
+    <tr><td style="padding:14px 16px">
+      <p style="font-size:13px;font-weight:bold;color:#0a0a0a;margin:0 0 4px">&#9993; Persönlicher Support</p>
+      <p style="font-size:13px;color:#52525b;margin:0">Bei Fragen oder Problemen antworten wir meist innerhalb weniger Minuten. Schreiben Sie uns jederzeit.</p>
+    </td></tr>
+  </table>
+
+  <p style="font-size:13px;color:#52525b;margin:0">${esc(signOff)}<br><strong style="color:#0a0a0a">${esc(signName)}</strong></p>
+
+</td></tr>
+
+<tr><td align="center" style="padding:14px 0;font-size:11px;color:#a1a1aa">${footer}</td></tr>
+
+</table>
+</td></tr></table>
+</body></html>`;
+}
+
+function showToast(msg){
+  const t=g('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+function copyHtml(){
+  const h=getEmailHtml();
+  navigator.clipboard.writeText(h).then(()=>showToast('✓ HTML kopiert! Jetzt in Brevo einfügen.')).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=h;ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
+    showToast('✓ HTML kopiert!');
+  });
+}
+function copyText(){
+  const name=v('custName');const total=calcTotal();
+  let txt=`Sehr geehrte/r ${name||'[Kundenname]'},\n\n`;
+  txt+=`${v('introText')||'vielen herzlichen Dank für Ihren Einkauf bei DigitalStore!'}\n\n`;
+  const bs=bought.filter(b=>b.name);
+  if(bs.length){
+    txt+='Ihre Bestellung:\n';
+    bs.forEach(b=>{const p=parseFloat(String(b.price).replace(',','.'));txt+=`• ${b.name}${b.variant?' ('+b.variant+')':''}  ${isNaN(p)?'-':'€'+p.toFixed(2)}\n`;});
+    txt+=`Gesamtsumme: €${total.toFixed(2)}\n\n`;
+  }
+  txt+=`Ihre Zugangsdaten erhalten Sie innerhalb von ${v('deliveryTime')||'5–30 Minuten'} per E-Mail.\n\n`;
+  if(v('extraNote')) txt+=v('extraNote')+'\n\n';
+  const allU=[...PRESETS.filter((_,i)=>upsellChecked.has(i)),...customUpsells.filter(u=>u.name)];
+  if(allU.length){
+    txt+='Das könnte Sie auch interessieren:\n';
+    allU.forEach(p=>{txt+=`• ${p.name} — €${typeof p.price==='number'?p.price.toFixed(2):p.price} (${p.period||''})\n`;});
+    txt+='\n';
+  }
+  txt+=`${v('signOff')||'Mit freundlichen Grüßen,'}\n${v('signName')||'Ihr DigitalStore-Team'}`;
+  navigator.clipboard.writeText(txt).then(()=>showToast('✓ Text kopiert!')).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=txt;ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
+    showToast('✓ Text kopiert!');
+  });
+}
+function downloadHtml(){
+  const h=getEmailHtml();
+  const a=document.createElement('a');
+  a.href='data:text/html;charset=utf-8,'+encodeURIComponent(h);
+  const name=(v('custName')||'email').replace(/\s+/g,'-').toLowerCase();
+  a.download='digitalstore-'+name+'.html';
+  a.click();showToast('✓ Datei heruntergeladen!');
+}
+
+renderSidebar();
+renderPreview();
+</script>
+</body>
+</html>

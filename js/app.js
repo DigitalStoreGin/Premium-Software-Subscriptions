@@ -668,7 +668,7 @@ function buildCartButton(p, v, idx, pUnavail, pSoldOut){
     return `<button class="add-cart request-btn" data-request="${p.id}" data-variant-idx="${idx}"><i class="fa-solid fa-envelope"></i>${I18N.t('prod.request')}</button>`;
   }
   if(pUnavail || vs==='unavailable'){
-    return `<button class="add-cart" disabled><i class="fa-solid fa-ban"></i>${I18N.t('status.unavailable')}</button>`;
+    return `<button class="add-cart" disabled><i class="fa-solid fa-plus"></i>${I18N.t('status.unavailable')}</button>`;
   }
   return `<button class="add-cart" data-add="${p.id}" data-variant-idx="${idx}"><i class="fa-solid fa-plus"></i>${I18N.t('prod.add')}</button>`;
 }
@@ -762,7 +762,7 @@ function attachVariantListeners(){
         add.className = 'add-cart';
         add.removeAttribute('data-add'); add.removeAttribute('data-request');
         add.disabled = true;
-        add.innerHTML = '<i class="fa-solid fa-ban"></i>' + I18N.t('status.unavailable');
+        add.innerHTML = '<i class="fa-solid fa-plus"></i>' + I18N.t('status.unavailable');
       } else {
         add.className = 'add-cart';
         add.removeAttribute('data-request'); add.dataset.add = pid; add.dataset.variantIdx = idx;
