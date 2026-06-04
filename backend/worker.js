@@ -470,7 +470,7 @@ async function lookupOrder(env, cors, id) {
   if (!env.ORDERS) return json({ error: 'storage_unavailable' }, 500, cors);
   const o = await env.ORDERS.get(id, { type: 'json' });
   if (!o) return json({ error: 'not_found' }, 404, cors);
-  return json({ order_id: o.order_id, status: o.status, total: o.total, currency: o.currency, created_at: o.created_at, updated_at: o.updated_at, proof: !!o.proof }, 200, cors);
+  return json({ order_id: o.order_id, status: o.status, lang: o.lang || 'de', total: o.total, currency: o.currency, created_at: o.created_at, updated_at: o.updated_at, proof: !!o.proof }, 200, cors);
 }
 
 // ───────── GET /orders (admin) ─────────
