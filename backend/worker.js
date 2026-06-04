@@ -32,6 +32,7 @@ export default {
         if (request.method === 'GET') return getConfig(env, cors);
         if (request.method === 'POST') return requireAdmin(request, env, cors, () => saveConfig(request, env, cors));
       }
+      if (url.pathname === '/translate' && request.method === 'POST') return requireAdmin(request, env, cors, () => translatePreview(request, env, cors));
       // Online sync for admin GitHub connection/token (password-hash auth)
       if (url.pathname === '/admin-sync' && request.method === 'POST') return adminSync(request, env, cors);
 
@@ -97,8 +98,9 @@ async function createOrder(request, env, cors) {
     name: i.name || '', variant: i.variant || '', qty: Number(i.qty) || 1, price: Number(i.price) || 0,
   })) : [];
   const subtotal = norm.reduce((s, i) => s + i.qty * i.price, 0);
+  const lang = (b.lang === 'en' || b.lang === 'ru') ? b.lang : 'de';
   const order = {
-    order_id: orderId, status: 'awaiting_payment',
+    order_id: orderId, status: 'awaiting_payment', lang,
     customer: { name, email },
     items: norm, subtotal, discount: 0, total: Number(total) || subtotal, currency: 'EUR',
     proof: null, created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
@@ -129,7 +131,9 @@ async function confirmOrder(request, env, cors, id) {
 async function sendBrevoEmail(env, order) {
   let brevo = { skipped: true };
   if (!env.BREVO_API_KEY || !env.BREVO_SENDER_EMAIL) return brevo;
-  const cfg = await loadConfig(env);
+  const rawCfg = await loadConfig(env);
+  const lang = (order && (order.lang === 'en' || order.lang === 'ru')) ? order.lang : 'de';
+  const cfg = localizeConfig(rawCfg, lang);
   const { name, email } = order.customer || {};
   if (!email) return brevo;
   try {
@@ -140,7 +144,7 @@ async function sendBrevoEmail(env, order) {
         to: [{ email, name }],
         replyTo: env.ADMIN_EMAIL ? { email: env.ADMIN_EMAIL } : undefined,
         subject: `${cfg.subject || 'Bestellbestätigung'} — ${cfg.brandName || 'DigitalStore'}`,
-        htmlContent: renderEmail({ name, items: order.items || [], total: order.total, cfg, supportEmail: env.SUPPORT_EMAIL || cfg.supportEmail || 'cfvblue@gmail.com' }),
+        htmlContent: renderEmail({ name, items: order.items || [], total: order.total, cfg, supportEmail: env.SUPPORT_EMAIL || cfg.supportEmail || 'cfvblue@gmail.com', lang }),
       }),
     });
     brevo = { ok: res.ok, status: res.status };
@@ -190,8 +194,19 @@ async function saveConfig(request, env, cors) {
   const cfg = { ...DEFAULT_CONFIG, ...(b && b.config ? b.config : b) };
   // chỉ giữ các trường hợp lệ của upsell
   if (Array.isArray(cfg.upsell)) cfg.upsell = cfg.upsell.map(u => ({ n: String(u.n || ''), d: String(u.d || ''), p: String(u.p || ''), t: String(u.t || '') })).filter(u => u.n);
+  // Auto-translate German content -> EN/RU (DeepL) so customer emails match their language
+  await translateConfig(cfg, env);
   await env.ORDERS.put(CONFIG_KEY, JSON.stringify(cfg));
   return json({ ok: true, config: cfg }, 200, cors);
+}
+
+// Admin: dịch thử (preview) — không lưu, trả về translations cho admin xem trước
+async function translatePreview(request, env, cors) {
+  let b; try { b = await request.json(); } catch { return json({ error: 'bad_json' }, 400, cors); }
+  const cfg = (b && b.config) ? b.config : b || {};
+  const tr = await buildTranslations(cfg, env);
+  if (!tr) return json({ ok: false, error: 'deepl_unavailable', translations: null }, 200, cors);
+  return json({ ok: true, translations: tr }, 200, cors);
 }
 
 // ───────── Admin online sync (GitHub cfg/token) ─────────
@@ -219,8 +234,71 @@ async function adminSync(request, env, cors) {
   return json({ error: 'bad_action' }, 400, cors);
 }
 
-function renderEmail({ name, items, total, supportEmail, cfg }) {
+// ───────── i18n cho email (DE mặc định → EN/RU) ─────────
+const EMAIL_UI = {
+  de: { greeting: 'Sehr geehrte/r {name},', sendEmail: 'E-Mail senden', regards: 'Mit freundlichen Grüßen,', team: 'Ihr DigitalStore-Team' },
+  en: { greeting: 'Dear {name},', sendEmail: 'Send email', regards: 'Kind regards,', team: 'Your DigitalStore team' },
+  ru: { greeting: 'Уважаемый(ая) {name},', sendEmail: 'Написать email', regards: 'С уважением,', team: 'Команда DigitalStore' },
+};
+const TR_FIELDS = ['subject','intro','deliveryNote','orderTitle','totalLabel','upsellTitle','upsellNote','supportTitle','supportText','signature'];
+
+function localizeConfig(cfg, lang){
+  if (!cfg || lang === 'de' || !cfg.translations || !cfg.translations[lang]) return cfg;
+  const tr = cfg.translations[lang];
+  const out = { ...cfg };
+  for (const f of TR_FIELDS) if (tr[f]) out[f] = tr[f];
+  if (Array.isArray(tr.upsell) && Array.isArray(cfg.upsell)) {
+    out.upsell = cfg.upsell.map((u, i) => ({ ...u, d: (tr.upsell[i] && tr.upsell[i].d) || u.d, t: (tr.upsell[i] && tr.upsell[i].t) || u.t }));
+  }
+  return out;
+}
+
+async function deeplTranslate(texts, target, env){
+  if (!env.DEEPL_API_KEY || !texts.length) return null;
+  try {
+    const host = String(env.DEEPL_API_KEY).endsWith(':fx') ? 'https://api-free.deepl.com' : 'https://api.deepl.com';
+    const params = new URLSearchParams();
+    for (const t of texts) params.append('text', t == null ? '' : String(t));
+    params.append('source_lang', 'DE');
+    params.append('target_lang', target);
+    const r = await fetch(host + '/v2/translate', {
+      method: 'POST',
+      headers: { 'Authorization': 'DeepL-Auth-Key ' + env.DEEPL_API_KEY, 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: params,
+    });
+    if (!r.ok) return null;
+    const d = await r.json();
+    return (d.translations || []).map(x => x.text);
+  } catch (e) { return null; }
+}
+
+async function buildTranslations(cfg, env){
+  if (!env.DEEPL_API_KEY) return null;
+  const ups = Array.isArray(cfg.upsell) ? cfg.upsell : [];
+  const base = TR_FIELDS.map(f => String(cfg[f] || ''));
+  ups.forEach(u => { base.push(String(u.d || '')); base.push(String(u.t || '')); });
+  const result = {};
+  for (const target of ['EN','RU']) {
+    const out = await deeplTranslate(base, target, env);
+    if (!out) continue;
+    const obj = {};
+    TR_FIELDS.forEach((f, i) => { obj[f] = out[i] != null ? out[i] : cfg[f]; });
+    obj.upsell = ups.map((u, i) => ({ n: u.n, p: u.p, d: out[TR_FIELDS.length + i*2] || u.d, t: out[TR_FIELDS.length + i*2 + 1] || u.t }));
+    result[target.toLowerCase()] = obj;
+  }
+  return Object.keys(result).length ? result : null;
+}
+
+async function translateConfig(cfg, env){
+  const tr = await buildTranslations(cfg, env);
+  if (tr) cfg.translations = tr;
+  return cfg;
+}
+
+function renderEmail({ name, items, total, supportEmail, cfg, lang }) {
   cfg = cfg || DEFAULT_CONFIG;
+  lang = (lang === 'en' || lang === 'ru') ? lang : 'de';
+  const U = EMAIL_UI[lang] || EMAIL_UI.de;
   const brand = esc(cfg.brandName || 'DigitalStore');
   const boughtRows = (items.length ? items : [{ name: '—', variant: '', qty: 1, price: 0 }]).map(i => `
     <tr>
@@ -255,7 +333,7 @@ function renderEmail({ name, items, total, supportEmail, cfg }) {
     <span style="color:#a1a1aa;font-size:14px;font-weight:400;margin-left:6px">— ${esc(cfg.subject || 'Bestellbestätigung')}</span>
   </td></tr>
   <tr><td style="padding:24px">
-    <h1 style="font-size:20px;margin:0 0 14px">Sehr geehrte/r ${esc(name)},</h1>
+    <h1 style="font-size:20px;margin:0 0 14px">${U.greeting.replace('{name}', esc(name))}</h1>
     <p style="font-size:14px;line-height:1.6;color:#3f3f46;margin:0 0 12px">${esc(cfg.intro || '')}</p>
     <p style="font-size:14px;line-height:1.6;color:#3f3f46;margin:0 0 18px">${esc(cfg.deliveryNote || '')}</p>
 
@@ -278,10 +356,10 @@ function renderEmail({ name, items, total, supportEmail, cfg }) {
       <p style="font-size:13px;color:#52525b;line-height:1.6;margin:0">${esc(cfg.supportText || '')}</p>
     </div>
     <div style="text-align:center;margin:0 0 18px">
-      <a href="mailto:${esc(supportEmail)}" style="display:inline-block;background:#000;color:#fff;text-decoration:none;font-size:14px;padding:11px 26px;border-radius:10px;font-weight:600;letter-spacing:.01em">E-Mail senden</a>
+      <a href="mailto:${esc(supportEmail)}" style="display:inline-block;background:#000;color:#fff;text-decoration:none;font-size:14px;padding:11px 26px;border-radius:10px;font-weight:600;letter-spacing:.01em">${U.sendEmail}</a>
     </div>
 
-    <p style="font-size:14px;color:#3f3f46;margin:0">Mit freundlichen Grüßen,<br><strong>${esc(cfg.signature || 'Ihr DigitalStore-Team')}</strong></p>
+    <p style="font-size:14px;color:#3f3f46;margin:0">${U.regards}<br><strong>${esc(cfg.signature || U.team)}</strong></p>
   </td></tr>
 </table>
 </td></tr></table></body></html>`;

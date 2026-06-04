@@ -34,6 +34,7 @@ URL: `https://store.tdh1812.workers.dev`
 | `WEB3FORMS_KEY` | Key Web3Forms |
 | `ADMIN_TOKEN` | (đặt token ngẫu nhiên — KHÔNG ghi giá trị thật vào repo) |
 | `ADMIN_PASS_HASH` | SHA-256 của mật khẩu admin (64 ký tự hex), **không** gõ plain password |
+| `DEEPL_API_KEY` | *(tùy chọn)* Key DeepL để tự dịch email DE→EN/RU. Gói free: key kết thúc `:fx`. Không có key thì email luôn tiếng Đức. |
 
 4. **Environment variables** (plain text, đã có trong `wrangler.toml`): `BREVO_SENDER_EMAIL`, `BREVO_SENDER_NAME`, `ADMIN_EMAIL`, `SUPPORT_EMAIL`
 

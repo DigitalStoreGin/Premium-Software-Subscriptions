@@ -243,6 +243,9 @@ tbody tr:hover{background:var(--surface-2)}
 .et-upsell-grid .full{grid-column:1/-1}
 @media(max-width:560px){.et-upsell-grid{grid-template-columns:1fr}}
 .et-preview-frame{width:100%;height:calc(100vh - 180px);min-height:500px;border:1px solid var(--line);border-radius:10px;background:#fff}
+.et-prev-langs{display:flex;gap:6px;margin-bottom:10px}
+.et-prev-langs button{padding:5px 14px;border:1px solid var(--line);background:#fff;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text-2);font-family:inherit;transition:all .15s}
+.et-prev-langs button.on{background:var(--brand);color:#fff;border-color:var(--brand)}
 .et-status{font-size:13px;font-weight:600;padding:10px 0}
 .et-live-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
 #etPreviewPane{position:sticky;top:0;align-self:start}
@@ -503,6 +506,11 @@ body{overflow-x:hidden}
 
     <div class="et-live-grid">
     <div id="etPreviewPane">
+      <div class="et-prev-langs">
+        <button data-pl="de" class="on" onclick="etSetPreviewLang('de')">DE</button>
+        <button data-pl="en" onclick="etSetPreviewLang('en')">EN</button>
+        <button data-pl="ru" onclick="etSetPreviewLang('ru')">RU</button>
+      </div>
       <iframe id="etPreviewFrame" class="et-preview-frame" title="Email preview"></iframe>
     </div>
 
@@ -1311,6 +1319,7 @@ function etFillForm(){
   g('et_supportTitle',ET_CONFIG.supportTitle); g('et_supportText',ET_CONFIG.supportText);
   g('et_supportEmail',ET_CONFIG.supportEmail); g('et_signature',ET_CONFIG.signature);
   if(!Array.isArray(ET_CONFIG.upsell)) ET_CONFIG.upsell=[];
+  ET_TRANS = (ET_CONFIG && ET_CONFIG.translations) ? ET_CONFIG.translations : {};
   etRenderUpsell();
   etRenderPreview();
 }
@@ -1349,6 +1358,7 @@ async function etSaveConfig(){
   try{
     const d = await etApi('/config', { method:'POST', body:JSON.stringify({config}) });
     ET_CONFIG = d.config || config;
+    ET_TRANS = (ET_CONFIG && ET_CONFIG.translations) ? ET_CONFIG.translations : {};
     etStatus('Đã lưu ✓', true);
     toast('Mẫu email đã lưu — email khách tự cập nhật','ok');
   }catch(e){
@@ -1366,11 +1376,45 @@ function etShowTab(which, btn){
 }
 etDrawer?.addEventListener('input', (e)=>{
   if(e.target && (e.target.matches('input') || e.target.matches('textarea') || e.target.matches('select'))){
-    etRenderPreview();
+    ET_TRANS={};
+    if(ET_PREVIEW_LANG==='de') etRenderPreview();
   }
 });
-function etRenderPreview(){
+const ADMIN_EMAIL_UI = {
+  de:{greeting:'Sehr geehrte/r Hien,', sendEmail:'E-Mail senden', regards:'Mit freundlichen Grüßen,'},
+  en:{greeting:'Dear Hien,', sendEmail:'Send email', regards:'Kind regards,'},
+  ru:{greeting:'Уважаемый(ая) Hien,', sendEmail:'Написать email', regards:'С уважением,'}
+};
+const ET_TR_FIELDS=['subject','intro','deliveryNote','orderTitle','totalLabel','upsellTitle','upsellNote','supportTitle','supportText','signature'];
+let ET_PREVIEW_LANG='de';
+let ET_TRANS={};
+function etPreviewConfig(){
   const c=etCollect();
+  if(ET_PREVIEW_LANG==='de') return c;
+  const tr=ET_TRANS[ET_PREVIEW_LANG];
+  if(!tr) return c;
+  const out={...c};
+  ET_TR_FIELDS.forEach(fld=>{ if(tr[fld]) out[fld]=tr[fld]; });
+  if(Array.isArray(tr.upsell)&&Array.isArray(c.upsell)) out.upsell=c.upsell.map((u,i)=>({...u, d:(tr.upsell[i]&&tr.upsell[i].d)||u.d, t:(tr.upsell[i]&&tr.upsell[i].t)||u.t}));
+  return out;
+}
+async function etSetPreviewLang(lang){
+  ET_PREVIEW_LANG=lang;
+  document.querySelectorAll('.et-prev-langs button').forEach(b=>b.classList.toggle('on', b.dataset.pl===lang));
+  if(lang!=='de' && !ET_TRANS[lang]) await etTranslatePreview();
+  etRenderPreview();
+}
+async function etTranslatePreview(){
+  etStatus('Đang dịch (DeepL)…');
+  try{
+    const d=await etApi('/translate',{method:'POST', body:JSON.stringify({config:etCollect()})});
+    if(d && d.ok && d.translations){ ET_TRANS=d.translations; etStatus('Đã dịch ✓', true); }
+    else { ET_TRANS={}; etStatus('Chưa cấu hình DeepL — preview tạm hiện tiếng Đức'); toast('Cần DEEPL_API_KEY trên Cloudflare để tự dịch','err'); }
+  }catch(e){ ET_TRANS={}; etStatus(e.status===401?'Sai token (401)':'Lỗi dịch: '+(e&&e.message||'')); }
+}
+function etRenderPreview(){
+  const c=etPreviewConfig();
+  const U=ADMIN_EMAIL_UI[ET_PREVIEW_LANG]||ADMIN_EMAIL_UI.de;
   const sample=[{name:'Microsoft 365 Premium',variant:'1 Jahr',qty:1,price:32},{name:'Google One (Gemini Pro + 5TB)',variant:'12 Monate',qty:1,price:25}];
   const total=sample.reduce((s,i)=>s+i.qty*i.price,0);
   const fmtNum=n=>(Number(n)||0).toFixed(2);
@@ -1382,7 +1426,7 @@ function etRenderPreview(){
   <table width="600" style="max-width:600px;width:100%;background:#fff;border-radius:12px;overflow:hidden">
   <tr><td style="background:#0a0a0a;padding:18px 24px"><span style="color:#fff;font-size:16px;font-weight:700;letter-spacing:-.02em">${brand}</span><span style="color:#a1a1aa;font-size:14px;font-weight:400;margin-left:6px">— ${esc(c.subject||'Bestellbestätigung')}</span></td></tr>
   <tr><td style="padding:24px">
-  <h1 style="font-size:20px;margin:0 0 14px">Sehr geehrte/r Hien,</h1>
+  <h1 style="font-size:20px;margin:0 0 14px">${U.greeting}</h1>
   <p style="font-size:14px;line-height:1.6;color:#3f3f46;margin:0 0 12px">${esc(c.intro)}</p>
   <p style="font-size:14px;line-height:1.6;color:#3f3f46;margin:0 0 18px">${esc(c.deliveryNote)}</p>
   <div style="font-size:11px;font-weight:700;color:#71717a;letter-spacing:.08em;text-transform:uppercase;margin:0 0 8px">${esc(c.orderTitle||'Ihre Bestellung')}</div>
@@ -1390,8 +1434,8 @@ function etRenderPreview(){
   <tr><td style="font-size:15px;font-weight:bold;padding:12px 14px;background:#fafafa">${esc(c.totalLabel||'Gesamtsumme')}</td><td style="font-size:15px;font-weight:bold;padding:12px 14px;background:#fafafa;text-align:right">€${fmtNum(total)}</td></tr></table>
   ${ups?`<hr style="border:none;border-top:1px solid #e7e7ea;margin:22px 0"><div style="font-size:11px;font-weight:700;color:#71717a;letter-spacing:.08em;text-transform:uppercase;margin:0 0 12px">${esc(c.upsellTitle||'')}</div><table width="100%">${ups}</table>${c.upsellNote?`<p style="font-size:12px;color:#a1a1aa;line-height:1.5;margin:6px 0 18px">${esc(c.upsellNote)}</p>`:''}`:''}
   <div style="background:#f4f4f5;border-radius:10px;padding:16px 18px;margin:18px 0 12px"><p style="font-size:13px;font-weight:600;margin:0 0 6px">✉ ${esc(c.supportTitle||'')}</p><p style="font-size:13px;color:#52525b;line-height:1.6;margin:0">${esc(c.supportText||'')}</p></div>
-  <div style="text-align:center;margin:0 0 18px"><a href="#" style="display:inline-block;background:#000;color:#fff;text-decoration:none;font-size:14px;padding:11px 26px;border-radius:10px;font-weight:600;letter-spacing:.01em">E-Mail senden</a></div>
-  <p style="font-size:14px;color:#3f3f46;margin:0">Mit freundlichen Grüßen,<br><strong>${esc(c.signature||'')}</strong></p>
+  <div style="text-align:center;margin:0 0 18px"><a href="#" style="display:inline-block;background:#000;color:#fff;text-decoration:none;font-size:14px;padding:11px 26px;border-radius:10px;font-weight:600;letter-spacing:.01em">${U.sendEmail}</a></div>
+  <p style="font-size:14px;color:#3f3f46;margin:0">${U.regards}<br><strong>${esc(c.signature||'')}</strong></p>
   </td></tr></table></td></tr></table></body>`;
   const f=$('#etPreviewFrame'); f.srcdoc=html;
 }

@@ -963,7 +963,7 @@ function submitOrder(){
 
   const saveOrder = ()=> WORKER_URL ? fetch(WORKER_URL.replace(/\/$/,'') + '/order', {
     method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'},
-    body: JSON.stringify({ orderId, name, email, items: cart.map(c=>({name:c.name,variant:c.variant,qty:c.qty,price:c.price})), total, lines, skipBrevo: true })
+    body: JSON.stringify({ orderId, name, email, items: cart.map(c=>({name:c.name,variant:c.variant,qty:c.qty,price:c.price})), total, lines, lang: I18N.current, skipBrevo: true })
   }).then(r=>r.json()).catch(()=>null) : Promise.resolve(null);
 
   Promise.allSettled([notifyAdmin(), saveOrder()])

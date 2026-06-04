@@ -14,7 +14,8 @@ $secrets = @(
   @{ Name = "BREVO_API_KEY"; Hint = "xkeysib-..." },
   @{ Name = "WEB3FORMS_KEY"; Hint = "access key Web3Forms" },
   @{ Name = "ADMIN_TOKEN"; Hint = "chuoi ngau nhien dai (token_urlsafe)" },
-  @{ Name = "ADMIN_PASS_HASH"; Hint = "SHA-256 hash mật khẩu admin (64 hex)" }
+  @{ Name = "ADMIN_PASS_HASH"; Hint = "SHA-256 hash mật khẩu admin (64 hex)" },
+  @{ Name = "DEEPL_API_KEY"; Hint = "tuy chon - key DeepL de tu dich email (free key ket thuc :fx)" }
 )
 foreach ($s in $secrets) {
   Write-Host "  -> $($s.Name) ($($s.Hint))"
