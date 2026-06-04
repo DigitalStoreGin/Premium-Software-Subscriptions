@@ -979,7 +979,7 @@ function resetProofUI(){
   const nameBox = document.getElementById('proofFileName'); if(nameBox){ nameBox.style.display='none'; nameBox.querySelector('span').textContent=''; }
   const btn = document.getElementById('confirmSentBtn');
   if(btn){ btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-paper-plane"></i><span data-i18n="sm.ok">'+I18N.t('sm.ok')+'</span>'; }
-  const hint = document.getElementById('proofHint'); if(hint){ hint.style.display='block'; hint.textContent=I18N.t('proof.required'); hint.style.color='var(--text-3)'; }
+  const hint = document.getElementById('proofHint'); if(hint){ hint.style.display='block'; hint.textContent=I18N.t('proof.required'); hint.style.color='var(--text-3)'; hint.style.fontWeight=''; hint.style.fontSize=''; hint.classList.remove('proof-shake'); }
 }
 
 // Khi khách chọn file: kiểm tra định dạng + dung lượng, rồi mở khoá nút xác nhận
@@ -1009,7 +1009,17 @@ async function confirmAndSendProof(){
       try{ fileInput.scrollIntoView({behavior:'smooth', block:'center'}); }catch(e){}
       setTimeout(()=>fileInput.classList.remove('proof-missing'), 1600);
     }
-    if(hint){ hint.style.display='block'; hint.style.color='#dc2626'; hint.style.fontWeight='600'; }
+    // Dòng nhắc ngay dưới nút — luôn hiển thị trong modal (quan trọng cho mobile)
+    if(hint){
+      hint.style.display='block';
+      hint.style.color='#dc2626';
+      hint.style.fontWeight='700';
+      hint.style.fontSize='13px';
+      hint.textContent='⚠ ' + I18N.t('proof.required');
+      hint.classList.remove('proof-shake'); void hint.offsetWidth;
+      hint.classList.add('proof-shake');
+      setTimeout(()=>hint.classList.remove('proof-shake'), 1600);
+    }
     return;
   }
   const o = CURRENT_ORDER || { orderId: CURRENT_ORDER_ID, name:'', email:'', total:'0.00', lines:'' };

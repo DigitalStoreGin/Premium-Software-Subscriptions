@@ -265,7 +265,7 @@ footer{padding:64px 24px 32px;border-top:1px solid var(--line);background:var(--
 .order-summary .os-row .desc{flex:1;color:var(--text-2);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .order-summary .os-row.total{font-weight:600;color:var(--text);margin-top:4px;padding-top:8px;border-top:1px solid var(--line);border-bottom:none;font-size:14px}
 
-.toast{position:fixed;bottom:calc(28px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(140px);background:var(--text);color:#fff;padding:12px 20px;border-radius:10px;display:flex;gap:10px;align-items:center;box-shadow:var(--shadow-lg);z-index:500;transition:transform 0.35s cubic-bezier(0.4,0,0.2,1);font-size:14px;font-weight:500;max-width:calc(100% - 32px)}
+.toast{position:fixed;bottom:calc(28px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(140px);background:var(--text);color:#fff;padding:12px 20px;border-radius:10px;display:flex;gap:10px;align-items:center;box-shadow:var(--shadow-lg);z-index:9999;transition:transform 0.35s cubic-bezier(0.4,0,0.2,1);font-size:14px;font-weight:500;max-width:calc(100% - 32px)}
 .toast.show{transform:translateX(-50%) translateY(0)}
 .toast i{color:#4ade80}
 
@@ -417,3 +417,4 @@ footer{padding:64px 24px 32px;border-top:1px solid var(--line);background:var(--
 /* Proof upload reminder (khi quên up chứng từ) */
 @keyframes proofShake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
 .proof-missing{border:1.5px dashed #dc2626 !important;background:#fef2f2 !important;animation:proofShake .4s ease}
+.proof-shake{animation:proofShake .4s ease}
