@@ -178,6 +178,54 @@ const DEFAULT_CONFIG = {
   supportText: 'Bei Fragen oder Problemen antworten wir meist innerhalb weniger Minuten. Schreiben Sie uns jederzeit.',
   supportEmail: 'cfvblue@gmail.com',
   signature: 'Ihr DigitalStore-Team',
+  // Bản dịch sẵn (chuyên nghiệp) — dùng ngay kể cả khi chưa cấu hình DeepL.
+  // Khi bạn Lưu trong admin và đã có DEEPL_API_KEY, các bản này sẽ được cập nhật tự động.
+  translations: {
+    en: {
+      subject: 'Order confirmation',
+      intro: 'thank you very much for your purchase at DigitalStore! We truly appreciate your trust.',
+      deliveryNote: 'You will receive your access credentials or activation code by email within 5–30 minutes. If you have any questions, we are always happy to help.',
+      orderTitle: 'Your order',
+      totalLabel: 'Total',
+      upsellTitle: 'You might also be interested in',
+      upsellNote: 'All listed products are available from us at a heavily reduced price — significantly cheaper than the official price, with the full range of features.',
+      supportTitle: 'Personal support',
+      supportText: 'If you have any questions or problems, we usually reply within a few minutes. Feel free to write to us anytime.',
+      signature: 'Your DigitalStore team',
+      upsell: [
+        { d: 'Gemini 3.1 AI with 1M context, 5 TB cloud, Dream Lab, Lyria 3 & Jules Agent', t: '12 months' },
+        { d: 'Word, Excel, PowerPoint, Teams, 1 TB OneDrive, Copilot AI — up to 5 devices', t: '1 year' },
+        { d: 'Leading AI code editor with Claude Opus 4.7, GPT-5.5, Gemini 2.5 Pro', t: '1 year' },
+        { d: 'Unlimited GPT-5, 60+ app integrations, full data privacy', t: '6 months' },
+        { d: 'AI coding, data analysis, reports & business applications', t: '6 months' },
+        { d: 'Claude Opus 4.7, extended limits, full feature set', t: '6 months' },
+        { d: 'Create, edit, sign & convert PDFs', t: '12 months' },
+        { d: '6 devices at once, Threat Protection, no-logs', t: 'Trial 3M' }
+      ]
+    },
+    ru: {
+      subject: 'Подтверждение заказа',
+      intro: 'большое спасибо за вашу покупку в DigitalStore! Мы очень ценим ваше доверие.',
+      deliveryNote: 'Вы получите данные для доступа или код активации по электронной почте в течение 5–30 минут. Если у вас возникнут вопросы, мы всегда готовы помочь.',
+      orderTitle: 'Ваш заказ',
+      totalLabel: 'Итого',
+      upsellTitle: 'Вам также может быть интересно',
+      upsellNote: 'Все перечисленные продукты доступны у нас по сильно сниженной цене — значительно дешевле официальной, с полным набором функций.',
+      supportTitle: 'Персональная поддержка',
+      supportText: 'При любых вопросах или проблемах мы обычно отвечаем в течение нескольких минут. Пишите нам в любое время.',
+      signature: 'Ваша команда DigitalStore',
+      upsell: [
+        { d: 'ИИ Gemini 3.1 с контекстом 1M, 5 ТБ облака, Dream Lab, Lyria 3 и агент Jules', t: '12 месяцев' },
+        { d: 'Word, Excel, PowerPoint, Teams, 1 ТБ OneDrive, ИИ Copilot — до 5 устройств', t: '1 год' },
+        { d: 'Ведущий ИИ-редактор кода с Claude Opus 4.7, GPT-5.5, Gemini 2.5 Pro', t: '1 год' },
+        { d: 'Безлимитный GPT-5, более 60 интеграций, полная конфиденциальность данных', t: '6 месяцев' },
+        { d: 'ИИ-программирование, анализ данных, отчёты и бизнес-приложения', t: '6 месяцев' },
+        { d: 'Claude Opus 4.7, расширенные лимиты, полный набор функций', t: '6 месяцев' },
+        { d: 'Создание, редактирование, подпись и конвертация PDF', t: '12 месяцев' },
+        { d: '6 устройств одновременно, Threat Protection, без логов', t: 'Пробный 3 мес' }
+      ]
+    }
+  },
 };
 async function loadConfig(env) {
   if (!env.ORDERS) return { ...DEFAULT_CONFIG };
