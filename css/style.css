@@ -413,3 +413,7 @@ footer{padding:64px 24px 32px;border-top:1px solid var(--line);background:var(--
   .lang-btn{padding:8px 10px;gap:6px}
   .lang-btn .lang-label{font-size:12px}
 }
+
+/* Proof upload reminder (khi quên up chứng từ) */
+@keyframes proofShake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
+.proof-missing{border:1.5px dashed #dc2626 !important;background:#fef2f2 !important;animation:proofShake .4s ease}

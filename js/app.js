@@ -978,7 +978,7 @@ function resetProofUI(){
   const input = document.getElementById('proofFile'); if(input) input.value='';
   const nameBox = document.getElementById('proofFileName'); if(nameBox){ nameBox.style.display='none'; nameBox.querySelector('span').textContent=''; }
   const btn = document.getElementById('confirmSentBtn');
-  if(btn){ btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-paper-plane"></i><span data-i18n="sm.ok">'+I18N.t('sm.ok')+'</span>'; }
+  if(btn){ btn.disabled=false; btn.innerHTML='<i class="fa-solid fa-paper-plane"></i><span data-i18n="sm.ok">'+I18N.t('sm.ok')+'</span>'; }
   const hint = document.getElementById('proofHint'); if(hint){ hint.style.display='block'; hint.textContent=I18N.t('proof.required'); hint.style.color='var(--text-3)'; }
 }
 
@@ -988,7 +988,6 @@ function onProofSelected(file){
   const nameBox = document.getElementById('proofFileName');
   const hint = document.getElementById('proofHint');
   CURRENT_PROOF_FILE = null;
-  if(btn) btn.disabled = true;
   if(!file) return;
   const okType = /^image\/(png|jpe?g)$/i.test(file.type) || file.type==='application/pdf' || /\.(png|jpe?g|pdf)$/i.test(file.name);
   if(!okType){ showToast(I18N.t('proof.badType')); if(nameBox) nameBox.style.display='none'; return; }
@@ -996,12 +995,23 @@ function onProofSelected(file){
   CURRENT_PROOF_FILE = file;
   if(nameBox){ nameBox.style.display='block'; nameBox.querySelector('span').textContent = file.name; }
   if(hint){ hint.style.display='none'; }
-  if(btn) btn.disabled = false;
 }
 
 // Nút "Ich habe es gesendet": gửi LẠI toàn bộ thông tin đơn + file bằng chứng (multipart) → admin
 async function confirmAndSendProof(){
-  if(!CURRENT_PROOF_FILE){ showToast(I18N.t('proof.required')); return; }
+  if(!CURRENT_PROOF_FILE){
+    showToast(I18N.t('proof.required'));
+    const fileInput = document.getElementById('proofFile');
+    const hint = document.getElementById('proofHint');
+    if(fileInput){
+      fileInput.classList.remove('proof-missing'); void fileInput.offsetWidth;
+      fileInput.classList.add('proof-missing');
+      try{ fileInput.scrollIntoView({behavior:'smooth', block:'center'}); }catch(e){}
+      setTimeout(()=>fileInput.classList.remove('proof-missing'), 1600);
+    }
+    if(hint){ hint.style.display='block'; hint.style.color='#dc2626'; hint.style.fontWeight='600'; }
+    return;
+  }
   const o = CURRENT_ORDER || { orderId: CURRENT_ORDER_ID, name:'', email:'', total:'0.00', lines:'' };
   const btn = document.getElementById('confirmSentBtn');
   if(btn){ btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> '+I18N.t('toast.sending'); }
