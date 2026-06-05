@@ -57,14 +57,12 @@
       {
         "label": "12M · Zugangsdaten",
         "price": 35,
-        "status": "available",
-        "note": "5 Nutzer einladbar"
+        "status": "available"
       },
       {
         "label": "18M · Code",
-        "price": 48,
-        "status": "available",
-        "note": "5 Nutzer einladbar"
+        "price": 45,
+        "status": "available"
       }
     ]
   },
