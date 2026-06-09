@@ -254,6 +254,19 @@ tbody tr:hover{background:var(--surface-2)}
 .lang-btn{font-size:12px;font-weight:700;letter-spacing:.02em;min-width:36px;text-align:center}
 /* hide red bar from toast overflow */
 body{overflow-x:hidden}
+
+.data-table{width:100%;border-collapse:collapse;font-size:13px}
+.data-table th{text-align:left;padding:8px 10px;border-bottom:2px solid var(--line);color:var(--text-2);font-weight:600;white-space:nowrap}
+.data-table td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+.data-table code{background:var(--surface-2,#f4f4f5);padding:2px 6px;border-radius:5px;font-size:12px}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.kpi-card{background:var(--surface-2,#fafafa);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.kpi-card .k{font-size:11.5px;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em}
+.kpi-card .v{font-size:22px;font-weight:700;margin-top:4px;letter-spacing:-.02em}
+.btn-danger{background:#fef2f2;color:#b91c1c;border:1px solid #fecaca}
+.btn-danger:hover{background:#fee2e2}
+.btn-sm{padding:5px 10px;font-size:12px}
+@media(max-width:640px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
 </style>
 </head>
 <body>
@@ -356,6 +369,8 @@ body{overflow-x:hidden}
       <button id="langBtn" class="btn btn-ghost btn-sm lang-btn" title="Sprache / Language">VI</button>
       <button id="emailTplBtn" class="btn btn-ghost btn-sm"><i class="fa-solid fa-envelope"></i><span class="label-hide">E-Mail</span></button>
       <button id="previewBtn" class="btn btn-ghost btn-sm"><i class="fa-solid fa-eye"></i><span class="label-hide">Preview</span></button>
+      <button id="couponBtn" class="btn btn-ghost btn-sm"><i class="fa-solid fa-ticket"></i><span class="label-hide" data-at="nav.coupons">Mã giảm</span></button>
+      <button id="statsBtn" class="btn btn-ghost btn-sm"><i class="fa-solid fa-chart-line"></i><span class="label-hide" data-at="nav.stats">Thống kê</span></button>
       <button id="settingsBtn" class="btn btn-ghost btn-sm"><i class="fa-solid fa-gear"></i></button>
       <button id="saveBtn" class="btn btn-success btn-sm" disabled><i class="fa-solid fa-cloud-arrow-up"></i><span data-at="btn.save">Lưu</span></button>
     </div>
@@ -493,6 +508,64 @@ body{overflow-x:hidden}
 
 <!-- ============ EMAIL TEMPLATE DRAWER ============ -->
 <div id="etOverlay" class="overlay"></div>
+
+<!-- ============ COUPON DRAWER ============ -->
+<aside id="cpDrawer" class="drawer et-full">
+  <div class="drawer-head">
+    <h2><i class="fa-solid fa-ticket" style="margin-right:8px"></i><span data-at="cp.title">Mã giảm giá</span></h2>
+    <button class="icon-x" id="cpClose"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <div class="drawer-body">
+    <div class="callout" style="margin-bottom:16px"><span data-at="cp.intro">Tạo mã giảm giá cho toàn đơn, theo sản phẩm hoặc theo biến thể. Dữ liệu lưu online (Cloudflare D1).</span></div>
+
+    <div class="et-section">
+      <h3 data-at="cp.create">Tạo mã</h3>
+      <div class="grid2">
+        <label class="field"><span data-at="cp.type">Loại giảm</span>
+          <select id="cp_type" class="select"><option value="percent" data-at="cp.percent">Phần trăm (%)</option><option value="fixed" data-at="cp.fixed">Số tiền (€)</option></select></label>
+        <label class="field"><span data-at="cp.value">Giá trị</span><input id="cp_value" class="input" type="number" min="0" step="0.01" value="10"></label>
+      </div>
+      <label class="field"><span data-at="cp.scope">Phạm vi</span>
+        <select id="cp_scope" class="select"><option value="order" data-at="cp.scope.order">Toàn đơn hàng</option><option value="product" data-at="cp.scope.product">Theo sản phẩm</option><option value="variant" data-at="cp.scope.variant">Theo biến thể</option></select></label>
+      <div id="cp_prodWrap" style="display:none">
+        <label class="field"><span data-at="cp.product">Sản phẩm</span><select id="cp_product" class="select"></select></label>
+      </div>
+      <div id="cp_varWrap" style="display:none">
+        <label class="field"><span data-at="cp.variant">Biến thể</span><select id="cp_variant" class="select"></select></label>
+      </div>
+      <div class="grid2">
+        <label class="field"><span data-at="cp.usage">Kiểu dùng</span>
+          <select id="cp_usage" class="select"><option value="single" data-at="cp.single">Dùng 1 lần</option><option value="multi" data-at="cp.multi">Nhiều lượt</option></select></label>
+        <label class="field" id="cp_maxWrap" style="display:none"><span data-at="cp.maxuses">Số lượt tối đa</span><input id="cp_maxuses" class="input" type="number" min="1" value="100"></label>
+      </div>
+      <div class="grid2">
+        <label class="field"><span data-at="cp.count">Số mã tạo</span><input id="cp_count" class="input" type="number" min="1" max="500" value="1"></label>
+        <label class="field"><span data-at="cp.prefix">Tiền tố (tuỳ chọn)</span><input id="cp_prefix" class="input" placeholder="MS365"></label>
+      </div>
+      <div class="grid2">
+        <label class="field"><span data-at="cp.expires">Ngày hết hạn (tuỳ chọn)</span><input id="cp_expires" class="input" type="date"></label>
+        <label class="field"><span data-at="cp.label">Nhãn ghi chú (tuỳ chọn)</span><input id="cp_label" class="input" placeholder=""></label>
+      </div>
+      <button class="btn btn-primary" onclick="cpCreate()"><i class="fa-solid fa-plus"></i> <span data-at="cp.generate">Tạo mã</span></button>
+      <div id="cp_created" class="callout" style="display:none;margin-top:12px"></div>
+    </div>
+
+    <div class="et-section">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+        <h3 style="margin:0;margin-right:auto" data-at="cp.list">Danh sách mã</h3>
+        <select id="cp_filterDays" class="select" style="width:auto" onchange="cpLoad()">
+          <option value="0" data-at="cp.all">Tất cả</option><option value="1" data-at="cp.d1">Hôm nay</option><option value="7" data-at="cp.d7">7 ngày</option><option value="30" data-at="cp.d30">30 ngày</option>
+        </select>
+        <button class="btn btn-ghost btn-sm" onclick="cpLoad()"><i class="fa-solid fa-rotate"></i></button>
+        <button class="btn btn-danger btn-sm" onclick="cpDelete({olderThanDays:7})" data-at="cp.del7">Xoá &gt;7 ngày</button>
+        <button class="btn btn-danger btn-sm" onclick="cpDelete({all:true})" data-at="cp.delall">Xoá tất cả</button>
+      </div>
+      <div id="cp_stats" class="callout" style="margin-bottom:10px;display:none"></div>
+      <div style="overflow-x:auto"><table class="data-table" id="cp_table"><thead><tr><th data-at="cp.code">Mã</th><th data-at="cp.col.type">Giảm</th><th data-at="cp.col.scope">Phạm vi</th><th data-at="cp.col.status">Trạng thái</th><th data-at="cp.col.exp">Hết hạn</th><th></th></tr></thead><tbody id="cp_tbody"></tbody></table></div>
+    </div>
+  </div>
+</aside>
+<div id="cpOverlay" class="overlay"></div>
 <aside id="etDrawer" class="drawer et-full">
   <div class="drawer-head">
     <h2><i class="fa-solid fa-envelope" style="margin-right:8px"></i>Sửa mẫu email xác nhận</h2>
@@ -619,6 +692,8 @@ function fmtPrice(n){ return '€'+Number(n||0).toFixed(2); }
 const ADMIN_LANGS = ['vi','de','en'];
 const AI = {
   vi:{
+    'nav.coupons':'Mã giảm','nav.stats':'Thống kê',
+    'cp.title':'Mã giảm giá','cp.intro':'Tạo mã giảm cho toàn đơn, theo sản phẩm hoặc biến thể. Dữ liệu lưu online (Cloudflare D1).','cp.create':'Tạo mã','cp.type':'Loại giảm','cp.percent':'Phần trăm (%)','cp.fixed':'Số tiền (€)','cp.value':'Giá trị','cp.scope':'Phạm vi','cp.scope.order':'Toàn đơn hàng','cp.scope.product':'Theo sản phẩm','cp.scope.variant':'Theo biến thể','cp.product':'Sản phẩm','cp.variant':'Biến thể','cp.usage':'Kiểu dùng','cp.single':'Dùng 1 lần','cp.multi':'Nhiều lượt','cp.maxuses':'Số lượt tối đa','cp.count':'Số mã tạo','cp.prefix':'Tiền tố (tuỳ chọn)','cp.expires':'Ngày hết hạn (tuỳ chọn)','cp.label':'Nhãn ghi chú (tuỳ chọn)','cp.generate':'Tạo mã','cp.done':'Đã tạo mã','cp.copy':'Copy tất cả','cp.copied':'Đã copy','cp.noauth':'Chưa kết nối/sai token — mở mục E-Mail để nhập token','cp.list':'Danh sách mã','cp.all':'Tất cả','cp.d1':'Hôm nay','cp.d7':'7 ngày','cp.d30':'30 ngày','cp.del7':'Xoá >7 ngày','cp.delall':'Xoá tất cả','cp.total':'Tổng','cp.usedn':'Đã dùng','cp.unusedn':'Chưa dùng','cp.code':'Mã','cp.col.type':'Giảm','cp.col.scope':'Phạm vi','cp.col.status':'Trạng thái','cp.col.exp':'Hết hạn','cp.s.off':'Tắt','cp.s.exp':'Hết hạn','cp.s.used':'Đã dùng','cp.s.live':'Còn hiệu lực','cp.deleted':'Đã xoá','cp.confirmall':'Xoá TẤT CẢ mã giảm giá?',
     'app.title':'Quản lý sản phẩm','stat.total':'Tổng sản phẩm',
     'st.available':'Verfügbar','st.unavailable':'Nicht verfügbar','st.out_of_stock':'Ausverkauft','st.hidden':'Ẩn',
     'search.ph':'Tìm theo tên hoặc mô tả…','filter.all':'Mọi trạng thái',
@@ -636,6 +711,8 @@ const AI = {
     'et.supportTitle':'Tiêu đề hỗ trợ','et.supportText':'Nội dung hỗ trợ','et.supportEmail':'Email hỗ trợ','et.sig':'Chữ ký cuối email',
   },
   de:{
+    'nav.coupons':'Rabatt','nav.stats':'Statistik',
+    'cp.title':'Rabattcodes','cp.intro':'Erstelle Rabattcodes für die ganze Bestellung, ein Produkt oder eine Variante. Daten online gespeichert (Cloudflare D1).','cp.create':'Code erstellen','cp.type':'Rabatttyp','cp.percent':'Prozent (%)','cp.fixed':'Betrag (€)','cp.value':'Wert','cp.scope':'Geltungsbereich','cp.scope.order':'Ganze Bestellung','cp.scope.product':'Pro Produkt','cp.scope.variant':'Pro Variante','cp.product':'Produkt','cp.variant':'Variante','cp.usage':'Nutzungsart','cp.single':'Einmalig','cp.multi':'Mehrfach','cp.maxuses':'Max. Nutzungen','cp.count':'Anzahl Codes','cp.prefix':'Präfix (optional)','cp.expires':'Ablaufdatum (optional)','cp.label':'Notiz (optional)','cp.generate':'Code erstellen','cp.done':'Codes erstellt','cp.copy':'Alle kopieren','cp.copied':'Kopiert','cp.noauth':'Nicht verbunden/falscher Token — im E-Mail-Bereich Token eingeben','cp.list':'Code-Liste','cp.all':'Alle','cp.d1':'Heute','cp.d7':'7 Tage','cp.d30':'30 Tage','cp.del7':'>7 Tage löschen','cp.delall':'Alle löschen','cp.total':'Gesamt','cp.usedn':'Verwendet','cp.unusedn':'Unbenutzt','cp.code':'Code','cp.col.type':'Rabatt','cp.col.scope':'Bereich','cp.col.status':'Status','cp.col.exp':'Ablauf','cp.s.off':'Inaktiv','cp.s.exp':'Abgelaufen','cp.s.used':'Verwendet','cp.s.live':'Aktiv','cp.deleted':'Gelöscht','cp.confirmall':'ALLE Rabattcodes löschen?',
     'app.title':'Produktverwaltung','stat.total':'Gesamt',
     'st.available':'Verfügbar','st.unavailable':'Nicht verfügbar','st.out_of_stock':'Ausverkauft','st.hidden':'Ausgeblendet',
     'search.ph':'Nach Name oder Beschreibung suchen…','filter.all':'Alle Status',
@@ -653,6 +730,8 @@ const AI = {
     'et.supportTitle':'Support-Titel','et.supportText':'Support-Text','et.supportEmail':'Support-E-Mail','et.sig':'Signatur',
   },
   en:{
+    'nav.coupons':'Coupons','nav.stats':'Analytics',
+    'cp.title':'Discount codes','cp.intro':'Create discount codes for the whole order, a product or a variant. Stored online (Cloudflare D1).','cp.create':'Create code','cp.type':'Discount type','cp.percent':'Percent (%)','cp.fixed':'Amount (€)','cp.value':'Value','cp.scope':'Scope','cp.scope.order':'Whole order','cp.scope.product':'Per product','cp.scope.variant':'Per variant','cp.product':'Product','cp.variant':'Variant','cp.usage':'Usage type','cp.single':'Single use','cp.multi':'Multi use','cp.maxuses':'Max uses','cp.count':'Number of codes','cp.prefix':'Prefix (optional)','cp.expires':'Expiry date (optional)','cp.label':'Note (optional)','cp.generate':'Create code','cp.done':'Codes created','cp.copy':'Copy all','cp.copied':'Copied','cp.noauth':'Not connected/wrong token — open the E-Mail section to enter the token','cp.list':'Code list','cp.all':'All','cp.d1':'Today','cp.d7':'7 days','cp.d30':'30 days','cp.del7':'Delete >7 days','cp.delall':'Delete all','cp.total':'Total','cp.usedn':'Used','cp.unusedn':'Unused','cp.code':'Code','cp.col.type':'Discount','cp.col.scope':'Scope','cp.col.status':'Status','cp.col.exp':'Expiry','cp.s.off':'Inactive','cp.s.exp':'Expired','cp.s.used':'Used','cp.s.live':'Active','cp.deleted':'Deleted','cp.confirmall':'Delete ALL discount codes?',
     'app.title':'Product Management','stat.total':'Total',
     'st.available':'Available','st.unavailable':'Unavailable','st.out_of_stock':'Sold out','st.hidden':'Hidden',
     'search.ph':'Search by name or description…','filter.all':'All statuses',
@@ -1438,6 +1517,57 @@ function etRenderPreview(){
   <p style="font-size:14px;color:#3f3f46;margin:0">${U.regards}<br><strong>${esc(c.signature||'')}</strong></p>
   </td></tr></table></td></tr></table></body>`;
   const f=$('#etPreviewFrame'); f.srcdoc=html;
+}
+
+/* ===== Shared admin API (reuse saved Worker URL + token) ===== */
+function adminCreds(){ return { url:(localStorage.getItem('pm_worker_url')||'https://store.tdh1812.workers.dev').replace(/\/$/,''), tok:(localStorage.getItem('pm_admin_token')||'') }; }
+async function adminApi(path, opts){
+  opts=opts||{}; const c=adminCreds();
+  const r=await fetch(c.url+path,{...opts,headers:{'x-admin-token':c.tok,...(opts.body?{'Content-Type':'application/json'}:{}),...(opts.headers||{})}});
+  if(!r.ok){ const t=await r.text().catch(()=>''); const e=new Error('HTTP '+r.status+(t?(' — '+t.slice(0,150)):'')); e.status=r.status; throw e; }
+  return r.json();
+}
+
+/* ===== Coupon drawer ===== */
+const cpDrawer=$('#cpDrawer'), cpOverlay=$('#cpOverlay');
+if($('#couponBtn')) $('#couponBtn').onclick=()=>{ cpFillProducts(); cpOverlay.classList.add('open'); cpDrawer.classList.add('open'); cpLoad(); };
+function cpCloseFn(){ cpDrawer.classList.remove('open'); cpOverlay.classList.remove('open'); }
+if($('#cpClose')){ $('#cpClose').onclick=cpCloseFn; cpOverlay.onclick=cpCloseFn; }
+if($('#cp_scope')) $('#cp_scope').onchange=()=>{ const v=$('#cp_scope').value; $('#cp_prodWrap').style.display=(v==='product'||v==='variant')?'block':'none'; $('#cp_varWrap').style.display=(v==='variant')?'block':'none'; if(v==='variant') cpFillVariants(); };
+if($('#cp_product')) $('#cp_product').onchange=cpFillVariants;
+if($('#cp_usage')) $('#cp_usage').onchange=()=>{ $('#cp_maxWrap').style.display=$('#cp_usage').value==='multi'?'block':'none'; };
+function cpFillProducts(){ const sel=$('#cp_product'); if(!sel) return; sel.innerHTML=(STATE.products||[]).map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join(''); cpFillVariants(); }
+function cpFillVariants(){ const pid=+($('#cp_product')||{}).value; const p=(STATE.products||[]).find(x=>+x.id===pid); const sel=$('#cp_variant'); if(!sel) return; sel.innerHTML=((p&&p.variants)||[]).map(v=>`<option value="${esc(v.label)}">${esc(v.label)} · €${(+v.price||0).toFixed(2)}</option>`).join(''); }
+async function cpCreate(){
+  const body={ type:$('#cp_type').value, value:+$('#cp_value').value||0, scope:$('#cp_scope').value, usage_mode:$('#cp_usage').value, max_uses:+$('#cp_maxuses').value||1, count:+$('#cp_count').value||1, prefix:$('#cp_prefix').value.trim(), expires_at:$('#cp_expires').value||null, label:$('#cp_label').value.trim() };
+  if(body.scope==='product'||body.scope==='variant') body.target_product=$('#cp_product').value;
+  if(body.scope==='variant') body.target_variant=$('#cp_variant').value;
+  try{ const d=await adminApi('/admin/coupons',{method:'POST',body:JSON.stringify(body)});
+    const box=$('#cp_created'); box.style.display='block';
+    box.dataset.codes=(d.created||[]).join('\n');
+    box.innerHTML='<b>'+T('cp.done')+' ('+(d.created||[]).length+'):</b><br><code style="word-break:break-all">'+(d.created||[]).join(', ')+'</code><br><button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="cpCopy()">'+T('cp.copy')+'</button>';
+    toast(T('cp.done'),'ok'); cpLoad();
+  }catch(e){ toast(e.status===401?T('cp.noauth'):('Lỗi: '+e.message),'err'); }
+}
+function cpCopy(){ const box=$('#cp_created'); navigator.clipboard.writeText(box.dataset.codes||'').then(()=>toast(T('cp.copied'),'ok')).catch(()=>{}); }
+async function cpLoad(){
+  try{ const days=+$('#cp_filterDays').value||0; const d=await adminApi('/admin/coupons'+(days?('?days='+days):'')); const rows=d.coupons||[];
+    const used=rows.filter(r=>r.used_count>0).length;
+    const st=$('#cp_stats'); st.style.display='block'; st.innerHTML=`${T('cp.total')}: <b>${rows.length}</b> · ${T('cp.usedn')}: <b>${used}</b> · ${T('cp.unusedn')}: <b>${rows.length-used}</b>`;
+    $('#cp_tbody').innerHTML=rows.map(r=>{
+      const exp=r.expires_at?new Date(r.expires_at).toLocaleDateString():'—';
+      const expired=r.expires_at&&new Date(r.expires_at)<new Date();
+      const max=r.usage_mode==='multi'?(r.max_uses||1):1;
+      const status= !r.active?T('cp.s.off'): (expired?T('cp.s.exp'): (r.used_count>=max?T('cp.s.used'):T('cp.s.live')));
+      const scope=r.scope==='order'?T('cp.scope.order'):(r.scope==='product'?T('cp.scope.product'):T('cp.scope.variant'));
+      const val=r.type==='percent'?(r.value+'%'):('€'+(+r.value).toFixed(2));
+      return `<tr><td><code>${esc(r.code)}</code></td><td>${val}</td><td>${scope}</td><td>${status} (${r.used_count}/${max})</td><td>${exp}</td><td><button class="btn btn-danger btn-sm" onclick='cpDelete({code:${JSON.stringify(r.code)}})'><i class="fa-solid fa-trash"></i></button></td></tr>`;
+    }).join('') || `<tr><td colspan="6" style="text-align:center;color:var(--text-3)">—</td></tr>`;
+  }catch(e){ toast(e.status===401?T('cp.noauth'):('Lỗi: '+e.message),'err'); }
+}
+async function cpDelete(target){
+  if(target.all && !confirm(T('cp.confirmall'))) return;
+  try{ await adminApi('/admin/coupons',{method:'DELETE',body:JSON.stringify(target)}); cpLoad(); toast(T('cp.deleted'),'ok'); }catch(e){ toast('Lỗi: '+e.message,'err'); }
 }
 
 translateAdmin();
