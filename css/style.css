@@ -418,3 +418,15 @@ footer{padding:64px 24px 32px;border-top:1px solid var(--line);background:var(--
 @keyframes proofShake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
 .proof-missing{border:1.5px dashed #dc2626 !important;background:#fef2f2 !important;animation:proofShake .4s ease}
 .proof-shake{animation:proofShake .4s ease}
+
+/* Coupon box (giỏ hàng) */
+.coupon-box{display:flex;gap:8px;margin-bottom:10px}
+.coupon-input{flex:1;min-width:0;padding:10px 12px;border:1px solid var(--line);border-radius:9px;font-size:14px;font-family:inherit;color:var(--text);background:#fff;text-transform:uppercase;outline:none;transition:all .15s}
+.coupon-input::placeholder{text-transform:none;color:var(--text-3)}
+.coupon-input:focus{border-color:var(--text);box-shadow:0 0 0 3px rgba(0,0,0,.06)}
+.coupon-apply{flex-shrink:0;padding:10px 16px;border:1px solid var(--text);background:var(--text);color:#fff;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
+.coupon-apply:hover{background:#1f1f23}
+.coupon-msg{font-size:12.5px;margin:-2px 0 10px;font-weight:500}
+.coupon-msg.ok{color:var(--success)}
+.coupon-msg.err{color:var(--danger)}
+.cart-discount{color:var(--success);font-weight:600}

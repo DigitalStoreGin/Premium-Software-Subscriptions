@@ -306,6 +306,15 @@
     </div>
   </div>
   <div class="drawer-foot" id="drawerFoot" style="display:none">
+    <div class="coupon-box">
+      <input id="couponInput" class="coupon-input" type="text" autocomplete="off" placeholder="Rabattcode eingeben" data-i18n-attr="placeholder:coupon.placeholder">
+      <button class="coupon-apply" type="button" onclick="applyCoupon()" data-i18n="coupon.apply">Anwenden</button>
+    </div>
+    <div id="couponMsg" class="coupon-msg" style="display:none"></div>
+    <div class="cart-total cart-discount" id="discountRow" style="display:none">
+      <span data-i18n="coupon.discount">Rabatt</span>
+      <span>−€<span id="discountAmt">0.00</span></span>
+    </div>
     <div class="cart-total">
       <span data-i18n="drawer.total">Gesamtsumme</span>
       <span>€<span id="cartTotal">0.00</span></span>
