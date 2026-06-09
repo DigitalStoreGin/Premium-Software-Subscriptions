@@ -581,7 +581,22 @@ async function getStats(request, env, cors){
   const revByProduct = await all("SELECT product_id, name, COALESCE(SUM(line_total),0) rev, SUM(qty) q FROM sale_items WHERE day>=? GROUP BY product_id ORDER BY rev DESC LIMIT 50", since);
   const series = await all("SELECT day, COALESCE(SUM(revenue),0) rev, COUNT(*) orders FROM sales WHERE day>=? GROUP BY day ORDER BY day", since);
   const eventTotals = await all("SELECT type, COUNT(*) c FROM events WHERE day>=? GROUP BY type", since);
-  return json({ ok:true, days, kpi:{ revenueTotal:revTotal.v, ordersTotal:revTotal.n, revenueToday:revToday.v, ordersToday:revToday.n, revenueMonth:revMonth.v, revenueRange:revRange.v, ordersRange, aov, sessions:sess.n, conversion }, topClicks, topCart, topSold, revByProduct, series, eventTotals }, 200, cors);
+  const unitsRange = await q('SELECT COALESCE(SUM(qty),0) q FROM sale_items WHERE day>=?', since);
+  // Previous period (same length) for trend arrows
+  const prevSinceD = new Date(Date.now()-days*2*86400000).toISOString().slice(0,10);
+  const prevRev = await q('SELECT COALESCE(SUM(revenue),0) v, COUNT(*) n FROM sales WHERE day>=? AND day<?', prevSinceD, since);
+  const prevSess = await q('SELECT COUNT(DISTINCT session_id) n FROM events WHERE day>=? AND day<? AND session_id IS NOT NULL', prevSinceD, since);
+  const prevUnits = await q('SELECT COALESCE(SUM(qty),0) q FROM sale_items WHERE day>=? AND day<?', prevSinceD, since);
+  const prevAov = prevRev.n ? prevRev.v/prevRev.n : 0;
+  const prevConv = prevSess.n ? (prevRev.n/prevSess.n*100) : 0;
+  // Coupon usage summary
+  const cpUses = await q('SELECT COUNT(*) n, COALESCE(SUM(amount),0) d FROM coupon_uses WHERE used_at>=?', since+'T00:00:00');
+  const cpTop = await all('SELECT code, COUNT(*) c, COALESCE(SUM(amount),0) d FROM coupon_uses WHERE used_at>=? GROUP BY code ORDER BY c DESC LIMIT 10', since+'T00:00:00');
+  return json({ ok:true, days,
+    kpi:{ revenueTotal:revTotal.v, ordersTotal:revTotal.n, revenueToday:revToday.v, ordersToday:revToday.n, revenueMonth:revMonth.v, revenueRange:revRange.v, ordersRange, aov, sessions:sess.n, conversion, unitsRange:unitsRange.q },
+    prev:{ revenue:prevRev.v, orders:prevRev.n, aov:prevAov, conversion:prevConv, sessions:prevSess.n, units:prevUnits.q },
+    coupons:{ uses:cpUses.n, discount:cpUses.d, top:cpTop },
+    topClicks, topCart, topSold, revByProduct, series, eventTotals }, 200, cors);
 }
 
 async function deleteStats(request, env, cors){

@@ -1588,7 +1588,9 @@ async function cpCreate(){
   try{ const d=await adminApi('/admin/coupons',{method:'POST',body:JSON.stringify(body)});
     const box=$('#cp_created'); box.style.display='block';
     box.dataset.codes=(d.created||[]).join('\n');
-    box.innerHTML='<b>'+T('cp.done')+' ('+(d.created||[]).length+'):</b><br><code style="word-break:break-all">'+(d.created||[]).join(', ')+'</code><br><button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="cpCopy()">'+T('cp.copy')+'</button>';
+    let scopeNote='';
+    if(body.scope!=='order'){ const tp=(STATE.products||[]).find(x=>String(x.id)===String(body.target_product)); scopeNote=' — '+(tp?esc(tp.name):'')+(body.target_variant?(' · '+esc(body.target_variant)):''); }
+    box.innerHTML='<b>'+T('cp.done')+' ('+(d.created||[]).length+')'+scopeNote+':</b><br><code style="word-break:break-all">'+(d.created||[]).join(', ')+'</code><br><button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="cpCopy()">'+T('cp.copy')+'</button>';
     toast(T('cp.done'),'ok'); cpLoad();
   }catch(e){ toast(e.status===401?T('cp.noauth'):('Lỗi: '+e.message),'err'); }
 }
@@ -1602,7 +1604,8 @@ async function cpLoad(){
       const expired=r.expires_at&&new Date(r.expires_at)<new Date();
       const max=r.usage_mode==='multi'?(r.max_uses||1):1;
       const status= !r.active?T('cp.s.off'): (expired?T('cp.s.exp'): (r.used_count>=max?T('cp.s.used'):T('cp.s.live')));
-      const scope=r.scope==='order'?T('cp.scope.order'):(r.scope==='product'?T('cp.scope.product'):T('cp.scope.variant'));
+      let scope=r.scope==='order'?T('cp.scope.order'):(r.scope==='product'?T('cp.scope.product'):T('cp.scope.variant'));
+      if(r.target_product){ const tp=(STATE.products||[]).find(x=>String(x.id)===String(r.target_product)); const tpn=tp?tp.name:('#'+r.target_product); scope+=': '+esc(tpn)+(r.target_variant?(' · '+esc(r.target_variant)):''); }
       const val=r.type==='percent'?(r.value+'%'):('€'+(+r.value).toFixed(2));
       return `<tr><td><code>${esc(r.code)}</code></td><td>${val}</td><td>${scope}</td><td>${status} (${r.used_count}/${max})</td><td>${exp}</td><td><button class="btn btn-danger btn-sm" onclick='cpDelete({code:${JSON.stringify(r.code)}})'><i class="fa-solid fa-trash"></i></button></td></tr>`;
     }).join('') || `<tr><td colspan="6" style="text-align:center;color:var(--text-3)">—</td></tr>`;
@@ -1616,7 +1619,7 @@ async function cpDelete(target){
 /* ===== Stats drawer ===== */
 let ST_DAYS=7, stChart=null;
 const stDrawer=$('#stDrawer'), stOverlay=$('#stOverlay');
-if($('#statsBtn')) $('#statsBtn').onclick=()=>{ stOverlay.classList.add('open'); stDrawer.classList.add('open'); stLoad(); };
+if($('#statsBtn')) $('#statsBtn').onclick=()=>{ window.open('./analytics.html','_blank'); };
 function stCloseFn(){ stDrawer.classList.remove('open'); stOverlay.classList.remove('open'); }
 if($('#stClose')){ $('#stClose').onclick=stCloseFn; stOverlay.onclick=stCloseFn; }
 document.querySelectorAll('#st_filters button').forEach(b=>b.onclick=()=>{ ST_DAYS=+b.dataset.d; document.querySelectorAll('#st_filters button').forEach(x=>x.classList.toggle('on',x===b)); stLoad(); });
