@@ -18,3 +18,8 @@ id = "bd8530d0f1b84b58a56284db011bdc81"
 [[r2_buckets]]
 binding = "PROOFS"
 bucket_name = "digitalstore-proof"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "digitalstore-proof"
+database_id = "0cb47552-de0b-4a50-84e8-7f78da767013"

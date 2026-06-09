@@ -25,3 +25,8 @@ bucket_name = "digitalstore-proof"
 #   wrangler secret put ADMIN_TOKEN
 #   wrangler secret put ADMIN_PASS_HASH
 #   wrangler secret put DEEPL_API_KEY   (tùy chọn — để tự dịch email DE→EN/RU; gói free DeepL, key kết thúc bằng :fx)
+
+[[d1_databases]]
+binding = "DB"
+database_name = "digitalstore-proof"
+database_id = "0cb47552-de0b-4a50-84e8-7f78da767013"
