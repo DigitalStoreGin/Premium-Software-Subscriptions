@@ -33,6 +33,19 @@ export default {
         if (request.method === 'POST') return requireAdmin(request, env, cors, () => saveConfig(request, env, cors));
       }
       if (url.pathname === '/translate' && request.method === 'POST') return requireAdmin(request, env, cors, () => translatePreview(request, env, cors));
+      // Coupons
+      if (url.pathname === '/coupon/validate' && request.method === 'POST') return validateCouponReq(request, env, cors);
+      if (url.pathname === '/admin/coupons') {
+        if (request.method === 'GET') return requireAdmin(request, env, cors, () => listCoupons(request, env, cors));
+        if (request.method === 'POST') return requireAdmin(request, env, cors, () => createCoupons(request, env, cors));
+        if (request.method === 'DELETE') return requireAdmin(request, env, cors, () => deleteCoupons(request, env, cors));
+      }
+      // Analytics
+      if (url.pathname === '/event' && request.method === 'POST') return logEvent(request, env, cors);
+      if (url.pathname === '/admin/stats') {
+        if (request.method === 'GET') return requireAdmin(request, env, cors, () => getStats(request, env, cors));
+        if (request.method === 'DELETE') return requireAdmin(request, env, cors, () => deleteStats(request, env, cors));
+      }
       // Online sync for admin GitHub connection/token (password-hash auth)
       if (url.pathname === '/admin-sync' && request.method === 'POST') return adminSync(request, env, cors);
 
@@ -95,18 +108,26 @@ async function createOrder(request, env, cors) {
 
   const orderId = (b.orderId && /^DS-/.test(b.orderId)) ? b.orderId : genOrderId();
   const norm = Array.isArray(items) ? items.map(i => ({
-    name: i.name || '', variant: i.variant || '', qty: Number(i.qty) || 1, price: Number(i.price) || 0,
+    product_id: (i.product_id ?? i.id ?? null), name: i.name || '', variant: i.variant || '', qty: Number(i.qty) || 1, price: Number(i.price) || 0,
   })) : [];
   const subtotal = norm.reduce((s, i) => s + i.qty * i.price, 0);
+  // Coupon: re-validate + consume server-side (authoritative pricing)
+  let discount = 0, couponCode = null, serverSubtotal = subtotal;
+  if (b.coupon && env.DB) {
+    const applied = await applyCouponForOrder(env, String(b.coupon).toUpperCase().trim(), norm.map(i => ({ product_id: i.product_id, variant: i.variant, qty: i.qty })), orderId);
+    if (applied && applied.ok) { discount = applied.discount; couponCode = String(b.coupon).toUpperCase().trim(); serverSubtotal = applied.subtotal; }
+  }
+  const finalTotal = couponCode ? Math.max(0, Math.round((serverSubtotal - discount) * 100) / 100) : (Number(total) || subtotal);
   const lang = (b.lang === 'en' || b.lang === 'ru') ? b.lang : 'de';
   const order = {
     order_id: orderId, status: 'awaiting_payment', lang,
     customer: { name, email },
-    items: norm, subtotal, discount: 0, total: Number(total) || subtotal, currency: 'EUR',
+    items: norm, subtotal: couponCode ? serverSubtotal : subtotal, discount, coupon: couponCode, total: finalTotal, currency: 'EUR',
     proof: null, created_at: new Date().toISOString(), updated_at: new Date().toISOString(),
     history: [{ at: new Date().toISOString(), status: 'awaiting_payment', note: 'created' }],
   };
   if (env.ORDERS) await env.ORDERS.put(orderId, JSON.stringify(order));
+  if (env.DB) { try { await logSale(env, order); } catch (e) {} }
 
   // skipBrevo=true → chỉ lưu đơn, KHÔNG gửi email (email gửi ở bước /confirm sau khi upload chứng từ).
   if (b.skipBrevo) {
@@ -341,6 +362,241 @@ async function translateConfig(cfg, env){
   const tr = await buildTranslations(cfg, env);
   if (tr) cfg.translations = tr;
   return cfg;
+}
+
+// ───────── D1: coupons + analytics ─────────
+let __schemaReady = false;
+async function ensureSchema(env){
+  if (!env.DB || __schemaReady) return;
+  try {
+    await env.DB.batch([
+      env.DB.prepare(`CREATE TABLE IF NOT EXISTS coupons(code TEXT PRIMARY KEY, type TEXT, value REAL, scope TEXT, target_product TEXT, target_variant TEXT, usage_mode TEXT, max_uses INTEGER DEFAULT 1, used_count INTEGER DEFAULT 0, active INTEGER DEFAULT 1, expires_at TEXT, batch_id TEXT, label TEXT, created_at TEXT)`),
+      env.DB.prepare(`CREATE TABLE IF NOT EXISTS coupon_uses(id INTEGER PRIMARY KEY AUTOINCREMENT, code TEXT, order_id TEXT, amount REAL, used_at TEXT)`),
+      env.DB.prepare(`CREATE TABLE IF NOT EXISTS events(id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT, product_id TEXT, variant TEXT, session_id TEXT, day TEXT, created_at TEXT)`),
+      env.DB.prepare(`CREATE TABLE IF NOT EXISTS sales(order_id TEXT PRIMARY KEY, revenue REAL, items_count INTEGER, coupon_code TEXT, day TEXT, created_at TEXT)`),
+      env.DB.prepare(`CREATE TABLE IF NOT EXISTS sale_items(id INTEGER PRIMARY KEY AUTOINCREMENT, order_id TEXT, product_id TEXT, name TEXT, variant TEXT, qty INTEGER, line_total REAL, day TEXT)`),
+      env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_events_day ON events(day)`),
+      env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_sales_day ON sales(day)`),
+    ]);
+    __schemaReady = true;
+  } catch (e) { /* retry next call */ }
+}
+
+// Authoritative price map from the public products.json (cached ~5 min) — never trust client prices
+let __priceCache = { at: 0, map: null };
+async function getPriceMap(env){
+  const now = Date.now();
+  if (__priceCache.map && (now - __priceCache.at) < 300000) return __priceCache.map;
+  const url = env.PRODUCTS_URL || 'https://digitalstoregin.github.io/products.json';
+  try {
+    const r = await fetch(url, { cf: { cacheTtl: 300 } });
+    if (!r.ok) return __priceCache.map || {};
+    const arr = await r.json();
+    const map = {};
+    (Array.isArray(arr) ? arr : []).forEach(p => {
+      (p.variants || []).forEach(v => {
+        map[p.id + '|' + (v.label || '')] = { price: Number(v.price) || 0, name: p.name, vstatus: v.status || 'available', pstatus: p.status || 'available' };
+      });
+    });
+    __priceCache = { at: now, map };
+    return map;
+  } catch (e) { return __priceCache.map || {}; }
+}
+
+// Compute authoritative subtotal for a cart [{product_id, variant, qty}] using server prices
+async function priceCart(env, items){
+  const map = await getPriceMap(env);
+  let subtotal = 0; const lines = [];
+  for (const it of (items || [])) {
+    const key = it.product_id + '|' + (it.variant || '');
+    const info = map[key];
+    if (!info) continue;
+    const qty = Math.max(1, Number(it.qty) || 1);
+    const lt = info.price * qty;
+    subtotal += lt;
+    lines.push({ product_id: it.product_id, name: info.name, variant: it.variant || '', qty, price: info.price, line_total: lt });
+  }
+  return { subtotal: Math.round(subtotal * 100) / 100, lines };
+}
+
+// ───────── Coupons logic ─────────
+function genCouponCode(prefix){
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let s = '';
+  for (let i=0;i<6;i++) s += alphabet[Math.floor(Math.random()*alphabet.length)];
+  return (prefix ? (String(prefix).toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,8) + '-') : '') + s;
+}
+function couponLive(c){
+  if (!c || !c.active) return false;
+  if (c.expires_at && new Date(c.expires_at).getTime() < Date.now()) return false;
+  const max = c.usage_mode === 'multi' ? (c.max_uses || 1) : 1;
+  return (c.used_count || 0) < max;
+}
+function couponBase(c, priced){
+  if (c.scope === 'product') return priced.lines.filter(l => String(l.product_id) === String(c.target_product)).reduce((s,l)=>s+l.line_total,0);
+  if (c.scope === 'variant') return priced.lines.filter(l => String(l.product_id) === String(c.target_product) && (l.variant||'') === (c.target_variant||'')).reduce((s,l)=>s+l.line_total,0);
+  return priced.subtotal;
+}
+function couponDiscount(c, priced){
+  const base = couponBase(c, priced);
+  if (base <= 0) return 0;
+  let d = c.type === 'percent' ? base * (Number(c.value)||0) / 100 : Math.min(Number(c.value)||0, base);
+  d = Math.min(d, priced.subtotal);
+  return Math.round(d * 100) / 100;
+}
+
+async function validateCouponReq(request, env, cors){
+  if (!env.DB) return json({ ok:false, reason:'unavailable' }, 200, cors);
+  await ensureSchema(env);
+  let b; try { b = await request.json(); } catch { return json({ ok:false, reason:'bad_json' }, 400, cors); }
+  const code = String(b.code||'').toUpperCase().trim();
+  if (!code) return json({ ok:false, reason:'empty' }, 200, cors);
+  const c = await env.DB.prepare('SELECT * FROM coupons WHERE code=?').bind(code).first();
+  if (!c) return json({ ok:false, reason:'not_found' }, 200, cors);
+  if (!couponLive(c)) return json({ ok:false, reason: (c.expires_at && new Date(c.expires_at).getTime()<Date.now()) ? 'expired' : 'used' }, 200, cors);
+  const items = (b.items||[]).map(i => ({ product_id: i.product_id ?? i.id, variant: i.variant, qty: i.qty }));
+  const priced = await priceCart(env, items);
+  const discount = couponDiscount(c, priced);
+  if (discount <= 0) return json({ ok:false, reason:'not_applicable' }, 200, cors);
+  return json({ ok:true, code, type:c.type, value:c.value, scope:c.scope, discount, subtotal:priced.subtotal, total: Math.round((priced.subtotal-discount)*100)/100 }, 200, cors);
+}
+
+// Re-validate + atomically consume a coupon for an order. Returns {discount, ok} or null.
+async function applyCouponForOrder(env, code, items, orderId){
+  if (!env.DB || !code) return null;
+  await ensureSchema(env);
+  const c = await env.DB.prepare('SELECT * FROM coupons WHERE code=?').bind(code).first();
+  if (!c || !couponLive(c)) return null;
+  const priced = await priceCart(env, items);
+  const discount = couponDiscount(c, priced);
+  if (discount <= 0) return null;
+  const max = c.usage_mode === 'multi' ? (c.max_uses || 1) : 1;
+  const upd = await env.DB.prepare('UPDATE coupons SET used_count = used_count + 1 WHERE code=? AND active=1 AND used_count < ?').bind(code, max).run();
+  const changed = (upd.meta && upd.meta.changes) || upd.changes || 0;
+  if (!changed) return null; // lost the race / already consumed
+  await env.DB.prepare('INSERT INTO coupon_uses(code, order_id, amount, used_at) VALUES(?,?,?,?)').bind(code, orderId, discount, new Date().toISOString()).run();
+  return { ok:true, discount, subtotal: priced.subtotal };
+}
+
+async function createCoupons(request, env, cors){
+  if (!env.DB) return json({ error:'d1_unavailable' }, 200, cors);
+  await ensureSchema(env);
+  let b; try { b = await request.json(); } catch { return json({ error:'bad_json' }, 400, cors); }
+  const type = b.type === 'fixed' ? 'fixed' : 'percent';
+  const value = Number(b.value) || 0;
+  const scope = ['order','product','variant'].includes(b.scope) ? b.scope : 'order';
+  const usage_mode = b.usage_mode === 'multi' ? 'multi' : 'single';
+  const max_uses = usage_mode === 'multi' ? Math.max(1, Number(b.max_uses)||1) : 1;
+  const count = Math.min(500, Math.max(1, Number(b.count)||1));
+  const expires_at = b.expires_at ? String(b.expires_at) : null;
+  const prefix = b.prefix || '';
+  const batch_id = 'B' + Date.now().toString(36).toUpperCase();
+  const label = String(b.label||'');
+  const now = new Date().toISOString();
+  const created = [];
+  for (let i=0;i<count;i++){
+    let code = (b.code && count===1) ? String(b.code).toUpperCase().trim() : genCouponCode(prefix);
+    try {
+      await env.DB.prepare('INSERT INTO coupons(code,type,value,scope,target_product,target_variant,usage_mode,max_uses,used_count,active,expires_at,batch_id,label,created_at) VALUES(?,?,?,?,?,?,?,?,0,1,?,?,?,?)')
+        .bind(code, type, value, scope, b.target_product?String(b.target_product):null, b.target_variant?String(b.target_variant):null, usage_mode, max_uses, expires_at, batch_id, label, now).run();
+      created.push(code);
+    } catch (e) { /* collision, skip */ }
+  }
+  return json({ ok:true, batch_id, created }, 200, cors);
+}
+
+async function listCoupons(request, env, cors){
+  if (!env.DB) return json({ coupons:[] }, 200, cors);
+  await ensureSchema(env);
+  const u = new URL(request.url);
+  const days = Number(u.searchParams.get('days')) || 0;
+  let sql = 'SELECT * FROM coupons'; const binds = [];
+  if (days > 0) { sql += ' WHERE created_at >= ?'; binds.push(new Date(Date.now()-days*86400000).toISOString()); }
+  sql += ' ORDER BY created_at DESC LIMIT 2000';
+  const rows = (await env.DB.prepare(sql).bind(...binds).all()).results || [];
+  return json({ ok:true, coupons: rows }, 200, cors);
+}
+
+async function deleteCoupons(request, env, cors){
+  if (!env.DB) return json({ error:'d1_unavailable' }, 200, cors);
+  await ensureSchema(env);
+  let b; try { b = await request.json(); } catch { b = {}; }
+  if (b.code) { await env.DB.prepare('DELETE FROM coupons WHERE code=?').bind(String(b.code).toUpperCase()).run(); return json({ ok:true }, 200, cors); }
+  if (b.batch_id) { await env.DB.prepare('DELETE FROM coupons WHERE batch_id=?').bind(b.batch_id).run(); return json({ ok:true }, 200, cors); }
+  if (b.olderThanDays) { await env.DB.prepare('DELETE FROM coupons WHERE created_at < ?').bind(new Date(Date.now()-Number(b.olderThanDays)*86400000).toISOString()).run(); return json({ ok:true }, 200, cors); }
+  if (b.all === true) { await env.DB.prepare('DELETE FROM coupons').run(); await env.DB.prepare('DELETE FROM coupon_uses').run(); return json({ ok:true }, 200, cors); }
+  return json({ error:'no_target' }, 400, cors);
+}
+
+// ───────── Analytics logic ─────────
+async function logEvent(request, env, cors){
+  if (!env.DB) return json({ ok:false }, 200, cors);
+  await ensureSchema(env);
+  let b; try { b = await request.json(); } catch { return json({ ok:false }, 200, cors); }
+  const evs = Array.isArray(b.events) ? b.events : [b];
+  const now = new Date(); const day = now.toISOString().slice(0,10); const iso = now.toISOString();
+  const valid = ['impression','click','add_cart','checkout'];
+  const stmts = [];
+  for (const e of evs.slice(0,60)) {
+    if (!valid.includes(e.type)) continue;
+    stmts.push(env.DB.prepare('INSERT INTO events(type,product_id,variant,session_id,day,created_at) VALUES(?,?,?,?,?,?)')
+      .bind(e.type, e.product_id!=null?String(e.product_id):null, e.variant?String(e.variant):null, e.session_id?String(e.session_id):null, day, iso));
+  }
+  if (stmts.length) await env.DB.batch(stmts);
+  return json({ ok:true, n: stmts.length }, 200, cors);
+}
+
+async function logSale(env, order){
+  await ensureSchema(env);
+  const day = (order.created_at || new Date().toISOString()).slice(0,10);
+  const itemsCount = (order.items || []).reduce((s,i)=>s+(Number(i.qty)||0),0);
+  await env.DB.prepare('INSERT OR REPLACE INTO sales(order_id,revenue,items_count,coupon_code,day,created_at) VALUES(?,?,?,?,?,?)')
+    .bind(order.order_id, Number(order.total)||0, itemsCount, order.coupon||null, day, order.created_at||new Date().toISOString()).run();
+  const stmts = (order.items || []).map(i => env.DB.prepare('INSERT INTO sale_items(order_id,product_id,name,variant,qty,line_total,day) VALUES(?,?,?,?,?,?,?)')
+    .bind(order.order_id, i.product_id!=null?String(i.product_id):null, i.name||'', i.variant||'', Number(i.qty)||1, (Number(i.qty)||1)*(Number(i.price)||0), day));
+  if (stmts.length) await env.DB.batch(stmts);
+}
+
+async function getStats(request, env, cors){
+  if (!env.DB) return json({ ok:false, stats:null }, 200, cors);
+  await ensureSchema(env);
+  const u = new URL(request.url);
+  const days = Math.max(1, Number(u.searchParams.get('days')) || 7);
+  const since = new Date(Date.now()-days*86400000).toISOString().slice(0,10);
+  const today = new Date().toISOString().slice(0,10);
+  const md = new Date(); md.setDate(1); const mStart = md.toISOString().slice(0,10);
+  const q = (sql,...b) => env.DB.prepare(sql).bind(...b).first();
+  const all = (sql,...b) => env.DB.prepare(sql).bind(...b).all().then(r=>r.results||[]);
+  const revTotal = await q('SELECT COALESCE(SUM(revenue),0) v, COUNT(*) n FROM sales');
+  const revToday = await q('SELECT COALESCE(SUM(revenue),0) v, COUNT(*) n FROM sales WHERE day=?', today);
+  const revMonth = await q('SELECT COALESCE(SUM(revenue),0) v FROM sales WHERE day>=?', mStart);
+  const revRange = await q('SELECT COALESCE(SUM(revenue),0) v, COUNT(*) n FROM sales WHERE day>=?', since);
+  const ordersRange = revRange.n || 0;
+  const aov = ordersRange ? revRange.v/ordersRange : 0;
+  const sess = await q('SELECT COUNT(DISTINCT session_id) n FROM events WHERE day>=? AND session_id IS NOT NULL', since);
+  const conversion = sess.n ? (ordersRange/sess.n*100) : 0;
+  const topClicks = await all("SELECT product_id, COUNT(*) c FROM events WHERE type='click' AND day>=? GROUP BY product_id ORDER BY c DESC LIMIT 10", since);
+  const topCart = await all("SELECT product_id, COUNT(*) c FROM events WHERE type='add_cart' AND day>=? GROUP BY product_id ORDER BY c DESC LIMIT 10", since);
+  const topSold = await all("SELECT product_id, name, SUM(qty) q, COALESCE(SUM(line_total),0) rev FROM sale_items WHERE day>=? GROUP BY product_id ORDER BY q DESC LIMIT 10", since);
+  const revByProduct = await all("SELECT product_id, name, COALESCE(SUM(line_total),0) rev, SUM(qty) q FROM sale_items WHERE day>=? GROUP BY product_id ORDER BY rev DESC LIMIT 50", since);
+  const series = await all("SELECT day, COALESCE(SUM(revenue),0) rev, COUNT(*) orders FROM sales WHERE day>=? GROUP BY day ORDER BY day", since);
+  const eventTotals = await all("SELECT type, COUNT(*) c FROM events WHERE day>=? GROUP BY type", since);
+  return json({ ok:true, days, kpi:{ revenueTotal:revTotal.v, ordersTotal:revTotal.n, revenueToday:revToday.v, ordersToday:revToday.n, revenueMonth:revMonth.v, revenueRange:revRange.v, ordersRange, aov, sessions:sess.n, conversion }, topClicks, topCart, topSold, revByProduct, series, eventTotals }, 200, cors);
+}
+
+async function deleteStats(request, env, cors){
+  if (!env.DB) return json({ error:'d1_unavailable' }, 200, cors);
+  await ensureSchema(env);
+  let b; try { b = await request.json(); } catch { b = {}; }
+  if (b.all === true) { await env.DB.batch([env.DB.prepare('DELETE FROM events'), env.DB.prepare('DELETE FROM sales'), env.DB.prepare('DELETE FROM sale_items')]); return json({ ok:true }, 200, cors); }
+  const d = Math.max(1, Number(b.olderThanDays) || 7);
+  const cut = new Date(Date.now()-d*86400000).toISOString().slice(0,10);
+  await env.DB.batch([
+    env.DB.prepare('DELETE FROM events WHERE day < ?').bind(cut),
+    env.DB.prepare('DELETE FROM sales WHERE day < ?').bind(cut),
+    env.DB.prepare('DELETE FROM sale_items WHERE day < ?').bind(cut),
+  ]);
+  return json({ ok:true, cutoff:cut }, 200, cors);
 }
 
 function renderEmail({ name, items, total, supportEmail, cfg, lang }) {
