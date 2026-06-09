@@ -266,8 +266,12 @@ body{overflow-x:hidden}
 .btn-danger{background:#fef2f2;color:#b91c1c;border:1px solid #fecaca}
 .btn-danger:hover{background:#fee2e2}
 .btn-sm{padding:5px 10px;font-size:12px}
+.st-filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.st-filters button{padding:6px 14px;border:1px solid var(--line);background:#fff;border-radius:20px;font-size:12.5px;font-weight:600;cursor:pointer;color:var(--text-2);font-family:inherit}
+.st-filters button.on{background:var(--brand);color:#fff;border-color:var(--brand)}
 @media(max-width:640px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 </head>
 <body>
 
@@ -566,6 +570,39 @@ body{overflow-x:hidden}
   </div>
 </aside>
 <div id="cpOverlay" class="overlay"></div>
+
+<!-- ============ STATS DRAWER ============ -->
+<aside id="stDrawer" class="drawer et-full">
+  <div class="drawer-head">
+    <h2><i class="fa-solid fa-chart-line" style="margin-right:8px"></i><span data-at="st.title">Thống kê bán hàng</span></h2>
+    <button class="icon-x" id="stClose"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <div class="drawer-body">
+    <div class="st-filters" id="st_filters">
+      <button data-d="1" data-at="cp.d1">Hôm nay</button>
+      <button data-d="7" class="on" data-at="cp.d7">7 ngày</button>
+      <button data-d="30" data-at="cp.d30">30 ngày</button>
+    </div>
+    <div class="kpi-grid" id="st_kpi"></div>
+    <div class="et-section"><h3 data-at="st.revchart">Doanh thu theo ngày</h3><div style="position:relative;height:240px"><canvas id="st_chart"></canvas></div></div>
+    <div class="et-section"><h3 data-at="st.byproduct">Doanh thu theo sản phẩm</h3><div style="overflow-x:auto"><table class="data-table"><thead><tr><th data-at="st.product">Sản phẩm</th><th data-at="st.qty">SL</th><th data-at="st.revenue">Doanh thu</th></tr></thead><tbody id="st_byproduct"></tbody></table></div></div>
+    <div class="et-section"><h3 data-at="st.top">Xếp hạng quan tâm</h3>
+      <div class="grid2">
+        <div><h4 data-at="st.topsold">Bán chạy</h4><table class="data-table"><tbody id="st_topsold"></tbody></table></div>
+        <div><h4 data-at="st.topclick">Click nhiều</h4><table class="data-table"><tbody id="st_topclick"></tbody></table></div>
+      </div>
+      <div class="grid2" style="margin-top:12px">
+        <div><h4 data-at="st.topcart">Thêm giỏ nhiều</h4><table class="data-table"><tbody id="st_topcart"></tbody></table></div>
+        <div><h4 data-at="st.eventsh">Sự kiện</h4><table class="data-table"><tbody id="st_events"></tbody></table></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-danger btn-sm" onclick="stDelete({olderThanDays:7})" data-at="st.del7">Xoá dữ liệu &gt;7 ngày</button>
+      <button class="btn btn-danger btn-sm" onclick="stDelete({all:true})" data-at="st.delall">Xoá tất cả</button>
+    </div>
+  </div>
+</aside>
+<div id="stOverlay" class="overlay"></div>
 <aside id="etDrawer" class="drawer et-full">
   <div class="drawer-head">
     <h2><i class="fa-solid fa-envelope" style="margin-right:8px"></i>Sửa mẫu email xác nhận</h2>
@@ -694,6 +731,7 @@ const AI = {
   vi:{
     'nav.coupons':'Mã giảm','nav.stats':'Thống kê',
     'cp.title':'Mã giảm giá','cp.intro':'Tạo mã giảm cho toàn đơn, theo sản phẩm hoặc biến thể. Dữ liệu lưu online (Cloudflare D1).','cp.create':'Tạo mã','cp.type':'Loại giảm','cp.percent':'Phần trăm (%)','cp.fixed':'Số tiền (€)','cp.value':'Giá trị','cp.scope':'Phạm vi','cp.scope.order':'Toàn đơn hàng','cp.scope.product':'Theo sản phẩm','cp.scope.variant':'Theo biến thể','cp.product':'Sản phẩm','cp.variant':'Biến thể','cp.usage':'Kiểu dùng','cp.single':'Dùng 1 lần','cp.multi':'Nhiều lượt','cp.maxuses':'Số lượt tối đa','cp.count':'Số mã tạo','cp.prefix':'Tiền tố (tuỳ chọn)','cp.expires':'Ngày hết hạn (tuỳ chọn)','cp.label':'Nhãn ghi chú (tuỳ chọn)','cp.generate':'Tạo mã','cp.done':'Đã tạo mã','cp.copy':'Copy tất cả','cp.copied':'Đã copy','cp.noauth':'Chưa kết nối/sai token — mở mục E-Mail để nhập token','cp.list':'Danh sách mã','cp.all':'Tất cả','cp.d1':'Hôm nay','cp.d7':'7 ngày','cp.d30':'30 ngày','cp.del7':'Xoá >7 ngày','cp.delall':'Xoá tất cả','cp.total':'Tổng','cp.usedn':'Đã dùng','cp.unusedn':'Chưa dùng','cp.code':'Mã','cp.col.type':'Giảm','cp.col.scope':'Phạm vi','cp.col.status':'Trạng thái','cp.col.exp':'Hết hạn','cp.s.off':'Tắt','cp.s.exp':'Hết hạn','cp.s.used':'Đã dùng','cp.s.live':'Còn hiệu lực','cp.deleted':'Đã xoá','cp.confirmall':'Xoá TẤT CẢ mã giảm giá?',
+    'st.title':'Thống kê bán hàng','st.revchart':'Doanh thu theo ngày','st.byproduct':'Doanh thu theo sản phẩm','st.product':'Sản phẩm','st.qty':'SL','st.revenue':'Doanh thu','st.top':'Xếp hạng quan tâm','st.topsold':'Bán chạy','st.topclick':'Click nhiều','st.topcart':'Thêm giỏ nhiều','st.eventsh':'Sự kiện','st.del7':'Xoá dữ liệu >7 ngày','st.delall':'Xoá tất cả','st.revToday':'Doanh thu hôm nay','st.revMonth':'Doanh thu tháng','st.revTotal':'Tổng doanh thu','st.revRange':'Doanh thu (kỳ)','st.orders':'Số đơn','st.aov':'Giá trị đơn TB','st.conv':'Tỷ lệ chuyển đổi','st.sessions':'Phiên truy cập','st.nodata':'Chưa có dữ liệu / chưa bật D1','st.confirmall':'Xoá TẤT CẢ dữ liệu thống kê?','st.ev.impr':'Lượt xem','st.ev.click':'Click','st.ev.cart':'Thêm giỏ','st.ev.checkout':'Đặt hàng',
     'app.title':'Quản lý sản phẩm','stat.total':'Tổng sản phẩm',
     'st.available':'Verfügbar','st.unavailable':'Nicht verfügbar','st.out_of_stock':'Ausverkauft','st.hidden':'Ẩn',
     'search.ph':'Tìm theo tên hoặc mô tả…','filter.all':'Mọi trạng thái',
@@ -713,6 +751,7 @@ const AI = {
   de:{
     'nav.coupons':'Rabatt','nav.stats':'Statistik',
     'cp.title':'Rabattcodes','cp.intro':'Erstelle Rabattcodes für die ganze Bestellung, ein Produkt oder eine Variante. Daten online gespeichert (Cloudflare D1).','cp.create':'Code erstellen','cp.type':'Rabatttyp','cp.percent':'Prozent (%)','cp.fixed':'Betrag (€)','cp.value':'Wert','cp.scope':'Geltungsbereich','cp.scope.order':'Ganze Bestellung','cp.scope.product':'Pro Produkt','cp.scope.variant':'Pro Variante','cp.product':'Produkt','cp.variant':'Variante','cp.usage':'Nutzungsart','cp.single':'Einmalig','cp.multi':'Mehrfach','cp.maxuses':'Max. Nutzungen','cp.count':'Anzahl Codes','cp.prefix':'Präfix (optional)','cp.expires':'Ablaufdatum (optional)','cp.label':'Notiz (optional)','cp.generate':'Code erstellen','cp.done':'Codes erstellt','cp.copy':'Alle kopieren','cp.copied':'Kopiert','cp.noauth':'Nicht verbunden/falscher Token — im E-Mail-Bereich Token eingeben','cp.list':'Code-Liste','cp.all':'Alle','cp.d1':'Heute','cp.d7':'7 Tage','cp.d30':'30 Tage','cp.del7':'>7 Tage löschen','cp.delall':'Alle löschen','cp.total':'Gesamt','cp.usedn':'Verwendet','cp.unusedn':'Unbenutzt','cp.code':'Code','cp.col.type':'Rabatt','cp.col.scope':'Bereich','cp.col.status':'Status','cp.col.exp':'Ablauf','cp.s.off':'Inaktiv','cp.s.exp':'Abgelaufen','cp.s.used':'Verwendet','cp.s.live':'Aktiv','cp.deleted':'Gelöscht','cp.confirmall':'ALLE Rabattcodes löschen?',
+    'st.title':'Verkaufsstatistik','st.revchart':'Umsatz pro Tag','st.byproduct':'Umsatz pro Produkt','st.product':'Produkt','st.qty':'Anz.','st.revenue':'Umsatz','st.top':'Interesse-Ranking','st.topsold':'Bestseller','st.topclick':'Meiste Klicks','st.topcart':'Meist in den Warenkorb','st.eventsh':'Ereignisse','st.del7':'Daten >7 Tage löschen','st.delall':'Alle löschen','st.revToday':'Umsatz heute','st.revMonth':'Umsatz Monat','st.revTotal':'Gesamtumsatz','st.revRange':'Umsatz (Zeitraum)','st.orders':'Bestellungen','st.aov':'Ø Bestellwert','st.conv':'Conversion-Rate','st.sessions':'Sitzungen','st.nodata':'Keine Daten / D1 nicht aktiv','st.confirmall':'ALLE Statistikdaten löschen?','st.ev.impr':'Impressionen','st.ev.click':'Klicks','st.ev.cart':'In den Warenkorb','st.ev.checkout':'Bestellungen',
     'app.title':'Produktverwaltung','stat.total':'Gesamt',
     'st.available':'Verfügbar','st.unavailable':'Nicht verfügbar','st.out_of_stock':'Ausverkauft','st.hidden':'Ausgeblendet',
     'search.ph':'Nach Name oder Beschreibung suchen…','filter.all':'Alle Status',
@@ -732,6 +771,7 @@ const AI = {
   en:{
     'nav.coupons':'Coupons','nav.stats':'Analytics',
     'cp.title':'Discount codes','cp.intro':'Create discount codes for the whole order, a product or a variant. Stored online (Cloudflare D1).','cp.create':'Create code','cp.type':'Discount type','cp.percent':'Percent (%)','cp.fixed':'Amount (€)','cp.value':'Value','cp.scope':'Scope','cp.scope.order':'Whole order','cp.scope.product':'Per product','cp.scope.variant':'Per variant','cp.product':'Product','cp.variant':'Variant','cp.usage':'Usage type','cp.single':'Single use','cp.multi':'Multi use','cp.maxuses':'Max uses','cp.count':'Number of codes','cp.prefix':'Prefix (optional)','cp.expires':'Expiry date (optional)','cp.label':'Note (optional)','cp.generate':'Create code','cp.done':'Codes created','cp.copy':'Copy all','cp.copied':'Copied','cp.noauth':'Not connected/wrong token — open the E-Mail section to enter the token','cp.list':'Code list','cp.all':'All','cp.d1':'Today','cp.d7':'7 days','cp.d30':'30 days','cp.del7':'Delete >7 days','cp.delall':'Delete all','cp.total':'Total','cp.usedn':'Used','cp.unusedn':'Unused','cp.code':'Code','cp.col.type':'Discount','cp.col.scope':'Scope','cp.col.status':'Status','cp.col.exp':'Expiry','cp.s.off':'Inactive','cp.s.exp':'Expired','cp.s.used':'Used','cp.s.live':'Active','cp.deleted':'Deleted','cp.confirmall':'Delete ALL discount codes?',
+    'st.title':'Sales analytics','st.revchart':'Revenue per day','st.byproduct':'Revenue per product','st.product':'Product','st.qty':'Qty','st.revenue':'Revenue','st.top':'Interest ranking','st.topsold':'Best sellers','st.topclick':'Most clicked','st.topcart':'Most added to cart','st.eventsh':'Events','st.del7':'Delete data >7 days','st.delall':'Delete all','st.revToday':'Revenue today','st.revMonth':'Revenue month','st.revTotal':'Total revenue','st.revRange':'Revenue (range)','st.orders':'Orders','st.aov':'Avg order value','st.conv':'Conversion rate','st.sessions':'Sessions','st.nodata':'No data / D1 not enabled','st.confirmall':'Delete ALL analytics data?','st.ev.impr':'Impressions','st.ev.click':'Clicks','st.ev.cart':'Add to cart','st.ev.checkout':'Orders',
     'app.title':'Product Management','stat.total':'Total',
     'st.available':'Available','st.unavailable':'Unavailable','st.out_of_stock':'Sold out','st.hidden':'Hidden',
     'search.ph':'Search by name or description…','filter.all':'All statuses',
@@ -1568,6 +1608,42 @@ async function cpLoad(){
 async function cpDelete(target){
   if(target.all && !confirm(T('cp.confirmall'))) return;
   try{ await adminApi('/admin/coupons',{method:'DELETE',body:JSON.stringify(target)}); cpLoad(); toast(T('cp.deleted'),'ok'); }catch(e){ toast('Lỗi: '+e.message,'err'); }
+}
+
+/* ===== Stats drawer ===== */
+let ST_DAYS=7, stChart=null;
+const stDrawer=$('#stDrawer'), stOverlay=$('#stOverlay');
+if($('#statsBtn')) $('#statsBtn').onclick=()=>{ stOverlay.classList.add('open'); stDrawer.classList.add('open'); stLoad(); };
+function stCloseFn(){ stDrawer.classList.remove('open'); stOverlay.classList.remove('open'); }
+if($('#stClose')){ $('#stClose').onclick=stCloseFn; stOverlay.onclick=stCloseFn; }
+document.querySelectorAll('#st_filters button').forEach(b=>b.onclick=()=>{ ST_DAYS=+b.dataset.d; document.querySelectorAll('#st_filters button').forEach(x=>x.classList.toggle('on',x===b)); stLoad(); });
+function stPname(id){ const p=(STATE.products||[]).find(x=>String(x.id)===String(id)); return p?p.name:('#'+id); }
+function eur(n){ return '€'+(Number(n)||0).toFixed(2); }
+function stEmpty(n){ return `<tr><td colspan="${n}" style="text-align:center;color:var(--text-3)">—</td></tr>`; }
+async function stLoad(){
+  try{
+    const d=await adminApi('/admin/stats?days='+ST_DAYS);
+    if(!d||!d.ok){ toast(T('st.nodata'),'err'); return; }
+    const k=d.kpi||{};
+    $('#st_kpi').innerHTML=[
+      [T('st.revToday'),eur(k.revenueToday)],[T('st.revMonth'),eur(k.revenueMonth)],
+      [T('st.revTotal'),eur(k.revenueTotal)],[T('st.revRange'),eur(k.revenueRange)],
+      [T('st.orders'),k.ordersRange||0],[T('st.aov'),eur(k.aov)],
+      [T('st.conv'),(k.conversion||0).toFixed(1)+'%'],[T('st.sessions'),k.sessions||0],
+    ].map(x=>`<div class="kpi-card"><div class="k">${x[0]}</div><div class="v">${x[1]}</div></div>`).join('');
+    const labels=(d.series||[]).map(r=>String(r.day).slice(5)); const rev=(d.series||[]).map(r=>r.rev);
+    if(window.Chart && $('#st_chart')){ if(stChart) stChart.destroy(); stChart=new Chart($('#st_chart'),{type:'line',data:{labels,datasets:[{label:T('st.revenue'),data:rev,borderColor:'#1a1a1a',backgroundColor:'rgba(0,0,0,.06)',fill:true,tension:.3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}}); }
+    $('#st_byproduct').innerHTML=(d.revByProduct||[]).map(r=>`<tr><td>${esc(r.name||stPname(r.product_id))}</td><td>${r.q||0}</td><td>${eur(r.rev)}</td></tr>`).join('')||stEmpty(3);
+    $('#st_topsold').innerHTML=(d.topSold||[]).map(r=>`<tr><td>${esc(r.name||stPname(r.product_id))}</td><td style="text-align:right">${r.q||0}</td></tr>`).join('')||stEmpty(2);
+    $('#st_topclick').innerHTML=(d.topClicks||[]).map(r=>`<tr><td>${esc(stPname(r.product_id))}</td><td style="text-align:right">${r.c}</td></tr>`).join('')||stEmpty(2);
+    $('#st_topcart').innerHTML=(d.topCart||[]).map(r=>`<tr><td>${esc(stPname(r.product_id))}</td><td style="text-align:right">${r.c}</td></tr>`).join('')||stEmpty(2);
+    const evMap={impression:T('st.ev.impr'),click:T('st.ev.click'),add_cart:T('st.ev.cart'),checkout:T('st.ev.checkout')};
+    $('#st_events').innerHTML=(d.eventTotals||[]).map(r=>`<tr><td>${evMap[r.type]||r.type}</td><td style="text-align:right">${r.c}</td></tr>`).join('')||stEmpty(2);
+  }catch(e){ toast(e.status===401?T('cp.noauth'):('Lỗi: '+e.message),'err'); }
+}
+async function stDelete(target){
+  if(target.all && !confirm(T('st.confirmall'))) return;
+  try{ await adminApi('/admin/stats',{method:'DELETE',body:JSON.stringify(target)}); stLoad(); toast(T('cp.deleted'),'ok'); }catch(e){ toast('Lỗi: '+e.message,'err'); }
 }
 
 translateAdmin();
