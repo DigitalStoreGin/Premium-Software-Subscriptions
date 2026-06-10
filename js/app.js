@@ -1018,8 +1018,8 @@ function submitOrder(){
   };
   // Rabatt-Zeilen direkt unter Gesamtsumme, vor Verwendungszweck
   if(appliedCoupon && discount>0){
-    payload['Zwischensumme'] = `€${subtotal.toFixed(2)}`;
     payload[`Rabatt (${appliedCoupon.code})`] = `−€${discount.toFixed(2)}`;
+    payload['Zwischensumme'] = `€${subtotal.toFixed(2)}`;
   }
   payload['Verwendungszweck'] = orderId;
   payload['Bankverbindung'] = `Name: ${BANK.name} | IBAN: ${BANK.iban}`;
@@ -1129,7 +1129,7 @@ async function confirmAndSendProof(){
       Bestellung: o.lines || '', Gesamtsumme: `€${o.total}`
     };
     // Rabatt-Zeilen direkt unter Gesamtsumme, vor Zahlungsbeleg
-    if(o.coupon && +o.discount>0){ w3payload['Zwischensumme'] = `€${o.subtotal}`; w3payload[`Rabatt (${o.coupon})`] = `−€${o.discount}`; }
+    if(o.coupon && +o.discount>0){ w3payload[`Rabatt (${o.coupon})`] = `−€${o.discount}`; w3payload['Zwischensumme'] = `€${o.subtotal}`; }
     w3payload['Zahlungsbeleg'] = fileInfo;
     w3payload['R2_Upload'] = 'OK — /order/' + o.orderId + '/proof';
     w3payload['Brevo_Status'] = brevoRes && brevoRes.brevo ? (brevoRes.brevo.ok ? 'OK' : 'Failed') : 'Skipped';
