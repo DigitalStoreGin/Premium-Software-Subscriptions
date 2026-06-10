@@ -44,7 +44,7 @@ const I18N = (function(){
       'footer.rights':'© 2026 DigitalStore · Alle Rechte vorbehalten.',
       'drawer.title':'Warenkorb','drawer.empty':'Dein Warenkorb ist leer','drawer.total':'Gesamtsumme',
       'drawer.note':'Nach dem Klick öffnet sich ein Fenster mit der Bankverbindung & Zahlungsanleitung.','drawer.checkout':'Bestellung abschicken',
-      'coupon.label':'Rabattcode','coupon.placeholder':'Rabattcode eingeben','coupon.apply':'Anwenden','coupon.applied':'Code angewendet ✓','coupon.discount':'Rabatt','coupon.remove':'Entfernen','coupon.invalid':'Ungültiger Code','coupon.expired':'Code abgelaufen','coupon.used':'Code bereits verwendet','coupon.na':'Gilt nicht für diese Artikel','coupon.empty':'Bitte Code eingeben','coupon.unavail':'Rabatt-Service nicht verfügbar, bitte später erneut versuchen.',
+      'coupon.label':'Rabattcode','coupon.placeholder':'Rabattcode eingeben','coupon.apply':'Anwenden','coupon.applied':'Code angewendet ✓','coupon.discount':'Rabatt','coupon.remove':'Entfernen','coupon.invalid':'Ungültiger Code','coupon.expired':'Code abgelaufen','coupon.used':'Code bereits verwendet','coupon.na':'Gilt nicht für diese Artikel','coupon.empty':'Bitte Code eingeben','coupon.unavail':'Rabatt-Service nicht verfügbar, bitte später erneut versuchen.','coupon.appliesto':'Code gilt nur für',
       'ck.title':'Fast geschafft!','ck.sub':'Folge diesen 3 Schritten, um deine Bestellung abzuschließen.',
       'ck.order':'Deine Bestellung','ck.next':'Nächste Schritte',
       'ck.s1.t':'Bestellung per E-Mail senden','ck.s1.d':'Klicke unten auf „E-Mail senden". Dein E-Mail-Programm öffnet sich mit allen Details bereits ausgefüllt.',
@@ -106,7 +106,7 @@ const I18N = (function(){
       'footer.rights':'© 2026 DigitalStore · All rights reserved.',
       'drawer.title':'Cart','drawer.empty':'Your cart is empty','drawer.total':'Total',
       'drawer.note':'A window with bank details & payment instructions will open after you click.','drawer.checkout':'Send order',
-      'coupon.label':'Discount code','coupon.placeholder':'Enter discount code','coupon.apply':'Apply','coupon.applied':'Code applied ✓','coupon.discount':'Discount','coupon.remove':'Remove','coupon.invalid':'Invalid code','coupon.expired':'Code expired','coupon.used':'Code already used','coupon.na':'Not valid for these items','coupon.empty':'Please enter a code','coupon.unavail':'Discount service unavailable, please try again later.',
+      'coupon.label':'Discount code','coupon.placeholder':'Enter discount code','coupon.apply':'Apply','coupon.applied':'Code applied ✓','coupon.discount':'Discount','coupon.remove':'Remove','coupon.invalid':'Invalid code','coupon.expired':'Code expired','coupon.used':'Code already used','coupon.na':'Not valid for these items','coupon.empty':'Please enter a code','coupon.unavail':'Discount service unavailable, please try again later.','coupon.appliesto':'Code applies only to',
       'ck.title':'Almost done!','ck.sub':'Follow these 3 steps to complete your order.',
       'ck.order':'Your order','ck.next':'Next steps',
       'ck.s1.t':'Send the order by email','ck.s1.d':'Click "Send email" below. Your email client opens with all details pre-filled.',
@@ -168,7 +168,7 @@ const I18N = (function(){
       'footer.rights':'© 2026 DigitalStore · Все права защищены.',
       'drawer.title':'Корзина','drawer.empty':'Ваша корзина пуста','drawer.total':'Итого',
       'drawer.note':'После нажатия откроется окно с банковскими реквизитами и инструкцией по оплате.','drawer.checkout':'Отправить заказ',
-      'coupon.label':'Промокод','coupon.placeholder':'Введите промокод','coupon.apply':'Применить','coupon.applied':'Промокод применён ✓','coupon.discount':'Скидка','coupon.remove':'Убрать','coupon.invalid':'Неверный код','coupon.expired':'Срок действия истёк','coupon.used':'Код уже использован','coupon.na':'Не действует для этих товаров','coupon.empty':'Введите код','coupon.unavail':'Сервис скидок недоступен, попробуйте позже.',
+      'coupon.label':'Промокод','coupon.placeholder':'Введите промокод','coupon.apply':'Применить','coupon.applied':'Промокод применён ✓','coupon.discount':'Скидка','coupon.remove':'Убрать','coupon.invalid':'Неверный код','coupon.expired':'Срок действия истёк','coupon.used':'Код уже использован','coupon.na':'Не действует для этих товаров','coupon.empty':'Введите код','coupon.unavail':'Сервис скидок недоступен, попробуйте позже.','coupon.appliesto':'Промокод действует только для',
       'ck.title':'Почти готово!','ck.sub':'Выполните эти 3 шага, чтобы завершить заказ.',
       'ck.order':'Ваш заказ','ck.next':'Следующие шаги',
       'ck.s1.t':'Отправить заказ по email','ck.s1.d':'Нажмите «Отправить email» ниже. Ваш почтовый клиент откроется со всеми заполненными данными.',
@@ -840,7 +840,10 @@ async function applyCoupon(){
     const r=await fetch(WORKER_URL.replace(/\/$/,'')+'/coupon/validate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code,items:cartItemsForApi()})});
     const d=await r.json();
     if(d&&d.ok){ appliedCoupon={code:d.code,discount:d.discount}; if(msg){msg.className='coupon-msg ok';msg.textContent=I18N.t('coupon.applied');} }
-    else { appliedCoupon=null; const map={not_found:'invalid',expired:'expired',used:'used',not_applicable:'na',empty:'empty',unavailable:'unavail'}; const k=map[d&&d.reason]||'invalid'; if(msg){msg.className='coupon-msg err';msg.textContent=I18N.t('coupon.'+k);} }
+    else { appliedCoupon=null; const map={not_found:'invalid',expired:'expired',used:'used',not_applicable:'na',empty:'empty',unavailable:'unavail'}; const k=map[d&&d.reason]||'invalid';
+      let txt=I18N.t('coupon.'+k);
+      if(d&&d.reason==='not_applicable'&&d.target_name){ txt=I18N.t('coupon.appliesto')+': '+d.target_name+(d.target_variant?(' · '+d.target_variant):''); }
+      if(msg){msg.className='coupon-msg err';msg.textContent=txt;} }
   }catch(e){ appliedCoupon=null; if(msg){msg.className='coupon-msg err';msg.textContent=I18N.t('coupon.invalid');} }
   updateCartUI();
 }

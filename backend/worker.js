@@ -457,7 +457,14 @@ async function validateCouponReq(request, env, cors){
   const items = (b.items||[]).map(i => ({ product_id: i.product_id ?? i.id, variant: i.variant, qty: i.qty }));
   const priced = await priceCart(env, items);
   const discount = couponDiscount(c, priced);
-  if (discount <= 0) return json({ ok:false, reason:'not_applicable' }, 200, cors);
+  if (discount <= 0) {
+    let target_name = null;
+    if (c.scope !== 'order' && c.target_product != null) {
+      const map = await getPriceMap(env);
+      for (const k in map) { if (k.indexOf(String(c.target_product) + '|') === 0) { target_name = map[k].name; break; } }
+    }
+    return json({ ok:false, reason:'not_applicable', scope:c.scope, target_product:c.target_product, target_variant:c.target_variant, target_name }, 200, cors);
+  }
   return json({ ok:true, code, type:c.type, value:c.value, scope:c.scope, discount, subtotal:priced.subtotal, total: Math.round((priced.subtotal-discount)*100)/100 }, 200, cors);
 }
 
