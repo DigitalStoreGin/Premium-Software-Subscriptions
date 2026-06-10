@@ -63,7 +63,11 @@ canvas{max-height:260px}
 .skel{background:linear-gradient(90deg,var(--line) 25%,var(--bg) 50%,var(--line) 75%);background-size:200% 100%;animation:sk 1.2s infinite;border-radius:8px}
 @keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
 .skline{height:90px;margin-bottom:12px}
-.psearch{width:100%;max-width:320px;padding:8px 12px;border:1px solid var(--line);border-radius:9px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);margin-bottom:12px;outline:none}
+.pfilter{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.psearch{flex:1;min-width:180px;max-width:300px;padding:8px 12px;border:1px solid var(--line);border-radius:9px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);outline:none}
+.psel{padding:8px 10px;border:1px solid var(--line);border-radius:9px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);outline:none;cursor:pointer}
+.pbtn{padding:8px 12px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--text);cursor:pointer;font-size:14px;font-family:inherit}
+.pbtn:hover{border-color:var(--line2)}
 .psearch:focus{border-color:var(--line2)}
 #tblProd tbody tr{cursor:pointer}
 #tblProd tbody tr:hover{background:var(--bg)}
@@ -113,7 +117,27 @@ canvas{max-height:260px}
 
   <div class="card">
     <h2 data-i="product">Phân tích sản phẩm</h2>
-    <input id="prodSearch" class="psearch" type="text" oninput="renderProducts()">
+    <div class="pfilter">
+      <input id="prodSearch" class="psearch" type="text" oninput="renderProducts()">
+      <select id="prodSort" class="psel" onchange="onSortSel()">
+        <option value="rev" data-i="p_rev">Revenue</option>
+        <option value="views" data-i="p_views">Views</option>
+        <option value="clicks" data-i="p_clicks">Clicks</option>
+        <option value="ctr" data-i="p_ctr">CTR</option>
+        <option value="cart" data-i="p_cart">Cart</option>
+        <option value="units" data-i="p_units">Sold</option>
+        <option value="cr" data-i="p_cr">CR</option>
+      </select>
+      <button id="prodDir" class="pbtn" title="" onclick="toggleDir()">↓</button>
+      <select id="prodSeg" class="psel" onchange="renderProducts()">
+        <option value="all" data-i="seg_all">Alle</option>
+        <option value="sales" data-i="seg_sales">Mit Verkäufen</option>
+        <option value="nosales" data-i="seg_nosales">Ohne Verkäufe</option>
+        <option value="best" data-i="seg_best">Bestseller</option>
+        <option value="lowcr" data-i="seg_lowcr">Niedrige CR</option>
+        <option value="hightraffic" data-i="seg_ht">Viel Traffic, 0 Verkauf</option>
+      </select>
+    </div>
     <div style="overflow-x:auto"><table id="tblProd"><thead><tr>
       <th data-sort="name" data-i="p_product">Sản phẩm</th>
       <th class="num" data-sort="views" data-i="p_views">Views</th>
@@ -153,21 +177,21 @@ canvas{max-height:260px}
 
 <script>
 const I18N={
- vi:{title:'Phân tích bán hàng',back:'Admin',today:'Hôm nay',d7:'7 ngày',d30:'30 ngày',funnel:'Phễu chuyển đổi',revchart:'Doanh thu theo ngày',sesschart:'Phiên theo ngày',product:'Phân tích sản phẩm',customers:'Khách hàng',del7:'Xóa dữ liệu >7 ngày',delall:'Xóa tất cả',search:'Tìm sản phẩm…',cmTitle:'Quản lý mã giảm giá',cm_code:'Mã',cm_rabatt:'Giảm',cm_scope:'Phạm vi',cm_status:'Trạng thái',cm_exp:'Hết hạn',sc_order:'Toàn đơn',sc_product:'Theo sản phẩm',sc_variant:'Theo biến thể',st_off:'Tắt',st_exp:'Hết hạn',st_used:'Đã dùng',st_active:'Còn hiệu lực',cm_confirm:'Xóa mã này?',
+ vi:{title:'Phân tích bán hàng',back:'Admin',today:'Hôm nay',d7:'7 ngày',d30:'30 ngày',funnel:'Phễu chuyển đổi',revchart:'Doanh thu theo ngày',sesschart:'Phiên theo ngày',product:'Phân tích sản phẩm',customers:'Khách hàng',del7:'Xóa dữ liệu >7 ngày',delall:'Xóa tất cả',search:'Tìm sản phẩm…',cmTitle:'Quản lý mã giảm giá',cm_code:'Mã',cm_rabatt:'Giảm',cm_scope:'Phạm vi',cm_status:'Trạng thái',cm_exp:'Hết hạn',sc_order:'Toàn đơn',sc_product:'Theo sản phẩm',sc_variant:'Theo biến thể',st_off:'Tắt',st_exp:'Hết hạn',st_used:'Đã dùng',st_active:'Còn hiệu lực',cm_confirm:'Xóa mã này?',seg_all:'Tất cả',seg_sales:'Có bán ra',seg_nosales:'Chưa bán',seg_best:'Bán chạy',seg_lowcr:'CR thấp',seg_ht:'Nhiều xem, 0 đơn',
   k_rev:'Doanh thu (kỳ)',k_orders:'Số đơn',k_cr:'Tỷ lệ chuyển đổi',k_aov:'Giá trị đơn TB',k_sessions:'Phiên',k_units:'SP bán ra',k_revToday:'Doanh thu hôm nay',k_revMonth:'Doanh thu tháng',
   c_new:'Khách mới',c_ret:'Khách quay lại',c_repeat:'Tỷ lệ quay lại',c_ltv:'LTV trung bình',novsprev:'so kỳ trước',
   f_view:'Lượt xem',f_click:'Click',f_cart:'Thêm giỏ',f_begin:'Bắt đầu đặt',f_pay:'Gửi đơn',f_order:'Hoàn tất',drop:'rớt',
   p_product:'Sản phẩm',p_views:'Views',p_clicks:'Clicks',p_ctr:'CTR',p_cart:'Giỏ',p_units:'Bán',p_rev:'Doanh thu',p_cr:'CR',p_tag:'Nhãn',
   bestseller:'Bán chạy',lowconv:'CR thấp',notraffic:'Xem nhiều, 0 đơn',
   alertMsg:'Cảnh báo: có bước trong phễu rớt trên 80% — kiểm tra ngay.',gateT:'Chưa kết nối',gateM:'Chưa có token admin trên thiết bị này. Mở Admin, vào mục E-Mail/Cài đặt nhập token một lần rồi quay lại.',gateB:'Mở Admin',confirmAll:'Xóa TẤT CẢ dữ liệu thống kê?',nodata:'—'},
- de:{title:'Verkaufsanalyse',back:'Admin',today:'Heute',d7:'7 Tage',d30:'30 Tage',funnel:'Conversion-Funnel',revchart:'Umsatz pro Tag',sesschart:'Sitzungen pro Tag',product:'Produktanalyse',customers:'Kunden',del7:'Daten >7 Tage löschen',delall:'Alle löschen',search:'Produkt suchen…',cmTitle:'Rabattcodes verwalten',cm_code:'Code',cm_rabatt:'Rabatt',cm_scope:'Bereich',cm_status:'Status',cm_exp:'Ablauf',sc_order:'Ganze Bestellung',sc_product:'Pro Produkt',sc_variant:'Pro Variante',st_off:'Inaktiv',st_exp:'Abgelaufen',st_used:'Verwendet',st_active:'Aktiv',cm_confirm:'Diesen Code löschen?',
+ de:{title:'Verkaufsanalyse',back:'Admin',today:'Heute',d7:'7 Tage',d30:'30 Tage',funnel:'Conversion-Funnel',revchart:'Umsatz pro Tag',sesschart:'Sitzungen pro Tag',product:'Produktanalyse',customers:'Kunden',del7:'Daten >7 Tage löschen',delall:'Alle löschen',search:'Produkt suchen…',cmTitle:'Rabattcodes verwalten',cm_code:'Code',cm_rabatt:'Rabatt',cm_scope:'Bereich',cm_status:'Status',cm_exp:'Ablauf',sc_order:'Ganze Bestellung',sc_product:'Pro Produkt',sc_variant:'Pro Variante',st_off:'Inaktiv',st_exp:'Abgelaufen',st_used:'Verwendet',st_active:'Aktiv',cm_confirm:'Diesen Code löschen?',seg_all:'Alle',seg_sales:'Mit Verkäufen',seg_nosales:'Ohne Verkäufe',seg_best:'Bestseller',seg_lowcr:'Niedrige CR',seg_ht:'Viel Traffic, 0 Verkauf',
   k_rev:'Umsatz (Zeitraum)',k_orders:'Bestellungen',k_cr:'Conversion-Rate',k_aov:'Ø Bestellwert',k_sessions:'Sitzungen',k_units:'Verkauft',k_revToday:'Umsatz heute',k_revMonth:'Umsatz Monat',
   c_new:'Neue Kunden',c_ret:'Wiederkehrend',c_repeat:'Wiederkaufrate',c_ltv:'Ø LTV',novsprev:'vs. Vorperiode',
   f_view:'Aufrufe',f_click:'Klicks',f_cart:'In den Warenkorb',f_begin:'Checkout gestartet',f_pay:'Bestellung gesendet',f_order:'Abgeschlossen',drop:'Absprung',
   p_product:'Produkt',p_views:'Aufrufe',p_clicks:'Klicks',p_ctr:'CTR',p_cart:'Warenkorb',p_units:'Verkauft',p_rev:'Umsatz',p_cr:'CR',p_tag:'Label',
   bestseller:'Bestseller',lowconv:'Niedrige CR',notraffic:'Viel Traffic, 0 Verkauf',
   alertMsg:'Warnung: Ein Funnel-Schritt verliert über 80% — bitte prüfen.',gateT:'Nicht verbunden',gateM:'Kein Admin-Token. Öffne Admin, gib im E-Mail/Einstellungen-Bereich den Token ein und komm zurück.',gateB:'Admin öffnen',confirmAll:'ALLE Statistikdaten löschen?',nodata:'—'},
- en:{title:'Sales analytics',back:'Admin',today:'Today',d7:'7 days',d30:'30 days',funnel:'Conversion funnel',revchart:'Revenue per day',sesschart:'Sessions per day',product:'Product analytics',customers:'Customers',del7:'Delete data >7 days',delall:'Delete all',search:'Search product…',cmTitle:'Manage coupons',cm_code:'Code',cm_rabatt:'Discount',cm_scope:'Scope',cm_status:'Status',cm_exp:'Expiry',sc_order:'Whole order',sc_product:'Per product',sc_variant:'Per variant',st_off:'Inactive',st_exp:'Expired',st_used:'Used',st_active:'Active',cm_confirm:'Delete this code?',
+ en:{title:'Sales analytics',back:'Admin',today:'Today',d7:'7 days',d30:'30 days',funnel:'Conversion funnel',revchart:'Revenue per day',sesschart:'Sessions per day',product:'Product analytics',customers:'Customers',del7:'Delete data >7 days',delall:'Delete all',search:'Search product…',cmTitle:'Manage coupons',cm_code:'Code',cm_rabatt:'Discount',cm_scope:'Scope',cm_status:'Status',cm_exp:'Expiry',sc_order:'Whole order',sc_product:'Per product',sc_variant:'Per variant',st_off:'Inactive',st_exp:'Expired',st_used:'Used',st_active:'Active',cm_confirm:'Delete this code?',seg_all:'All',seg_sales:'With sales',seg_nosales:'No sales',seg_best:'Best sellers',seg_lowcr:'Low CR',seg_ht:'High traffic, 0 sales',
   k_rev:'Revenue (range)',k_orders:'Orders',k_cr:'Conversion rate',k_aov:'Avg order value',k_sessions:'Sessions',k_units:'Units sold',k_revToday:'Revenue today',k_revMonth:'Revenue month',
   c_new:'New customers',c_ret:'Returning',c_repeat:'Repeat rate',c_ltv:'Avg LTV',novsprev:'vs previous',
   f_view:'Views',f_click:'Clicks',f_cart:'Add to cart',f_begin:'Begin checkout',f_pay:'Order sent',f_order:'Completed',drop:'drop-off',
@@ -208,10 +232,19 @@ function buildProductRows(d){
   return rows;
 }
 let PROD_ROWS=[];
+function onSortSel(){ sortKey=$('#prodSort').value; renderProducts(); }
+function toggleDir(){ sortDir*=-1; const b=$('#prodDir'); if(b)b.textContent=sortDir<0?'↓':'↑'; renderProducts(); }
 function renderProducts(){
   if(!lastData)return; let rows=buildProductRows(lastData);
   const q=($('#prodSearch')?$('#prodSearch').value:'').trim().toLowerCase();
   if(q) rows=rows.filter(r=>(r.name||'').toLowerCase().includes(q));
+  const seg=$('#prodSeg')?$('#prodSeg').value:'all';
+  const hasTag=(r,t)=>r.tags.some(x=>x[0]===t);
+  if(seg==='sales') rows=rows.filter(r=>r.units>0);
+  else if(seg==='nosales') rows=rows.filter(r=>r.units===0);
+  else if(seg==='best') rows=rows.filter(r=>hasTag(r,'best'));
+  else if(seg==='lowcr') rows=rows.filter(r=>hasTag(r,'low'));
+  else if(seg==='hightraffic') rows=rows.filter(r=>hasTag(r,'notraffic'));
   rows.sort((a,b)=>{const A=a[sortKey],B=b[sortKey]; if(typeof A==='string')return sortDir*A.localeCompare(B); return sortDir*((B||0)-(A||0));});
   PROD_ROWS=rows;
   $('#bodyProd').innerHTML=rows.map(r=>`<tr data-pid="${r.id}"><td>${r.name}</td><td class="num">${r.views}</td><td class="num">${r.clicks}</td><td class="num">${r.ctr.toFixed(0)}%</td><td class="num">${r.cart}</td><td class="num">${r.units}</td><td class="num">${eur(r.rev)}</td><td class="num">${r.cr.toFixed(0)}%</td><td>${r.tags.map(t=>`<span class="badge ${t[0]}">${T(t[1])}</span>`).join(' ')}</td></tr>`).join('')||`<tr><td colspan="9" class="muted">${T('nodata')}</td></tr>`;
@@ -278,7 +311,7 @@ async function boot(){
   document.querySelectorAll('#filters button').forEach(b=>b.onclick=()=>{DAYS=+b.dataset.d;document.querySelectorAll('#filters button').forEach(x=>x.classList.toggle('on',x===b));load();});
   document.querySelectorAll('#langSwitch button').forEach(b=>b.onclick=()=>{LANG=b.dataset.l;localStorage.setItem('pm_admin_lang',LANG);applyI18n();if(lastData)render(lastData);});
   $('#themeBtn').onclick=()=>setTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');
-  document.querySelectorAll('#tblProd th[data-sort]').forEach(th=>th.onclick=()=>{const k=th.dataset.sort;if(sortKey===k)sortDir*=-1;else{sortKey=k;sortDir=-1;}renderProducts();});
+  document.querySelectorAll('#tblProd th[data-sort]').forEach(th=>th.onclick=()=>{const k=th.dataset.sort;if(sortKey===k)sortDir*=-1;else{sortKey=k;sortDir=-1;}const ps=$('#prodSort');if(ps&&[...ps.options].some(o=>o.value===k))ps.value=k;const pd=$('#prodDir');if(pd)pd.textContent=sortDir<0?'↓':'↑';renderProducts();});
   $('#del7').onclick=async()=>{try{await api('/admin/stats',{method:'DELETE',body:JSON.stringify({olderThanDays:7})});load();}catch(e){}};
   $('#delall').onclick=async()=>{if(!confirm(T('confirmAll')))return;try{await api('/admin/stats',{method:'DELETE',body:JSON.stringify({all:true})});load();}catch(e){}};
   load(); loadCoupons();
