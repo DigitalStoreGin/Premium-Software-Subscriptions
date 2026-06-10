@@ -46,6 +46,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;ba
   input,select,.psel,.psearch{font-size:16px}
   .card{padding:14px}
   th,td{padding:7px 6px;font-size:12px}
+  #tblProd th:first-child,#tblProd td:first-child,#tblCoupon th:first-child,#tblCoupon td:first-child{position:sticky;left:0;background:var(--surface);z-index:1;max-width:130px;overflow:hidden;text-overflow:ellipsis}
 }
 @media(max-width:430px){
   .pd-grid{grid-template-columns:1fr}
@@ -197,7 +198,7 @@ const I18N={
   k_rev:'Doanh thu (kỳ)',k_orders:'Số đơn',k_cr:'Tỷ lệ chuyển đổi',k_aov:'Giá trị đơn TB',k_sessions:'Phiên',k_units:'SP bán ra',k_revToday:'Doanh thu hôm nay',k_revMonth:'Doanh thu tháng',
   c_new:'Khách mới',c_ret:'Khách quay lại',c_repeat:'Tỷ lệ quay lại',c_ltv:'LTV trung bình',novsprev:'so kỳ trước',
   f_view:'Lượt xem',f_click:'Click',f_cart:'Thêm giỏ',f_begin:'Bắt đầu đặt',f_pay:'Gửi đơn',f_order:'Hoàn tất',drop:'rớt',
-  p_product:'Sản phẩm',p_views:'Views',p_clicks:'Clicks',p_ctr:'CTR',p_cart:'Giỏ',p_units:'Bán',p_rev:'Doanh thu',p_cr:'CR',p_tag:'Nhãn',
+  p_product:'Sản phẩm',p_views:'Lượt xem',p_clicks:'Lượt click',p_ctr:'CTR',p_cart:'Giỏ',p_units:'Bán',p_rev:'Doanh thu',p_cr:'CR',p_tag:'Nhãn',
   bestseller:'Bán chạy',lowconv:'CR thấp',notraffic:'Xem nhiều, 0 đơn',
   alertMsg:'Cảnh báo: có bước trong phễu rớt trên 80% — kiểm tra ngay.',gateT:'Chưa kết nối',gateM:'Chưa có token admin trên thiết bị này. Mở Admin, vào mục E-Mail/Cài đặt nhập token một lần rồi quay lại.',gateB:'Mở Admin',confirmAll:'Xóa TẤT CẢ dữ liệu thống kê?',nodata:'—'},
  de:{title:'Verkaufsanalyse',back:'Admin',today:'Heute',d7:'7 Tage',d30:'30 Tage',funnel:'Conversion-Funnel',revchart:'Umsatz pro Tag',sesschart:'Sitzungen pro Tag',product:'Produktanalyse',customers:'Kunden',del7:'Daten >7 Tage löschen',delall:'Alle löschen',search:'Produkt suchen…',cmTitle:'Rabattcodes verwalten',cm_code:'Code',cm_rabatt:'Rabatt',cm_scope:'Bereich',cm_status:'Status',cm_exp:'Ablauf',sc_order:'Ganze Bestellung',sc_product:'Pro Produkt',sc_variant:'Pro Variante',st_off:'Inaktiv',st_exp:'Abgelaufen',st_used:'Verwendet',st_active:'Aktiv',cm_confirm:'Diesen Code löschen?',seg_all:'Alle',seg_sales:'Mit Verkäufen',seg_nosales:'Ohne Verkäufe',seg_best:'Bestseller',seg_lowcr:'Niedrige CR',seg_ht:'Viel Traffic, 0 Verkauf',
