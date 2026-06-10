@@ -1013,14 +1013,14 @@ function submitOrder(){
     OrderID: orderId,
     Kundenname: name,
     'Kunden-Email': email,
-    Bestellung: lines,
-    Gesamtsumme: `€${total}`
+    Bestellung: lines
   };
-  // Rabatt-Zeilen direkt unter Gesamtsumme, vor Verwendungszweck
+  // Reihenfolge: Zwischensumme -> Rabatt -> Gesamtsumme
   if(appliedCoupon && discount>0){
-    payload[`Rabatt (${appliedCoupon.code})`] = `−€${discount.toFixed(2)}`;
     payload['Zwischensumme'] = `€${subtotal.toFixed(2)}`;
+    payload[`Rabatt (${appliedCoupon.code})`] = `−€${discount.toFixed(2)}`;
   }
+  payload['Gesamtsumme'] = `€${total}`;
   payload['Verwendungszweck'] = orderId;
   payload['Bankverbindung'] = `Name: ${BANK.name} | IBAN: ${BANK.iban}`;
 
@@ -1126,10 +1126,11 @@ async function confirmAndSendProof(){
       subject: `${I18N.t('email.proofSubject')} ${o.orderId} — ${o.name}`,
       from_name: o.name || 'Kunde', replyto: o.email || '',
       OrderID: o.orderId, Kundenname: o.name || '', 'Kunden-Email': o.email || '',
-      Bestellung: o.lines || '', Gesamtsumme: `€${o.total}`
+      Bestellung: o.lines || ''
     };
-    // Rabatt-Zeilen direkt unter Gesamtsumme, vor Zahlungsbeleg
-    if(o.coupon && +o.discount>0){ w3payload[`Rabatt (${o.coupon})`] = `−€${o.discount}`; w3payload['Zwischensumme'] = `€${o.subtotal}`; }
+    // Reihenfolge: Zwischensumme -> Rabatt -> Gesamtsumme
+    if(o.coupon && +o.discount>0){ w3payload['Zwischensumme'] = `€${o.subtotal}`; w3payload[`Rabatt (${o.coupon})`] = `−€${o.discount}`; }
+    w3payload['Gesamtsumme'] = `€${o.total}`;
     w3payload['Zahlungsbeleg'] = fileInfo;
     w3payload['R2_Upload'] = 'OK — /order/' + o.orderId + '/proof';
     w3payload['Brevo_Status'] = brevoRes && brevoRes.brevo ? (brevoRes.brevo.ok ? 'OK' : 'Failed') : 'Skipped';
