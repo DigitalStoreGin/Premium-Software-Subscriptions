@@ -63,6 +63,19 @@ canvas{max-height:260px}
 .skel{background:linear-gradient(90deg,var(--line) 25%,var(--bg) 50%,var(--line) 75%);background-size:200% 100%;animation:sk 1.2s infinite;border-radius:8px}
 @keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
 .skline{height:90px;margin-bottom:12px}
+.psearch{width:100%;max-width:320px;padding:8px 12px;border:1px solid var(--line);border-radius:9px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);margin-bottom:12px;outline:none}
+.psearch:focus{border-color:var(--line2)}
+#tblProd tbody tr{cursor:pointer}
+#tblProd tbody tr:hover{background:var(--bg)}
+.pd-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:50;padding:18px}
+.pd-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px;max-width:440px;width:100%;box-shadow:var(--shadow)}
+.pd-head{display:flex;align-items:flex-start;gap:12px;margin-bottom:16px}
+.pd-head h3{font-size:17px;font-weight:700;margin-right:auto}
+.pd-head button{background:none;border:none;font-size:22px;cursor:pointer;color:var(--text3);line-height:1}
+.pd-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pd-item{background:var(--bg);border-radius:10px;padding:10px 12px}
+.pd-item .l{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.04em}
+.pd-item .v{font-size:18px;font-weight:700;margin-top:3px}
 </style>
 </head>
 <body>
@@ -100,6 +113,7 @@ canvas{max-height:260px}
 
   <div class="card">
     <h2 data-i="product">Phân tích sản phẩm</h2>
+    <input id="prodSearch" class="psearch" type="text" oninput="renderProducts()">
     <div style="overflow-x:auto"><table id="tblProd"><thead><tr>
       <th data-sort="name" data-i="p_product">Sản phẩm</th>
       <th class="num" data-sort="views" data-i="p_views">Views</th>
@@ -115,6 +129,22 @@ canvas{max-height:260px}
 
   <div class="card"><h2 data-i="customers">Khách hàng</h2><div class="kpis" id="custCards"></div></div>
 
+  <div class="card">
+    <h2 data-i="cmTitle">Rabattcodes verwalten</h2>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
+      <input id="cmSearch" class="psearch" style="margin-bottom:0" type="text" oninput="renderCoupons()">
+      <button class="btn" onclick="loadCoupons()"><i class="fa-solid fa-rotate"></i></button>
+    </div>
+    <div style="overflow-x:auto"><table id="tblCoupon"><thead><tr><th data-i="cm_code">Code</th><th data-i="cm_rabatt">Rabatt</th><th data-i="cm_scope">Bereich</th><th data-i="cm_status">Status</th><th data-i="cm_exp">Ablauf</th><th></th></tr></thead><tbody id="bodyCoupon2"></tbody></table></div>
+  </div>
+
+  <div id="prodDetail" class="pd-overlay hidden" onclick="if(event.target===this)closeDetail()">
+    <div class="pd-card">
+      <div class="pd-head"><h3 id="pdName"></h3><button onclick="closeDetail()" aria-label="close">&times;</button></div>
+      <div id="pdBody" class="pd-grid"></div>
+    </div>
+  </div>
+
   <div class="foot-actions">
     <button class="btn danger" id="del7" data-i="del7">Xóa dữ liệu >7 ngày</button>
     <button class="btn danger" id="delall" data-i="delall">Xóa tất cả</button>
@@ -123,21 +153,21 @@ canvas{max-height:260px}
 
 <script>
 const I18N={
- vi:{title:'Phân tích bán hàng',back:'Admin',today:'Hôm nay',d7:'7 ngày',d30:'30 ngày',funnel:'Phễu chuyển đổi',revchart:'Doanh thu theo ngày',sesschart:'Phiên theo ngày',product:'Phân tích sản phẩm',customers:'Khách hàng',del7:'Xóa dữ liệu >7 ngày',delall:'Xóa tất cả',
+ vi:{title:'Phân tích bán hàng',back:'Admin',today:'Hôm nay',d7:'7 ngày',d30:'30 ngày',funnel:'Phễu chuyển đổi',revchart:'Doanh thu theo ngày',sesschart:'Phiên theo ngày',product:'Phân tích sản phẩm',customers:'Khách hàng',del7:'Xóa dữ liệu >7 ngày',delall:'Xóa tất cả',search:'Tìm sản phẩm…',cmTitle:'Quản lý mã giảm giá',cm_code:'Mã',cm_rabatt:'Giảm',cm_scope:'Phạm vi',cm_status:'Trạng thái',cm_exp:'Hết hạn',sc_order:'Toàn đơn',sc_product:'Theo sản phẩm',sc_variant:'Theo biến thể',st_off:'Tắt',st_exp:'Hết hạn',st_used:'Đã dùng',st_active:'Còn hiệu lực',cm_confirm:'Xóa mã này?',
   k_rev:'Doanh thu (kỳ)',k_orders:'Số đơn',k_cr:'Tỷ lệ chuyển đổi',k_aov:'Giá trị đơn TB',k_sessions:'Phiên',k_units:'SP bán ra',k_revToday:'Doanh thu hôm nay',k_revMonth:'Doanh thu tháng',
   c_new:'Khách mới',c_ret:'Khách quay lại',c_repeat:'Tỷ lệ quay lại',c_ltv:'LTV trung bình',novsprev:'so kỳ trước',
   f_view:'Lượt xem',f_click:'Click',f_cart:'Thêm giỏ',f_begin:'Bắt đầu đặt',f_pay:'Gửi đơn',f_order:'Hoàn tất',drop:'rớt',
   p_product:'Sản phẩm',p_views:'Views',p_clicks:'Clicks',p_ctr:'CTR',p_cart:'Giỏ',p_units:'Bán',p_rev:'Doanh thu',p_cr:'CR',p_tag:'Nhãn',
   bestseller:'Bán chạy',lowconv:'CR thấp',notraffic:'Xem nhiều, 0 đơn',
   alertMsg:'Cảnh báo: có bước trong phễu rớt trên 80% — kiểm tra ngay.',gateT:'Chưa kết nối',gateM:'Chưa có token admin trên thiết bị này. Mở Admin, vào mục E-Mail/Cài đặt nhập token một lần rồi quay lại.',gateB:'Mở Admin',confirmAll:'Xóa TẤT CẢ dữ liệu thống kê?',nodata:'—'},
- de:{title:'Verkaufsanalyse',back:'Admin',today:'Heute',d7:'7 Tage',d30:'30 Tage',funnel:'Conversion-Funnel',revchart:'Umsatz pro Tag',sesschart:'Sitzungen pro Tag',product:'Produktanalyse',customers:'Kunden',del7:'Daten >7 Tage löschen',delall:'Alle löschen',
+ de:{title:'Verkaufsanalyse',back:'Admin',today:'Heute',d7:'7 Tage',d30:'30 Tage',funnel:'Conversion-Funnel',revchart:'Umsatz pro Tag',sesschart:'Sitzungen pro Tag',product:'Produktanalyse',customers:'Kunden',del7:'Daten >7 Tage löschen',delall:'Alle löschen',search:'Produkt suchen…',cmTitle:'Rabattcodes verwalten',cm_code:'Code',cm_rabatt:'Rabatt',cm_scope:'Bereich',cm_status:'Status',cm_exp:'Ablauf',sc_order:'Ganze Bestellung',sc_product:'Pro Produkt',sc_variant:'Pro Variante',st_off:'Inaktiv',st_exp:'Abgelaufen',st_used:'Verwendet',st_active:'Aktiv',cm_confirm:'Diesen Code löschen?',
   k_rev:'Umsatz (Zeitraum)',k_orders:'Bestellungen',k_cr:'Conversion-Rate',k_aov:'Ø Bestellwert',k_sessions:'Sitzungen',k_units:'Verkauft',k_revToday:'Umsatz heute',k_revMonth:'Umsatz Monat',
   c_new:'Neue Kunden',c_ret:'Wiederkehrend',c_repeat:'Wiederkaufrate',c_ltv:'Ø LTV',novsprev:'vs. Vorperiode',
   f_view:'Aufrufe',f_click:'Klicks',f_cart:'In den Warenkorb',f_begin:'Checkout gestartet',f_pay:'Bestellung gesendet',f_order:'Abgeschlossen',drop:'Absprung',
   p_product:'Produkt',p_views:'Aufrufe',p_clicks:'Klicks',p_ctr:'CTR',p_cart:'Warenkorb',p_units:'Verkauft',p_rev:'Umsatz',p_cr:'CR',p_tag:'Label',
   bestseller:'Bestseller',lowconv:'Niedrige CR',notraffic:'Viel Traffic, 0 Verkauf',
   alertMsg:'Warnung: Ein Funnel-Schritt verliert über 80% — bitte prüfen.',gateT:'Nicht verbunden',gateM:'Kein Admin-Token. Öffne Admin, gib im E-Mail/Einstellungen-Bereich den Token ein und komm zurück.',gateB:'Admin öffnen',confirmAll:'ALLE Statistikdaten löschen?',nodata:'—'},
- en:{title:'Sales analytics',back:'Admin',today:'Today',d7:'7 days',d30:'30 days',funnel:'Conversion funnel',revchart:'Revenue per day',sesschart:'Sessions per day',product:'Product analytics',customers:'Customers',del7:'Delete data >7 days',delall:'Delete all',
+ en:{title:'Sales analytics',back:'Admin',today:'Today',d7:'7 days',d30:'30 days',funnel:'Conversion funnel',revchart:'Revenue per day',sesschart:'Sessions per day',product:'Product analytics',customers:'Customers',del7:'Delete data >7 days',delall:'Delete all',search:'Search product…',cmTitle:'Manage coupons',cm_code:'Code',cm_rabatt:'Discount',cm_scope:'Scope',cm_status:'Status',cm_exp:'Expiry',sc_order:'Whole order',sc_product:'Per product',sc_variant:'Per variant',st_off:'Inactive',st_exp:'Expired',st_used:'Used',st_active:'Active',cm_confirm:'Delete this code?',
   k_rev:'Revenue (range)',k_orders:'Orders',k_cr:'Conversion rate',k_aov:'Avg order value',k_sessions:'Sessions',k_units:'Units sold',k_revToday:'Revenue today',k_revMonth:'Revenue month',
   c_new:'New customers',c_ret:'Returning',c_repeat:'Repeat rate',c_ltv:'Avg LTV',novsprev:'vs previous',
   f_view:'Views',f_click:'Clicks',f_cart:'Add to cart',f_begin:'Begin checkout',f_pay:'Order sent',f_order:'Completed',drop:'drop-off',
@@ -151,7 +181,7 @@ const $=s=>document.querySelector(s);
 const T=k=>(I18N[LANG]||I18N.vi)[k]||k;
 const eur=n=>'€'+(Number(n)||0).toFixed(2);
 const creds=()=>({url:(localStorage.getItem('pm_worker_url')||'https://store.tdh1812.workers.dev').replace(/\/$/,''),tok:(localStorage.getItem('pm_admin_token')||'')});
-function applyI18n(){ document.documentElement.lang=LANG; document.querySelectorAll('[data-i]').forEach(el=>{const v=T(el.getAttribute('data-i'));if(v)el.textContent=v;}); document.querySelectorAll('#langSwitch button').forEach(b=>b.classList.toggle('on',b.dataset.l===LANG)); }
+function applyI18n(){ document.documentElement.lang=LANG; document.querySelectorAll('[data-i]').forEach(el=>{const v=T(el.getAttribute('data-i'));if(v)el.textContent=v;}); document.querySelectorAll('#langSwitch button').forEach(b=>b.classList.toggle('on',b.dataset.l===LANG)); const ps=$('#prodSearch'); if(ps)ps.placeholder=T('search'); const cs=$('#cmSearch'); if(cs)cs.placeholder=T('search'); }
 async function api(path,opts){opts=opts||{};const c=creds();const r=await fetch(c.url+path,{...opts,headers:{'x-admin-token':c.tok,...(opts.body?{'Content-Type':'application/json'}:{}),...(opts.headers||{})}});if(!r.ok){const e=new Error('HTTP '+r.status);e.status=r.status;throw e;}return r.json();}
 function trend(cur,prev){ if(prev==null||prev===0) return cur>0?{c:'up',t:'▲ +100% '+T('novsprev')}:{c:'flat',t:'– '+T('novsprev')}; const p=(cur-prev)/prev*100; const c=p>0.5?'up':(p<-0.5?'down':'flat'); const a=p>0.5?'▲':(p<-0.5?'▼':'–'); return {c,t:a+' '+(p>0?'+':'')+p.toFixed(0)+'% '+T('novsprev')}; }
 function pname(id){ const v=PMAP[String(id)]; return v?v:('#'+id); }
@@ -177,11 +207,42 @@ function buildProductRows(d){
   rows.forEach(r=>{r.tags=[]; if(r.rev>0&&r.rev===maxRev)r.tags.push(['best','bestseller']); if(r.views>=10&&r.units===0)r.tags.push(['notraffic','notraffic']); if(r.clicks>=5&&r.cr<5&&r.units===0)r.tags.push(['low','lowconv']);});
   return rows;
 }
+let PROD_ROWS=[];
 function renderProducts(){
   if(!lastData)return; let rows=buildProductRows(lastData);
+  const q=($('#prodSearch')?$('#prodSearch').value:'').trim().toLowerCase();
+  if(q) rows=rows.filter(r=>(r.name||'').toLowerCase().includes(q));
   rows.sort((a,b)=>{const A=a[sortKey],B=b[sortKey]; if(typeof A==='string')return sortDir*A.localeCompare(B); return sortDir*((B||0)-(A||0));});
-  $('#bodyProd').innerHTML=rows.map(r=>`<tr><td>${r.name}</td><td class="num">${r.views}</td><td class="num">${r.clicks}</td><td class="num">${r.ctr.toFixed(0)}%</td><td class="num">${r.cart}</td><td class="num">${r.units}</td><td class="num">${eur(r.rev)}</td><td class="num">${r.cr.toFixed(0)}%</td><td>${r.tags.map(t=>`<span class="badge ${t[0]}">${T(t[1])}</span>`).join(' ')}</td></tr>`).join('')||`<tr><td colspan="9" class="muted">${T('nodata')}</td></tr>`;
+  PROD_ROWS=rows;
+  $('#bodyProd').innerHTML=rows.map(r=>`<tr data-pid="${r.id}"><td>${r.name}</td><td class="num">${r.views}</td><td class="num">${r.clicks}</td><td class="num">${r.ctr.toFixed(0)}%</td><td class="num">${r.cart}</td><td class="num">${r.units}</td><td class="num">${eur(r.rev)}</td><td class="num">${r.cr.toFixed(0)}%</td><td>${r.tags.map(t=>`<span class="badge ${t[0]}">${T(t[1])}</span>`).join(' ')}</td></tr>`).join('')||`<tr><td colspan="9" class="muted">${T('nodata')}</td></tr>`;
+  document.querySelectorAll('#bodyProd tr[data-pid]').forEach(tr=>tr.onclick=()=>openDetail(tr.dataset.pid));
 }
+function openDetail(id){
+  const r=PROD_ROWS.find(x=>String(x.id)===String(id)); if(!r)return;
+  $('#pdName').textContent=r.name;
+  $('#pdBody').innerHTML=[
+    [T('p_views'),r.views],[T('p_clicks'),r.clicks],[T('p_ctr'),r.ctr.toFixed(0)+'%'],[T('p_cart'),r.cart],
+    [T('p_units'),r.units],[T('p_rev'),eur(r.rev)],[T('p_cr'),r.cr.toFixed(0)+'%'],[T('p_tag'),r.tags.map(t=>T(t[1])).join(', ')||'—'],
+  ].map(x=>`<div class="pd-item"><div class="l">${x[0]}</div><div class="v">${x[1]}</div></div>`).join('');
+  $('#prodDetail').classList.remove('hidden');
+}
+function closeDetail(){ $('#prodDetail').classList.add('hidden'); }
+let COUPONS=[];
+async function loadCoupons(){ try{ const d=await api('/admin/coupons'); COUPONS=d.coupons||[]; renderCoupons(); }catch(e){} }
+function couponScope(c){ let sc=c.scope==='order'?T('sc_order'):(c.scope==='product'?T('sc_product'):T('sc_variant')); if(c.target_product){ sc+=': '+(PMAP[String(c.target_product)]||('#'+c.target_product))+(c.target_variant?(' \u00b7 '+c.target_variant):''); } return sc; }
+function renderCoupons(){
+  const q=($('#cmSearch')?$('#cmSearch').value:'').trim().toLowerCase();
+  let rows=COUPONS; if(q) rows=rows.filter(c=>(c.code||'').toLowerCase().includes(q));
+  $('#bodyCoupon2').innerHTML=rows.map(c=>{
+    const exp=c.expires_at?new Date(c.expires_at).toLocaleDateString():'\u2014';
+    const expired=c.expires_at&&new Date(c.expires_at)<new Date();
+    const max=c.usage_mode==='multi'?(c.max_uses||1):1;
+    const status=!c.active?T('st_off'):(expired?T('st_exp'):(c.used_count>=max?T('st_used'):T('st_active')));
+    const val=c.type==='percent'?(c.value+'%'):('\u20ac'+(+c.value).toFixed(2));
+    return `<tr><td><code>${c.code}</code></td><td>${val}</td><td>${couponScope(c)}</td><td>${status} (${c.used_count}/${max})</td><td>${exp}</td><td><button class="btn danger" style="padding:4px 9px" onclick='delCoupon(${JSON.stringify(c.code)})'><i class="fa-solid fa-trash"></i></button></td></tr>`;
+  }).join('')||`<tr><td colspan="6" class="muted">${T('nodata')}</td></tr>`;
+}
+async function delCoupon(code){ if(!confirm(T('cm_confirm')))return; try{ await api('/admin/coupons',{method:'DELETE',body:JSON.stringify({code})}); loadCoupons(); }catch(e){} }
 function render(d){
   lastData=d; const k=d.kpi,p=d.prev||{},c=d.customers||{};
   $('#kpis').innerHTML=[
@@ -220,7 +281,7 @@ async function boot(){
   document.querySelectorAll('#tblProd th[data-sort]').forEach(th=>th.onclick=()=>{const k=th.dataset.sort;if(sortKey===k)sortDir*=-1;else{sortKey=k;sortDir=-1;}renderProducts();});
   $('#del7').onclick=async()=>{try{await api('/admin/stats',{method:'DELETE',body:JSON.stringify({olderThanDays:7})});load();}catch(e){}};
   $('#delall').onclick=async()=>{if(!confirm(T('confirmAll')))return;try{await api('/admin/stats',{method:'DELETE',body:JSON.stringify({all:true})});load();}catch(e){}};
-  load();
+  load(); loadCoupons();
 }
 boot();
 </script>
