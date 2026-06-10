@@ -4,6 +4,7 @@ compatibility_date = "2024-11-01"
 
 [vars]
 ALLOWED_ORIGIN = "*"
+PRODUCTS_URL = "https://digitalstoregin.github.io/Premium-Software-Subscriptions/products.json"
 BREVO_SENDER_EMAIL = "cfvblue@gmail.com"
 BREVO_SENDER_NAME = "DigitalStore"
 ADMIN_EMAIL = "cfvblue@gmail.com"

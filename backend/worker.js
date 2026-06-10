@@ -388,7 +388,7 @@ let __priceCache = { at: 0, map: null };
 async function getPriceMap(env){
   const now = Date.now();
   if (__priceCache.map && (now - __priceCache.at) < 300000) return __priceCache.map;
-  const url = env.PRODUCTS_URL || 'https://digitalstoregin.github.io/products.json';
+  const url = env.PRODUCTS_URL || 'https://digitalstoregin.github.io/Premium-Software-Subscriptions/products.json';
   try {
     const r = await fetch(url, { cf: { cacheTtl: 300 } });
     if (!r.ok) return __priceCache.map || {};
