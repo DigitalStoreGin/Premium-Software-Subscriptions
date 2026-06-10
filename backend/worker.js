@@ -375,6 +375,7 @@ async function ensureSchema(env){
       env.DB.prepare(`CREATE TABLE IF NOT EXISTS events(id INTEGER PRIMARY KEY AUTOINCREMENT, type TEXT, product_id TEXT, variant TEXT, session_id TEXT, day TEXT, created_at TEXT)`),
       env.DB.prepare(`CREATE TABLE IF NOT EXISTS sales(order_id TEXT PRIMARY KEY, revenue REAL, items_count INTEGER, coupon_code TEXT, day TEXT, created_at TEXT)`),
       env.DB.prepare(`CREATE TABLE IF NOT EXISTS sale_items(id INTEGER PRIMARY KEY AUTOINCREMENT, order_id TEXT, product_id TEXT, name TEXT, variant TEXT, qty INTEGER, line_total REAL, day TEXT)`),
+      env.DB.prepare(`CREATE TABLE IF NOT EXISTS customers(email TEXT PRIMARY KEY, first_seen TEXT, orders_count INTEGER DEFAULT 0, total_spent REAL DEFAULT 0, last_order_at TEXT)`),
       env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_events_day ON events(day)`),
       env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_sales_day ON sales(day)`),
     ]);
@@ -542,7 +543,7 @@ async function logEvent(request, env, cors){
   let b; try { b = await request.json(); } catch { return json({ ok:false }, 200, cors); }
   const evs = Array.isArray(b.events) ? b.events : [b];
   const now = new Date(); const day = now.toISOString().slice(0,10); const iso = now.toISOString();
-  const valid = ['impression','click','add_cart','checkout'];
+  const valid = ['impression','click','add_cart','begin_checkout','checkout'];
   const stmts = [];
   for (const e of evs.slice(0,60)) {
     if (!valid.includes(e.type)) continue;
@@ -562,6 +563,14 @@ async function logSale(env, order){
   const stmts = (order.items || []).map(i => env.DB.prepare('INSERT INTO sale_items(order_id,product_id,name,variant,qty,line_total,day) VALUES(?,?,?,?,?,?,?)')
     .bind(order.order_id, i.product_id!=null?String(i.product_id):null, i.name||'', i.variant||'', Number(i.qty)||1, (Number(i.qty)||1)*(Number(i.price)||0), day));
   if (stmts.length) await env.DB.batch(stmts);
+  // Customer (by email) for New/Returning/LTV
+  const email = (order.customer && order.customer.email) ? String(order.customer.email).toLowerCase().trim() : null;
+  if (email) {
+    const rev = Number(order.total)||0; const at = order.created_at||new Date().toISOString();
+    const ex = await env.DB.prepare('SELECT email FROM customers WHERE email=?').bind(email).first();
+    if (ex) await env.DB.prepare('UPDATE customers SET orders_count=orders_count+1, total_spent=total_spent+?, last_order_at=? WHERE email=?').bind(rev, at, email).run();
+    else await env.DB.prepare('INSERT INTO customers(email,first_seen,orders_count,total_spent,last_order_at) VALUES(?,?,1,?,?)').bind(email, at, rev, at).run();
+  }
 }
 
 async function getStats(request, env, cors){
@@ -587,7 +596,14 @@ async function getStats(request, env, cors){
   const topSold = await all("SELECT product_id, name, SUM(qty) q, COALESCE(SUM(line_total),0) rev FROM sale_items WHERE day>=? GROUP BY product_id ORDER BY q DESC LIMIT 10", since);
   const revByProduct = await all("SELECT product_id, name, COALESCE(SUM(line_total),0) rev, SUM(qty) q FROM sale_items WHERE day>=? GROUP BY product_id ORDER BY rev DESC LIMIT 50", since);
   const series = await all("SELECT day, COALESCE(SUM(revenue),0) rev, COUNT(*) orders FROM sales WHERE day>=? GROUP BY day ORDER BY day", since);
+  const seriesSessions = await all("SELECT day, COUNT(DISTINCT session_id) s FROM events WHERE day>=? AND session_id IS NOT NULL GROUP BY day ORDER BY day", since);
+  const custTotal = await q('SELECT COUNT(*) n, COALESCE(SUM(total_spent),0) s FROM customers');
+  const custNew = await q('SELECT COUNT(*) n FROM customers WHERE first_seen>=?', since+'T00:00:00');
+  const custRet = await q('SELECT COUNT(*) n FROM customers WHERE orders_count>1');
+  const totalCust = custTotal.n||0;
+  const customers = { total: totalCust, new: custNew.n||0, returning: custRet.n||0, repeatRate: totalCust ? (custRet.n/totalCust*100) : 0, ltv: totalCust ? (custTotal.s/totalCust) : 0 };
   const eventTotals = await all("SELECT type, COUNT(*) c FROM events WHERE day>=? GROUP BY type", since);
+  const prodEvents = await all("SELECT product_id, type, COUNT(*) c FROM events WHERE day>=? AND product_id IS NOT NULL GROUP BY product_id, type", since);
   const unitsRange = await q('SELECT COALESCE(SUM(qty),0) q FROM sale_items WHERE day>=?', since);
   // Previous period (same length) for trend arrows
   const prevSinceD = new Date(Date.now()-days*2*86400000).toISOString().slice(0,10);
@@ -603,7 +619,7 @@ async function getStats(request, env, cors){
     kpi:{ revenueTotal:revTotal.v, ordersTotal:revTotal.n, revenueToday:revToday.v, ordersToday:revToday.n, revenueMonth:revMonth.v, revenueRange:revRange.v, ordersRange, aov, sessions:sess.n, conversion, unitsRange:unitsRange.q },
     prev:{ revenue:prevRev.v, orders:prevRev.n, aov:prevAov, conversion:prevConv, sessions:prevSess.n, units:prevUnits.q },
     coupons:{ uses:cpUses.n, discount:cpUses.d, top:cpTop },
-    topClicks, topCart, topSold, revByProduct, series, eventTotals }, 200, cors);
+    topClicks, topCart, topSold, revByProduct, series, seriesSessions, eventTotals, prodEvents, customers }, 200, cors);
 }
 
 async function deleteStats(request, env, cors){

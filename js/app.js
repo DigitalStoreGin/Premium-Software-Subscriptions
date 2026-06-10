@@ -929,6 +929,7 @@ function buildOrderText(){
 // CHECKOUT MODAL
 function showCheckoutModal(){
   if(cart.length===0){ showToast(I18N.t('toast.empty')); return; }
+  track('begin_checkout', null, null);
   // close drawer first
   closeDrawer();
   // populate summary

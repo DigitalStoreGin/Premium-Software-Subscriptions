@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,100 +7,113 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-:root{--bg:#fff;--bg2:#fafafa;--line:#e7e7ea;--line2:#d4d4d8;--text:#0a0a0a;--text2:#52525b;--text3:#a1a1aa;--up:#15803d;--down:#b91c1c;--radius:14px}
+:root{--bg:#f6f7f8;--surface:#fff;--line:#e7e7ea;--line2:#d4d4d8;--text:#0a0a0a;--text2:#52525b;--text3:#a1a1aa;--up:#15803d;--down:#dc2626;--warn:#b45309;--accent:#0a0a0a;--radius:14px;--shadow:0 1px 2px rgba(0,0,0,.04),0 1px 3px rgba(0,0,0,.06)}
+[data-theme="dark"]{--bg:#0c0c0d;--surface:#161617;--line:#262628;--line2:#3a3a3d;--text:#fafafa;--text2:#a1a1aa;--text3:#71717a;--accent:#fafafa;--shadow:0 1px 3px rgba(0,0,0,.4)}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:var(--bg2);color:var(--text);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
-.wrap{max-width:1200px;margin:0 auto;padding:20px 18px 60px}
-.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1240px;margin:0 auto;padding:0 18px 60px}
+.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:18px 0 14px}
 .top h1{font-size:20px;font-weight:700;letter-spacing:-.02em;margin-right:auto;display:flex;align-items:center;gap:10px}
-.btn{padding:8px 14px;border:1px solid var(--line);background:#fff;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;color:var(--text);text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:all .15s}
-.btn:hover{border-color:var(--line2);background:var(--bg2)}
+.btn{padding:8px 13px;border:1px solid var(--line);background:var(--surface);border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;color:var(--text);text-decoration:none;display:inline-flex;align-items:center;gap:6px;transition:.15s}
+.btn:hover{border-color:var(--line2)}
+.iconbtn{width:36px;height:36px;justify-content:center;padding:0}
 .lang{display:flex;gap:4px}
-.lang button{padding:6px 11px;border:1px solid var(--line);background:#fff;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text2);font-family:inherit}
-.lang button.on{background:var(--text);color:#fff;border-color:var(--text)}
-.filters{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
-.filters button{padding:7px 16px;border:1px solid var(--line);background:#fff;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;color:var(--text2);font-family:inherit}
-.filters button.on{background:var(--text);color:#fff;border-color:var(--text)}
-.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:22px}
-.kpi{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px}
+.lang button{padding:6px 11px;border:1px solid var(--line);background:var(--surface);border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text2);font-family:inherit}
+.lang button.on{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+.filterbar{position:sticky;top:0;z-index:20;background:var(--bg);padding:10px 0 14px;display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin-bottom:18px}
+.filterbar button{padding:7px 16px;border:1px solid var(--line);background:var(--surface);border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;color:var(--text2);font-family:inherit}
+.filterbar button.on{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+.alert{background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:13.5px;display:none;align-items:center;gap:10px}
+[data-theme="dark"] .alert{background:#2a1414;border-color:#5b2020;color:#fca5a5}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:22px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow);position:relative;overflow:hidden}
 .kpi .lbl{font-size:11.5px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;font-weight:600}
-.kpi .val{font-size:24px;font-weight:700;letter-spacing:-.02em;margin-top:6px}
-.kpi .trend{font-size:12px;font-weight:600;margin-top:4px;display:inline-flex;align-items:center;gap:4px}
+.kpi .val{font-size:23px;font-weight:700;letter-spacing:-.02em;margin-top:6px}
+.kpi .trend{font-size:12px;font-weight:600;margin-top:4px}
 .trend.up{color:var(--up)} .trend.down{color:var(--down)} .trend.flat{color:var(--text3)}
-.card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:18px 18px;margin-bottom:18px}
-.card h2{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text2);margin-bottom:14px}
+.kpi .spark{position:absolute;right:0;bottom:0;width:100%;height:34px;opacity:.5}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin-bottom:18px;box-shadow:var(--shadow)}
+.card h2{font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text2);margin-bottom:14px}
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
 @media(max-width:820px){.grid2{grid-template-columns:1fr}}
-.funnel{display:flex;flex-direction:column;gap:10px}
-.fstage{}
+.funnel{display:flex;flex-direction:column;gap:8px}
 .fstage .frow{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px}
 .fstage .fname{font-weight:600}
-.fstage .fbar{height:30px;background:var(--text);border-radius:7px;min-width:2px;transition:width .4s;display:flex;align-items:center;padding:0 10px;color:#fff;font-size:12px;font-weight:600}
-.fstage .fdrop{font-size:11.5px;color:var(--text3);margin-top:2px}
+.fbar-wrap{background:var(--bg);border-radius:8px;overflow:hidden}
+.fbar{height:30px;background:var(--accent);border-radius:8px;min-width:3px;transition:width .5s;display:flex;align-items:center;padding:0 10px;color:var(--bg);font-size:12px;font-weight:600}
+.fbar.warn{background:var(--down)}
+.fdrop{font-size:11.5px;color:var(--text3);margin:3px 0 6px}
+.fdrop.bad{color:var(--down);font-weight:600}
 table{width:100%;border-collapse:collapse;font-size:13px}
-th{text-align:left;padding:8px 8px;border-bottom:2px solid var(--line);color:var(--text2);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.03em;cursor:pointer;white-space:nowrap}
-td{padding:8px 8px;border-bottom:1px solid var(--line)}
+th{text-align:left;padding:9px 8px;border-bottom:2px solid var(--line);color:var(--text2);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.03em;cursor:pointer;white-space:nowrap;user-select:none}
+th:hover{color:var(--text)}
+td{padding:9px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
 td.num,th.num{text-align:right}
-code{background:var(--bg2);padding:2px 6px;border-radius:5px;font-size:12px}
+.badge{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:20px;text-transform:uppercase;letter-spacing:.03em}
+.badge.best{background:#dcfce7;color:#15803d}.badge.low{background:#fef9c3;color:#854d0e}.badge.notraffic{background:#fee2e2;color:#b91c1c}
+[data-theme="dark"] .badge.best{background:#0f2e1a;color:#4ade80}[data-theme="dark"] .badge.low{background:#2e2710;color:#fde047}[data-theme="dark"] .badge.notraffic{background:#2e1414;color:#fca5a5}
+code{background:var(--bg);padding:2px 6px;border-radius:5px;font-size:12px}
 canvas{max-height:260px}
-.muted{color:var(--text3);text-align:center;padding:18px}
+.muted{color:var(--text3);text-align:center;padding:20px}
 .danger{background:#fef2f2;color:#b91c1c;border-color:#fecaca}
-.gate{max-width:440px;margin:80px auto;background:#fff;border:1px solid var(--line);border-radius:16px;padding:30px;text-align:center}
+[data-theme="dark"] .danger{background:#2a1414;color:#fca5a5;border-color:#5b2020}
+.gate{max-width:440px;margin:80px auto;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:30px;text-align:center}
 .hidden{display:none!important}
 .foot-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.skel{background:linear-gradient(90deg,var(--line) 25%,var(--bg) 50%,var(--line) 75%);background-size:200% 100%;animation:sk 1.2s infinite;border-radius:8px}
+@keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.skline{height:90px;margin-bottom:12px}
 </style>
 </head>
 <body>
 <div id="gate" class="gate hidden">
   <h1 style="font-size:18px;margin-bottom:10px"><i class="fa-solid fa-lock"></i> <span id="g_title">Chưa kết nối</span></h1>
   <p id="g_msg" style="color:var(--text2);margin-bottom:18px"></p>
-  <a class="btn" href="./index.html"><i class="fa-solid fa-arrow-left"></i> <span id="g_back">Mở Admin để kết nối</span></a>
+  <a class="btn" href="./index.html"><i class="fa-solid fa-arrow-left"></i> <span id="g_back">Mở Admin</span></a>
 </div>
 
 <div id="app" class="wrap hidden">
   <div class="top">
     <h1><i class="fa-solid fa-chart-line"></i> <span data-i="title">Phân tích bán hàng</span></h1>
-    <div class="lang" id="langSwitch">
-      <button data-l="vi" class="on">VI</button><button data-l="de">DE</button><button data-l="en">EN</button>
-    </div>
+    <div class="lang" id="langSwitch"><button data-l="vi" class="on">VI</button><button data-l="de">DE</button><button data-l="en">EN</button></div>
+    <button class="btn iconbtn" id="themeBtn" title="Theme"><i class="fa-solid fa-moon"></i></button>
     <a class="btn" href="./index.html"><i class="fa-solid fa-arrow-left"></i> <span data-i="back">Admin</span></a>
   </div>
 
-  <div class="filters" id="filters">
+  <div class="filterbar" id="filters">
     <button data-d="1" data-i="today">Hôm nay</button>
     <button data-d="7" class="on" data-i="d7">7 ngày</button>
     <button data-d="30" data-i="d30">30 ngày</button>
   </div>
 
+  <div class="alert" id="alertBox"><i class="fa-solid fa-triangle-exclamation"></i> <span id="alertMsg"></span></div>
+
+  <div id="skel" class="hidden"><div class="kpis">SKEL</div></div>
   <div class="kpis" id="kpis"></div>
 
-  <div class="card">
-    <h2 data-i="funnel">Phễu chuyển đổi</h2>
-    <div class="funnel" id="funnel"></div>
-  </div>
+  <div class="card"><h2 data-i="funnel">Conversion Funnel</h2><div class="funnel" id="funnel"></div></div>
 
   <div class="grid2">
     <div class="card"><h2 data-i="revchart">Doanh thu theo ngày</h2><canvas id="chRev"></canvas></div>
-    <div class="card"><h2 data-i="sesschart">Phiên truy cập theo ngày</h2><canvas id="chSess"></canvas></div>
+    <div class="card"><h2 data-i="sesschart">Phiên theo ngày</h2><canvas id="chSess"></canvas></div>
   </div>
 
   <div class="card">
-    <h2 data-i="byproduct">Doanh thu theo sản phẩm</h2>
+    <h2 data-i="product">Phân tích sản phẩm</h2>
     <div style="overflow-x:auto"><table id="tblProd"><thead><tr>
-      <th data-i="product">Sản phẩm</th><th class="num" data-i="units">SL</th><th class="num" data-i="revenue">Doanh thu</th><th class="num" data-i="clicks">Click</th><th class="num" data-i="cr">CR</th>
+      <th data-sort="name" data-i="p_product">Sản phẩm</th>
+      <th class="num" data-sort="views" data-i="p_views">Views</th>
+      <th class="num" data-sort="clicks" data-i="p_clicks">Clicks</th>
+      <th class="num" data-sort="ctr" data-i="p_ctr">CTR</th>
+      <th class="num" data-sort="cart" data-i="p_cart">Giỏ</th>
+      <th class="num" data-sort="units" data-i="p_units">Bán</th>
+      <th class="num" data-sort="rev" data-i="p_rev">Doanh thu</th>
+      <th class="num" data-sort="cr" data-i="p_cr">CR</th>
+      <th data-i="p_tag">Nhãn</th>
     </tr></thead><tbody id="bodyProd"></tbody></table></div>
   </div>
 
-  <div class="grid2">
-    <div class="card"><h2 data-i="topsold">Bán chạy</h2><div style="overflow-x:auto"><table><tbody id="bodySold"></tbody></table></div></div>
-    <div class="card"><h2 data-i="topclick">Click nhiều</h2><div style="overflow-x:auto"><table><tbody id="bodyClick"></tbody></table></div></div>
-  </div>
-
-  <div class="card">
-    <h2 data-i="coupons">Hiệu suất mã giảm giá</h2>
-    <div class="kpis" id="cpKpi" style="margin-bottom:14px"></div>
-    <div style="overflow-x:auto"><table><thead><tr><th data-i="code">Mã</th><th class="num" data-i="uses">Lượt dùng</th><th class="num" data-i="discount">Đã giảm</th></tr></thead><tbody id="bodyCoupon"></tbody></table></div>
-  </div>
+  <div class="card"><h2 data-i="customers">Khách hàng</h2><div class="kpis" id="custCards"></div></div>
 
   <div class="foot-actions">
     <button class="btn danger" id="del7" data-i="del7">Xóa dữ liệu >7 ngày</button>
@@ -110,81 +123,103 @@ canvas{max-height:260px}
 
 <script>
 const I18N={
-  vi:{title:'Phân tích bán hàng',back:'Admin',today:'Hôm nay',d7:'7 ngày',d30:'30 ngày',funnel:'Phễu chuyển đổi',revchart:'Doanh thu theo ngày',sesschart:'Phiên truy cập theo ngày',byproduct:'Doanh thu theo sản phẩm',product:'Sản phẩm',units:'SL',revenue:'Doanh thu',clicks:'Click',cr:'CR',topsold:'Bán chạy',topclick:'Click nhiều',coupons:'Hiệu suất mã giảm giá',code:'Mã',uses:'Lượt dùng',discount:'Đã giảm',del7:'Xóa dữ liệu >7 ngày',delall:'Xóa tất cả',
-    k_revToday:'Doanh thu hôm nay',k_revMonth:'Doanh thu tháng',k_revTotal:'Tổng doanh thu',k_revRange:'Doanh thu (kỳ)',k_orders:'Số đơn',k_aov:'Giá trị đơn TB',k_conv:'Tỷ lệ chuyển đổi',k_sessions:'Phiên',k_units:'SP bán ra',
-    f_impr:'Lượt xem',f_click:'Click',f_cart:'Thêm giỏ',f_order:'Đặt hàng',cp_uses:'Lượt dùng mã',cp_disc:'Tổng đã giảm',novsprev:'so kỳ trước',gateT:'Chưa kết nối',gateM:'Chưa có token admin trên thiết bị này. Hãy mở Admin, vào mục E-Mail/Cài đặt để nhập token một lần, rồi quay lại.',gateB:'Mở Admin',confirmAll:'Xóa TẤT CẢ dữ liệu thống kê?',nodata:'—'},
-  de:{title:'Verkaufsanalyse',back:'Admin',today:'Heute',d7:'7 Tage',d30:'30 Tage',funnel:'Conversion-Funnel',revchart:'Umsatz pro Tag',sesschart:'Sitzungen pro Tag',byproduct:'Umsatz pro Produkt',product:'Produkt',units:'Anz.',revenue:'Umsatz',clicks:'Klicks',cr:'CR',topsold:'Bestseller',topclick:'Meiste Klicks',coupons:'Rabattcode-Leistung',code:'Code',uses:'Nutzungen',discount:'Rabatt',del7:'Daten >7 Tage löschen',delall:'Alle löschen',
-    k_revToday:'Umsatz heute',k_revMonth:'Umsatz Monat',k_revTotal:'Gesamtumsatz',k_revRange:'Umsatz (Zeitraum)',k_orders:'Bestellungen',k_aov:'Ø Bestellwert',k_conv:'Conversion-Rate',k_sessions:'Sitzungen',k_units:'Verkauft',
-    f_impr:'Impressionen',f_click:'Klicks',f_cart:'In den Warenkorb',f_order:'Bestellungen',cp_uses:'Code-Nutzungen',cp_disc:'Gesamtrabatt',novsprev:'vs. Vorperiode',gateT:'Nicht verbunden',gateM:'Kein Admin-Token auf diesem Gerät. Öffne Admin, gib im E-Mail/Einstellungen-Bereich einmal den Token ein und komm zurück.',gateB:'Admin öffnen',confirmAll:'ALLE Statistikdaten löschen?',nodata:'—'},
-  en:{title:'Sales analytics',back:'Admin',today:'Today',d7:'7 days',d30:'30 days',funnel:'Conversion funnel',revchart:'Revenue per day',sesschart:'Sessions per day',byproduct:'Revenue per product',product:'Product',units:'Qty',revenue:'Revenue',clicks:'Clicks',cr:'CR',topsold:'Best sellers',topclick:'Most clicked',coupons:'Coupon performance',code:'Code',uses:'Uses',discount:'Discount',del7:'Delete data >7 days',delall:'Delete all',
-    k_revToday:'Revenue today',k_revMonth:'Revenue month',k_revTotal:'Total revenue',k_revRange:'Revenue (range)',k_orders:'Orders',k_aov:'Avg order value',k_conv:'Conversion rate',k_sessions:'Sessions',k_units:'Units sold',
-    f_impr:'Impressions',f_click:'Clicks',f_cart:'Add to cart',f_order:'Orders',cp_uses:'Coupon uses',cp_disc:'Total discount',novsprev:'vs previous',gateT:'Not connected',gateM:'No admin token on this device. Open Admin, enter the token once in the E-Mail/Settings area, then come back.',gateB:'Open Admin',confirmAll:'Delete ALL analytics data?',nodata:'—'},
+ vi:{title:'Phân tích bán hàng',back:'Admin',today:'Hôm nay',d7:'7 ngày',d30:'30 ngày',funnel:'Phễu chuyển đổi',revchart:'Doanh thu theo ngày',sesschart:'Phiên theo ngày',product:'Phân tích sản phẩm',customers:'Khách hàng',del7:'Xóa dữ liệu >7 ngày',delall:'Xóa tất cả',
+  k_rev:'Doanh thu (kỳ)',k_orders:'Số đơn',k_cr:'Tỷ lệ chuyển đổi',k_aov:'Giá trị đơn TB',k_sessions:'Phiên',k_units:'SP bán ra',k_revToday:'Doanh thu hôm nay',k_revMonth:'Doanh thu tháng',
+  c_new:'Khách mới',c_ret:'Khách quay lại',c_repeat:'Tỷ lệ quay lại',c_ltv:'LTV trung bình',novsprev:'so kỳ trước',
+  f_view:'Lượt xem',f_click:'Click',f_cart:'Thêm giỏ',f_begin:'Bắt đầu đặt',f_pay:'Gửi đơn',f_order:'Hoàn tất',drop:'rớt',
+  p_product:'Sản phẩm',p_views:'Views',p_clicks:'Clicks',p_ctr:'CTR',p_cart:'Giỏ',p_units:'Bán',p_rev:'Doanh thu',p_cr:'CR',p_tag:'Nhãn',
+  bestseller:'Bán chạy',lowconv:'CR thấp',notraffic:'Xem nhiều, 0 đơn',
+  alertMsg:'Cảnh báo: có bước trong phễu rớt trên 80% — kiểm tra ngay.',gateT:'Chưa kết nối',gateM:'Chưa có token admin trên thiết bị này. Mở Admin, vào mục E-Mail/Cài đặt nhập token một lần rồi quay lại.',gateB:'Mở Admin',confirmAll:'Xóa TẤT CẢ dữ liệu thống kê?',nodata:'—'},
+ de:{title:'Verkaufsanalyse',back:'Admin',today:'Heute',d7:'7 Tage',d30:'30 Tage',funnel:'Conversion-Funnel',revchart:'Umsatz pro Tag',sesschart:'Sitzungen pro Tag',product:'Produktanalyse',customers:'Kunden',del7:'Daten >7 Tage löschen',delall:'Alle löschen',
+  k_rev:'Umsatz (Zeitraum)',k_orders:'Bestellungen',k_cr:'Conversion-Rate',k_aov:'Ø Bestellwert',k_sessions:'Sitzungen',k_units:'Verkauft',k_revToday:'Umsatz heute',k_revMonth:'Umsatz Monat',
+  c_new:'Neue Kunden',c_ret:'Wiederkehrend',c_repeat:'Wiederkaufrate',c_ltv:'Ø LTV',novsprev:'vs. Vorperiode',
+  f_view:'Aufrufe',f_click:'Klicks',f_cart:'In den Warenkorb',f_begin:'Checkout gestartet',f_pay:'Bestellung gesendet',f_order:'Abgeschlossen',drop:'Absprung',
+  p_product:'Produkt',p_views:'Aufrufe',p_clicks:'Klicks',p_ctr:'CTR',p_cart:'Warenkorb',p_units:'Verkauft',p_rev:'Umsatz',p_cr:'CR',p_tag:'Label',
+  bestseller:'Bestseller',lowconv:'Niedrige CR',notraffic:'Viel Traffic, 0 Verkauf',
+  alertMsg:'Warnung: Ein Funnel-Schritt verliert über 80% — bitte prüfen.',gateT:'Nicht verbunden',gateM:'Kein Admin-Token. Öffne Admin, gib im E-Mail/Einstellungen-Bereich den Token ein und komm zurück.',gateB:'Admin öffnen',confirmAll:'ALLE Statistikdaten löschen?',nodata:'—'},
+ en:{title:'Sales analytics',back:'Admin',today:'Today',d7:'7 days',d30:'30 days',funnel:'Conversion funnel',revchart:'Revenue per day',sesschart:'Sessions per day',product:'Product analytics',customers:'Customers',del7:'Delete data >7 days',delall:'Delete all',
+  k_rev:'Revenue (range)',k_orders:'Orders',k_cr:'Conversion rate',k_aov:'Avg order value',k_sessions:'Sessions',k_units:'Units sold',k_revToday:'Revenue today',k_revMonth:'Revenue month',
+  c_new:'New customers',c_ret:'Returning',c_repeat:'Repeat rate',c_ltv:'Avg LTV',novsprev:'vs previous',
+  f_view:'Views',f_click:'Clicks',f_cart:'Add to cart',f_begin:'Begin checkout',f_pay:'Order sent',f_order:'Completed',drop:'drop-off',
+  p_product:'Product',p_views:'Views',p_clicks:'Clicks',p_ctr:'CTR',p_cart:'Cart',p_units:'Sold',p_rev:'Revenue',p_cr:'CR',p_tag:'Label',
+  bestseller:'Best seller',lowconv:'Low CR',notraffic:'High traffic, 0 sales',
+  alertMsg:'Alert: a funnel step drops over 80% — please investigate.',gateT:'Not connected',gateM:'No admin token. Open Admin, enter the token in the E-Mail/Settings area, then come back.',gateB:'Open Admin',confirmAll:'Delete ALL analytics data?',nodata:'—'}
 };
 let LANG=localStorage.getItem('pm_admin_lang')||'vi'; if(!I18N[LANG])LANG='vi';
-let DAYS=7, chRev=null, chSess=null, lastData=null;
+let DAYS=7, lastData=null, PMAP={}, sortKey='rev', sortDir=-1, chRev=null, chSess=null, sparks=[];
 const $=s=>document.querySelector(s);
 const T=k=>(I18N[LANG]||I18N.vi)[k]||k;
 const eur=n=>'€'+(Number(n)||0).toFixed(2);
 const creds=()=>({url:(localStorage.getItem('pm_worker_url')||'https://store.tdh1812.workers.dev').replace(/\/$/,''),tok:(localStorage.getItem('pm_admin_token')||'')});
-function applyI18n(){
-  document.documentElement.lang=LANG;
-  document.querySelectorAll('[data-i]').forEach(el=>{ const v=T(el.getAttribute('data-i')); if(v) el.textContent=v; });
-  document.querySelectorAll('#langSwitch button').forEach(b=>b.classList.toggle('on',b.dataset.l===LANG));
-}
-async function api(path,opts){ opts=opts||{}; const c=creds(); const r=await fetch(c.url+path,{...opts,headers:{'x-admin-token':c.tok,...(opts.body?{'Content-Type':'application/json'}:{}),...(opts.headers||{})}}); if(!r.ok){const e=new Error('HTTP '+r.status);e.status=r.status;throw e;} return r.json(); }
-function trend(cur,prev){
-  if(prev===0 || prev==null) return cur>0?{c:'up',t:'▲ +100%'}:{c:'flat',t:'–'};
-  const p=((cur-prev)/prev*100); const cls=p>0.5?'up':(p<-0.5?'down':'flat'); const arr=p>0.5?'▲':(p<-0.5?'▼':'–');
-  return {c:cls,t:arr+' '+(p>0?'+':'')+p.toFixed(0)+'%'};
-}
-function kpiCard(lbl,val,cur,prev){ const tr=trend(cur,prev); return `<div class="kpi"><div class="lbl">${lbl}</div><div class="val">${val}</div><div class="trend ${tr.c}">${tr.t}<span style="color:var(--text3);font-weight:400"> ${T('novsprev')}</span></div></div>`; }
-function evMap(arr){ const m={}; (arr||[]).forEach(r=>m[r.type]=r.c); return m; }
+function applyI18n(){ document.documentElement.lang=LANG; document.querySelectorAll('[data-i]').forEach(el=>{const v=T(el.getAttribute('data-i'));if(v)el.textContent=v;}); document.querySelectorAll('#langSwitch button').forEach(b=>b.classList.toggle('on',b.dataset.l===LANG)); }
+async function api(path,opts){opts=opts||{};const c=creds();const r=await fetch(c.url+path,{...opts,headers:{'x-admin-token':c.tok,...(opts.body?{'Content-Type':'application/json'}:{}),...(opts.headers||{})}});if(!r.ok){const e=new Error('HTTP '+r.status);e.status=r.status;throw e;}return r.json();}
+function trend(cur,prev){ if(prev==null||prev===0) return cur>0?{c:'up',t:'▲ +100% '+T('novsprev')}:{c:'flat',t:'– '+T('novsprev')}; const p=(cur-prev)/prev*100; const c=p>0.5?'up':(p<-0.5?'down':'flat'); const a=p>0.5?'▲':(p<-0.5?'▼':'–'); return {c,t:a+' '+(p>0?'+':'')+p.toFixed(0)+'% '+T('novsprev')}; }
+function pname(id){ const v=PMAP[String(id)]; return v?v:('#'+id); }
+function kpiCard(lbl,val,cur,prev,sparkId){ const tr=(cur!=null)?trend(cur,prev):null; return `<div class="kpi"><div class="lbl">${lbl}</div><div class="val">${val}</div>${tr?`<div class="trend ${tr.c}">${tr.t}</div>`:''}${sparkId?`<canvas class="spark" id="${sparkId}"></canvas>`:''}</div>`; }
+function evMap(a){const m={};(a||[]).forEach(r=>m[r.type]=r.c);return m;}
+function spark(id,data){ const el=document.getElementById(id); if(!el||!window.Chart)return; sparks.push(new Chart(el,{type:'line',data:{labels:data.map((_,i)=>i),datasets:[{data,borderColor:'#9ca3af',borderWidth:1.5,fill:false,pointRadius:0,tension:.4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{display:false},y:{display:false}}}})); }
 function renderFunnel(d){
-  const ev=evMap(d.eventTotals); const stages=[['f_impr',ev.impression||0],['f_click',ev.click||0],['f_cart',ev.add_cart||0],['f_order',d.kpi.ordersRange||0]];
-  const max=Math.max(1,stages[0][1]);
-  $('#funnel').innerHTML=stages.map((s,i)=>{ const v=s[1]; const w=Math.max(2,(v/max*100)); const prev=i>0?stages[i-1][1]:null; const drop=(prev!=null&&prev>0)?(((prev-v)/prev)*100):null;
-    return `<div class="fstage"><div class="frow"><span class="fname">${T(s[0])}</span><span>${v}</span></div><div class="fbar" style="width:${w}%">${w>12?v:''}</div>${drop!=null?`<div class="fdrop">▼ ${drop.toFixed(0)}% ${LANG==='de'?'Absprung':(LANG==='en'?'drop-off':'rớt')}</div>`:''}</div>`;
+  const ev=evMap(d.eventTotals);
+  const stages=[['f_view',ev.impression||0],['f_click',ev.click||0],['f_cart',ev.add_cart||0],['f_begin',ev.begin_checkout||0],['f_pay',ev.checkout||0],['f_order',d.kpi.ordersRange||0]];
+  const max=Math.max(1,stages[0][1]); let urgent=false;
+  $('#funnel').innerHTML=stages.map((s,i)=>{ const v=s[1]; const w=Math.max(3,v/max*100); const prev=i>0?stages[i-1][1]:null; const drop=(prev!=null&&prev>0)?((prev-v)/prev*100):null; const bad=drop!=null&&drop>50; if(drop!=null&&drop>80&&prev>0)urgent=true;
+    return `<div class="fstage"><div class="frow"><span class="fname">${T(s[0])}</span><span>${v}</span></div><div class="fbar-wrap"><div class="fbar${bad?' warn':''}" style="width:${w}%">${w>10?v:''}</div></div>${drop!=null?`<div class="fdrop${bad?' bad':''}">▼ ${drop.toFixed(0)}% ${T('drop')}</div>`:''}</div>`;
   }).join('');
+  const ab=$('#alertBox'); if(urgent){ab.style.display='flex';$('#alertMsg').textContent=T('alertMsg');}else ab.style.display='none';
 }
-function pname(id){ return '#'+id; }
-function sortRows(rows,key,dir){ return rows.slice().sort((a,b)=>dir*((+b[key]||0)-(+a[key]||0))); }
+function buildProductRows(d){
+  const pe={}; (d.prodEvents||[]).forEach(r=>{const k=String(r.product_id);pe[k]=pe[k]||{};pe[k][r.type]=r.c;});
+  const sales={}; (d.revByProduct||[]).forEach(r=>{sales[String(r.product_id)]={rev:r.rev,units:r.q,name:r.name};});
+  const ids=new Set([...Object.keys(pe),...Object.keys(sales)]);
+  const rows=[...ids].map(id=>{const e=pe[id]||{},s=sales[id]||{};const views=e.impression||0,clicks=e.click||0,cart=e.add_cart||0,units=s.units||0,rev=s.rev||0;
+    return {id,name:s.name||pname(id),views,clicks,cart,units,rev,ctr:views?clicks/views*100:0,cr:clicks?units/clicks*100:0};});
+  const maxRev=Math.max(0,...rows.map(r=>r.rev));
+  rows.forEach(r=>{r.tags=[]; if(r.rev>0&&r.rev===maxRev)r.tags.push(['best','bestseller']); if(r.views>=10&&r.units===0)r.tags.push(['notraffic','notraffic']); if(r.clicks>=5&&r.cr<5&&r.units===0)r.tags.push(['low','lowconv']);});
+  return rows;
+}
+function renderProducts(){
+  if(!lastData)return; let rows=buildProductRows(lastData);
+  rows.sort((a,b)=>{const A=a[sortKey],B=b[sortKey]; if(typeof A==='string')return sortDir*A.localeCompare(B); return sortDir*((B||0)-(A||0));});
+  $('#bodyProd').innerHTML=rows.map(r=>`<tr><td>${r.name}</td><td class="num">${r.views}</td><td class="num">${r.clicks}</td><td class="num">${r.ctr.toFixed(0)}%</td><td class="num">${r.cart}</td><td class="num">${r.units}</td><td class="num">${eur(r.rev)}</td><td class="num">${r.cr.toFixed(0)}%</td><td>${r.tags.map(t=>`<span class="badge ${t[0]}">${T(t[1])}</span>`).join(' ')}</td></tr>`).join('')||`<tr><td colspan="9" class="muted">${T('nodata')}</td></tr>`;
+}
 function render(d){
-  lastData=d; const k=d.kpi, p=d.prev||{};
+  lastData=d; const k=d.kpi,p=d.prev||{},c=d.customers||{};
   $('#kpis').innerHTML=[
-    [T('k_revRange'),eur(k.revenueRange),k.revenueRange,p.revenue],
-    [T('k_orders'),k.ordersRange,k.ordersRange,p.orders],
-    [T('k_aov'),eur(k.aov),k.aov,p.aov],
-    [T('k_conv'),(k.conversion||0).toFixed(1)+'%',k.conversion,p.conversion],
-    [T('k_sessions'),k.sessions,k.sessions,p.sessions],
-    [T('k_units'),k.unitsRange||0,k.unitsRange,p.units],
-    [T('k_revToday'),eur(k.revenueToday),null,null],
-    [T('k_revMonth'),eur(k.revenueMonth),null,null],
-  ].map(x=> (x[2]==null) ? `<div class="kpi"><div class="lbl">${x[0]}</div><div class="val">${x[1]}</div></div>` : kpiCard(x[0],x[1],x[2],x[3])).join('');
+    [T('k_rev'),eur(k.revenueRange),k.revenueRange,p.revenue,'spkRev'],
+    [T('k_orders'),k.ordersRange,k.ordersRange,p.orders,'spkOrd'],
+    [T('k_cr'),(k.conversion||0).toFixed(1)+'%',k.conversion,p.conversion,null],
+    [T('k_aov'),eur(k.aov),k.aov,p.aov,null],
+    [T('k_sessions'),k.sessions,k.sessions,p.sessions,'spkSess'],
+    [T('k_units'),k.unitsRange||0,k.unitsRange,p.units,null],
+    [T('k_revToday'),eur(k.revenueToday),null,null,null],
+    [T('k_revMonth'),eur(k.revenueMonth),null,null,null],
+  ].map(x=>kpiCard(x[0],x[1],x[2],x[3],x[4])).join('');
+  sparks.forEach(c=>c.destroy());sparks=[];
+  spark('spkRev',(d.series||[]).map(r=>r.rev)); spark('spkOrd',(d.series||[]).map(r=>r.orders)); spark('spkSess',(d.seriesSessions||[]).map(r=>r.s));
   renderFunnel(d);
   const labels=(d.series||[]).map(r=>String(r.day).slice(5));
-  if(window.Chart){
-    if(chRev)chRev.destroy(); chRev=new Chart($('#chRev'),{type:'line',data:{labels,datasets:[{data:(d.series||[]).map(r=>r.rev),borderColor:'#0a0a0a',backgroundColor:'rgba(0,0,0,.06)',fill:true,tension:.3,pointRadius:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}});
-    if(chSess)chSess.destroy(); chSess=new Chart($('#chSess'),{type:'bar',data:{labels,datasets:[{data:(d.series||[]).map(r=>r.orders),backgroundColor:'#a1a1aa'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}});
-  }
-  const clickMap={}; (d.topClicks||[]).forEach(r=>clickMap[r.product_id]=r.c);
-  $('#bodyProd').innerHTML=(d.revByProduct||[]).map(r=>{ const cl=clickMap[r.product_id]||0; const cr=cl?((r.q/cl)*100).toFixed(0)+'%':'—'; return `<tr><td>${r.name||pname(r.product_id)}</td><td class="num">${r.q||0}</td><td class="num">${eur(r.rev)}</td><td class="num">${cl}</td><td class="num">${cr}</td></tr>`; }).join('')||`<tr><td colspan="5" class="muted">${T('nodata')}</td></tr>`;
-  $('#bodySold').innerHTML=(d.topSold||[]).map(r=>`<tr><td>${r.name||pname(r.product_id)}</td><td class="num">${r.q||0}</td></tr>`).join('')||`<tr><td class="muted">${T('nodata')}</td></tr>`;
-  $('#bodyClick').innerHTML=(d.topClicks||[]).map(r=>`<tr><td>${pname(r.product_id)}</td><td class="num">${r.c}</td></tr>`).join('')||`<tr><td class="muted">${T('nodata')}</td></tr>`;
-  const cp=d.coupons||{};
-  $('#cpKpi').innerHTML=`<div class="kpi"><div class="lbl">${T('cp_uses')}</div><div class="val">${cp.uses||0}</div></div><div class="kpi"><div class="lbl">${T('cp_disc')}</div><div class="val">${eur(cp.discount)}</div></div>`;
-  $('#bodyCoupon').innerHTML=(cp.top||[]).map(r=>`<tr><td><code>${r.code}</code></td><td class="num">${r.c}</td><td class="num">${eur(r.d)}</td></tr>`).join('')||`<tr><td colspan="3" class="muted">${T('nodata')}</td></tr>`;
+  if(window.Chart){ if(chRev)chRev.destroy(); chRev=new Chart($('#chRev'),{type:'line',data:{labels,datasets:[{data:(d.series||[]).map(r=>r.rev),borderColor:getComputedStyle(document.documentElement).getPropertyValue('--text').trim()||'#000',backgroundColor:'rgba(128,128,128,.12)',fill:true,tension:.3,pointRadius:2}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}});
+    if(chSess)chSess.destroy(); chSess=new Chart($('#chSess'),{type:'bar',data:{labels:(d.seriesSessions||[]).map(r=>String(r.day).slice(5)),datasets:[{data:(d.seriesSessions||[]).map(r=>r.s),backgroundColor:'#9ca3af'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}}); }
+  renderProducts();
+  $('#custCards').innerHTML=[
+    [T('c_new'),c.new||0],[T('c_ret'),c.returning||0],[T('c_repeat'),(c.repeatRate||0).toFixed(0)+'%'],[T('c_ltv'),eur(c.ltv)],
+  ].map(x=>`<div class="kpi"><div class="lbl">${x[0]}</div><div class="val">${x[1]}</div></div>`).join('');
 }
-async function load(){ try{ const d=await api('/admin/stats?days='+DAYS); if(!d||!d.ok){gate();return;} render(d); }catch(e){ if(e.status===401){gate(true);} } }
-function gate(authErr){ $('#app').classList.add('hidden'); const g=$('#gate'); g.classList.remove('hidden'); $('#g_title').textContent=T('gateT'); $('#g_msg').textContent=T('gateM'); $('#g_back').textContent=T('gateB'); }
-function boot(){
-  applyI18n();
-  const c=creds();
-  if(!c.tok){ gate(); return; }
+async function loadProductNames(){ try{ const r=await fetch('../products.json',{cache:'no-store'}); const arr=await r.json(); (Array.isArray(arr)?arr:[]).forEach(p=>PMAP[String(p.id)]=p.name); }catch(e){} }
+async function load(){ try{ $('#kpis').style.opacity=.4; const d=await api('/admin/stats?days='+DAYS); $('#kpis').style.opacity=1; if(!d||!d.ok){gate();return;} render(d);}catch(e){ if(e.status===401)gate(); } }
+function gate(){ $('#app').classList.add('hidden'); const g=$('#gate'); g.classList.remove('hidden'); $('#g_title').textContent=T('gateT'); $('#g_msg').textContent=T('gateM'); $('#g_back').textContent=T('gateB'); }
+function setTheme(t){ document.documentElement.setAttribute('data-theme',t); localStorage.setItem('pm_theme',t); const i=$('#themeBtn').querySelector('i'); i.className=t==='dark'?'fa-solid fa-sun':'fa-solid fa-moon'; if(lastData)render(lastData); }
+async function boot(){
+  setTheme(localStorage.getItem('pm_theme')||'light'); applyI18n();
+  if(!creds().tok){ gate(); return; }
   $('#app').classList.remove('hidden');
+  await loadProductNames();
   document.querySelectorAll('#filters button').forEach(b=>b.onclick=()=>{DAYS=+b.dataset.d;document.querySelectorAll('#filters button').forEach(x=>x.classList.toggle('on',x===b));load();});
   document.querySelectorAll('#langSwitch button').forEach(b=>b.onclick=()=>{LANG=b.dataset.l;localStorage.setItem('pm_admin_lang',LANG);applyI18n();if(lastData)render(lastData);});
-  $('#del7').onclick=async()=>{ try{await api('/admin/stats',{method:'DELETE',body:JSON.stringify({olderThanDays:7})});load();}catch(e){} };
-  $('#delall').onclick=async()=>{ if(!confirm(T('confirmAll')))return; try{await api('/admin/stats',{method:'DELETE',body:JSON.stringify({all:true})});load();}catch(e){} };
+  $('#themeBtn').onclick=()=>setTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');
+  document.querySelectorAll('#tblProd th[data-sort]').forEach(th=>th.onclick=()=>{const k=th.dataset.sort;if(sortKey===k)sortDir*=-1;else{sortKey=k;sortDir=-1;}renderProducts();});
+  $('#del7').onclick=async()=>{try{await api('/admin/stats',{method:'DELETE',body:JSON.stringify({olderThanDays:7})});load();}catch(e){}};
+  $('#delall').onclick=async()=>{if(!confirm(T('confirmAll')))return;try{await api('/admin/stats',{method:'DELETE',body:JSON.stringify({all:true})});load();}catch(e){}};
   load();
 }
 boot();
