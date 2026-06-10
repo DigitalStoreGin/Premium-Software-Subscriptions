@@ -1452,7 +1452,7 @@ function etRenderUpsell(){
         <input class="input" data-eu="${i}" data-ek="t" value="${esc(u.t||'')}" placeholder="Thời hạn">
         <input class="input full" data-eu="${i}" data-ek="d" value="${esc(u.d||'')}" placeholder="Mô tả">
       </div>
-      <div style="margin-top:8px;text-align:right"><button class="btn btn-danger btn-sm" onclick="etRemoveUpsell(${i})"><i class="fa-solid fa-trash"></i> Xoá</button></div>
+      <div style="margin-top:8px;text-align:right"><button class="btn btn-danger btn-sm" onclick="etRemoveUpsell(${i})"><i class="fa-solid fa-trash"></i> ${T('adm.delete')}</button></div>
     </div>`).join('');
   list.querySelectorAll('input[data-eu]').forEach(inp=>inp.addEventListener('input',()=>{
     ET_CONFIG.upsell[+inp.dataset.eu][inp.dataset.ek]=inp.value;
