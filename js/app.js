@@ -980,7 +980,7 @@ function submitOrder(){
   const isFree = (+total) <= 0.0001;
   const lines = cart.map(c=>`${c.qty}× ${c.name} (${c.variant}) = €${(c.qty*c.price).toFixed(2)}`).join('\n');
   // Lưu lại toàn bộ thông tin đơn để gửi kèm bằng chứng ở bước xác nhận
-  CURRENT_ORDER = { orderId, name, email, total, lines, items: cart.map(c=>({name:c.name,variant:c.variant,qty:c.qty,price:c.price})) };
+  CURRENT_ORDER = { orderId, name, email, total, lines, subtotal:subtotal.toFixed(2), discount:discount.toFixed(2), coupon:(appliedCoupon?appliedCoupon.code:''), items: cart.map(c=>({name:c.name,variant:c.variant,qty:c.qty,price:c.price})) };
   CURRENT_PROOF_FILE = null;
   track('checkout', null, null);
   const submitBtn = document.querySelector('#customerModal .btn-primary');
@@ -1016,7 +1016,9 @@ function submitOrder(){
     Bestellung: lines,
     Gesamtsumme: `€${total}`,
     Verwendungszweck: orderId,
-    Bankverbindung: `Name: ${BANK.name} | IBAN: ${BANK.iban}`
+    Bankverbindung: `Name: ${BANK.name} | IBAN: ${BANK.iban}`,
+    Rabattcode: appliedCoupon ? appliedCoupon.code : '—',
+    Rabatt: appliedCoupon ? `−€${discount.toFixed(2)} (Zwischensumme €${subtotal.toFixed(2)})` : '€0.00'
   };
 
   // Bước 1: Chỉ gửi Web3Forms báo admin + lưu đơn trên Worker (KHÔNG gửi Brevo).
@@ -1122,6 +1124,7 @@ async function confirmAndSendProof(){
       from_name: o.name || 'Kunde', replyto: o.email || '',
       OrderID: o.orderId, Kundenname: o.name || '', 'Kunden-Email': o.email || '',
       Bestellung: o.lines || '', Gesamtsumme: `€${o.total}`,
+      Rabattcode: o.coupon || '—', Rabatt: (o.discount && +o.discount>0) ? `−€${o.discount} (Zwischensumme €${o.subtotal})` : '€0.00',
       Zahlungsbeleg: fileInfo,
       R2_Upload: 'OK — /order/' + o.orderId + '/proof',
       Brevo_Status: brevoRes && brevoRes.brevo ? (brevoRes.brevo.ok ? 'OK' : 'Failed') : 'Skipped'

@@ -165,7 +165,7 @@ async function sendBrevoEmail(env, order) {
         to: [{ email, name }],
         replyTo: env.ADMIN_EMAIL ? { email: env.ADMIN_EMAIL } : undefined,
         subject: `${cfg.subject || 'Bestellbestätigung'} — ${cfg.brandName || 'DigitalStore'}`,
-        htmlContent: renderEmail({ name, items: order.items || [], total: order.total, cfg, supportEmail: env.SUPPORT_EMAIL || cfg.supportEmail || 'cfvblue@gmail.com', lang }),
+        htmlContent: renderEmail({ name, items: order.items || [], total: order.total, cfg, supportEmail: env.SUPPORT_EMAIL || cfg.supportEmail || 'cfvblue@gmail.com', lang, discount: order.discount, coupon: order.coupon, subtotal: order.subtotal }),
       }),
     });
     brevo = { ok: res.ok, status: res.status };
@@ -305,9 +305,9 @@ async function adminSync(request, env, cors) {
 
 // ───────── i18n cho email (DE mặc định → EN/RU) ─────────
 const EMAIL_UI = {
-  de: { greeting: 'Sehr geehrte/r {name},', sendEmail: 'E-Mail senden', regards: 'Mit freundlichen Grüßen,', team: 'Ihr DigitalStore-Team' },
-  en: { greeting: 'Dear {name},', sendEmail: 'Send email', regards: 'Kind regards,', team: 'Your DigitalStore team' },
-  ru: { greeting: 'Уважаемый(ая) {name},', sendEmail: 'Написать email', regards: 'С уважением,', team: 'Команда DigitalStore' },
+  de: { greeting: 'Sehr geehrte/r {name},', sendEmail: 'E-Mail senden', regards: 'Mit freundlichen Grüßen,', team: 'Ihr DigitalStore-Team', subtotal: 'Zwischensumme', discount: 'Rabatt' },
+  en: { greeting: 'Dear {name},', sendEmail: 'Send email', regards: 'Kind regards,', team: 'Your DigitalStore team', subtotal: 'Subtotal', discount: 'Discount' },
+  ru: { greeting: 'Уважаемый(ая) {name},', sendEmail: 'Написать email', regards: 'С уважением,', team: 'Команда DigitalStore', subtotal: 'Промежуточный итог', discount: 'Скидка' },
 };
 const TR_FIELDS = ['subject','intro','deliveryNote','orderTitle','totalLabel','upsellTitle','upsellNote','supportTitle','supportText','signature'];
 
@@ -637,7 +637,7 @@ async function deleteStats(request, env, cors){
   return json({ ok:true, cutoff:cut }, 200, cors);
 }
 
-function renderEmail({ name, items, total, supportEmail, cfg, lang }) {
+function renderEmail({ name, items, total, supportEmail, cfg, lang, discount, coupon, subtotal }) {
   cfg = cfg || DEFAULT_CONFIG;
   lang = (lang === 'en' || lang === 'ru') ? lang : 'de';
   const U = EMAIL_UI[lang] || EMAIL_UI.de;
@@ -682,6 +682,15 @@ function renderEmail({ name, items, total, supportEmail, cfg, lang }) {
     <div style="font-size:11px;font-weight:700;color:#71717a;letter-spacing:.08em;text-transform:uppercase;margin:0 0 8px">${esc(cfg.orderTitle || 'Ihre Bestellung')}</div>
     <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e7e7ea;border-radius:8px;overflow:hidden;margin-bottom:6px">
       ${boughtRows}
+      ${(Number(discount)||0) > 0 ? `
+      <tr>
+        <td style="font-size:13px;color:#52525b;padding:8px 14px;border-top:1px solid #e7e7ea">${U.subtotal}</td>
+        <td style="font-size:13px;color:#52525b;padding:8px 14px;border-top:1px solid #e7e7ea;text-align:right">€${num((Number(subtotal)|| (Number(total)+Number(discount))))}</td>
+      </tr>
+      <tr>
+        <td style="font-size:13px;color:#15803d;font-weight:bold;padding:8px 14px">${U.discount}${coupon?(' ('+esc(coupon)+')'):''}</td>
+        <td style="font-size:13px;color:#15803d;font-weight:bold;padding:8px 14px;text-align:right">\u2212\u20ac${num(Number(discount))}</td>
+      </tr>` : ''}
       <tr>
         <td style="font-size:15px;font-weight:bold;color:#0a0a0a;padding:12px 14px;background:#fafafa">${esc(cfg.totalLabel || 'Gesamtsumme')}</td>
         <td style="font-size:15px;font-weight:bold;color:#0a0a0a;padding:12px 14px;background:#fafafa;text-align:right">€${num(total)}</td>
