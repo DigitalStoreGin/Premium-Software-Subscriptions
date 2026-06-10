@@ -248,9 +248,38 @@ const DEFAULT_CONFIG = {
     }
   },
 };
+// Merge saved config over defaults, but EMPTY/blank fields fall back to the default
+// (so a config accidentally saved empty never blanks out the email/admin template).
+function mergeConfig(def, c) {
+  const out = { ...def };
+  for (const k of Object.keys(def)) {
+    if (k === 'translations') continue;
+    const v = c[k];
+    if (k === 'upsell') { out.upsell = (Array.isArray(v) && v.length) ? v : def.upsell; }
+    else if (typeof def[k] === 'string') { out[k] = (typeof v === 'string' && v.trim() !== '') ? v : def[k]; }
+    else if (v != null) { out[k] = v; }
+  }
+  // translations: keep only non-empty translated fields; empty -> drop (localizeConfig then falls back to base)
+  const defT = def.translations || {};
+  const cT = c.translations || {};
+  const tOut = {};
+  for (const lang of Object.keys({ ...defT, ...cT })) {
+    const merged = {};
+    const dl = defT[lang] || {}; const cl = cT[lang] || {};
+    for (const fk of Object.keys({ ...dl, ...cl })) {
+      const cv = cl[fk];
+      if (fk === 'upsell') { if (Array.isArray(cv) && cv.length) merged.upsell = cv; else if (Array.isArray(dl.upsell) && dl.upsell.length) merged.upsell = dl.upsell; }
+      else if (typeof cv === 'string' && cv.trim() !== '') merged[fk] = cv;
+      else if (typeof dl[fk] === 'string' && dl[fk].trim() !== '') merged[fk] = dl[fk];
+    }
+    if (Object.keys(merged).length) tOut[lang] = merged;
+  }
+  if (Object.keys(tOut).length) out.translations = tOut;
+  return out;
+}
 async function loadConfig(env) {
   if (!env.ORDERS) return { ...DEFAULT_CONFIG };
-  try { const c = await env.ORDERS.get(CONFIG_KEY, { type: 'json' }); return c ? { ...DEFAULT_CONFIG, ...c } : { ...DEFAULT_CONFIG }; }
+  try { const c = await env.ORDERS.get(CONFIG_KEY, { type: 'json' }); return c ? mergeConfig(DEFAULT_CONFIG, c) : { ...DEFAULT_CONFIG }; }
   catch { return { ...DEFAULT_CONFIG }; }
 }
 async function getConfig(env, cors) {
