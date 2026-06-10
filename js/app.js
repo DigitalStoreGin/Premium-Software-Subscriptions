@@ -358,32 +358,36 @@ const I18N = (function(){
     // page title (cannot use textContent reliably on <title> via above? yes it works)
   }
 
+  const FLAG_SVG = {
+    de:'<svg viewBox="0 0 5 3" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><rect width="5" height="3" fill="#FFCE00"/><rect width="5" height="2" fill="#DD0000"/><rect width="5" height="1" fill="#000"/></svg>',
+    ru:'<svg viewBox="0 0 9 6" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><rect width="9" height="6" fill="#D52B1E"/><rect width="9" height="4" fill="#0039A6"/><rect width="9" height="2" fill="#fff"/></svg>',
+    en:'<svg viewBox="0 0 60 30" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><rect width="60" height="30" fill="#012169"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0 L60,30" stroke="#C8102E" stroke-width="2.5"/><path d="M60,0 L0,30" stroke="#C8102E" stroke-width="2.5"/><path d="M30,0 v30 M0,15 h60" stroke="#fff" stroke-width="10"/><path d="M30,0 v30 M0,15 h60" stroke="#C8102E" stroke-width="6"/></svg>'
+  };
+  const LABEL_MAP = {de:'DE',ru:'RU',en:'EN'};
+  // Aktualisiert nur die Sprachumschalter-UI (Flagge + Label + Dropdown).
+  // Eigene Funktion, damit ein Fehler in renderProducts/updateCartUI die Flagge nie blockiert.
+  function updateLangUI(lang){
+    try{
+      const fEl=document.getElementById('langFlag'), lEl=document.getElementById('langLabel');
+      if(fEl) fEl.innerHTML = FLAG_SVG[lang] || '';
+      if(lEl) lEl.textContent = LABEL_MAP[lang] || lang.toUpperCase();
+      document.querySelectorAll('.lang-option').forEach(o=>{
+        const fl = o.querySelector('.lang-flag');
+        if(fl && !fl.firstChild) fl.innerHTML = FLAG_SVG[o.dataset.lang] || '';
+        o.classList.toggle('active', o.dataset.lang===lang);
+      });
+    }catch(e){}
+  }
   function setLang(lang, persist){
     if(!dict[lang]) lang='en';
     current = lang;
     if(persist!==false){ try{ localStorage.setItem('lang', lang); }catch(e){} }
+    // Flagge/Label ZUERST setzen, bevor evtl. fehleranfällige Render-Aufrufe laufen
+    updateLangUI(lang);
     applyDom();
     // Re-render products to translate desc/features/variant labels
-    if(typeof renderProducts==='function') renderProducts();
-    if(typeof updateCartUI==='function') updateCartUI();
-    // Update lang switcher UI
-    const FLAG_SVG = {
-      de:'<svg viewBox="0 0 5 3" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><rect width="5" height="3" fill="#FFCE00"/><rect width="5" height="2" fill="#DD0000"/><rect width="5" height="1" fill="#000"/></svg>',
-      ru:'<svg viewBox="0 0 9 6" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><rect width="9" height="6" fill="#D52B1E"/><rect width="9" height="4" fill="#0039A6"/><rect width="9" height="2" fill="#fff"/></svg>',
-      en:'<svg viewBox="0 0 60 30" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><rect width="60" height="30" fill="#012169"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0 L60,30" stroke="#C8102E" stroke-width="2.5"/><path d="M60,0 L0,30" stroke="#C8102E" stroke-width="2.5"/><path d="M30,0 v30 M0,15 h60" stroke="#fff" stroke-width="10"/><path d="M30,0 v30 M0,15 h60" stroke="#C8102E" stroke-width="6"/></svg>'
-    };
-    const labelMap={de:'DE',ru:'RU',en:'EN'};
-    const fEl=document.getElementById('langFlag'), lEl=document.getElementById('langLabel');
-    if(fEl) fEl.innerHTML = FLAG_SVG[lang] || '';
-    if(lEl) lEl.textContent = labelMap[lang];
-    // Populate flags inside each dropdown option (idempotent)
-    document.querySelectorAll('.lang-option').forEach(o=>{
-      const fl = o.querySelector('.lang-flag');
-      if(fl && !fl.firstChild) fl.innerHTML = FLAG_SVG[o.dataset.lang] || '';
-    });
-    document.querySelectorAll('.lang-option').forEach(o=>{
-      o.classList.toggle('active', o.dataset.lang===lang);
-    });
+    if(typeof renderProducts==='function'){ try{ renderProducts(); }catch(e){} }
+    if(typeof updateCartUI==='function'){ try{ updateCartUI(); }catch(e){} }
   }
 
   function detectFromIp(){
@@ -447,11 +451,15 @@ const tVariant = I18N.tVariant;
 const tNote    = I18N.tNote;
 const getDesc  = I18N.getDesc;
 const getFeatures = I18N.getFeatures;
-// Init i18n as soon as DOM is parsed
+// Init i18n as soon as DOM is parsed.
+// WICHTIG: nicht synchron aufrufen — der Rest dieser Datei (cart, appliedCoupon,
+// renderProducts ...) wird erst weiter unten ausgewertet. setTimeout(0) sorgt
+// dafür, dass das gesamte Skript fertig ausgeführt ist (kein TDZ-Fehler), egal
+// ob app.js statisch oder dynamisch (Cache-Buster) geladen wird.
 if(document.readyState==='loading'){
   document.addEventListener('DOMContentLoaded', ()=>I18N.init());
 } else {
-  I18N.init();
+  setTimeout(()=>I18N.init(), 0);
 }
 
 
