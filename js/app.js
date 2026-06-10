@@ -44,7 +44,7 @@ const I18N = (function(){
       'footer.rights':'© 2026 DigitalStore · Alle Rechte vorbehalten.',
       'drawer.title':'Warenkorb','drawer.empty':'Dein Warenkorb ist leer','drawer.total':'Gesamtsumme',
       'drawer.note':'Nach dem Klick öffnet sich ein Fenster mit der Bankverbindung & Zahlungsanleitung.','drawer.checkout':'Bestellung abschicken',
-      'coupon.label':'Rabattcode','coupon.placeholder':'Rabattcode eingeben','coupon.apply':'Anwenden','coupon.applied':'Code angewendet ✓','coupon.discount':'Rabatt','coupon.remove':'Entfernen','coupon.invalid':'Ungültiger Code','coupon.expired':'Code abgelaufen','coupon.used':'Code bereits verwendet','coupon.na':'Gilt nicht für diese Artikel','coupon.empty':'Bitte Code eingeben','coupon.unavail':'Rabatt-Service nicht verfügbar, bitte später erneut versuchen.','coupon.appliesto':'Code gilt nur für',
+      'coupon.label':'Rabattcode','coupon.placeholder':'Rabattcode eingeben','coupon.apply':'Anwenden','coupon.applied':'Code angewendet ✓','coupon.discount':'Rabatt','coupon.subtotal':'Zwischensumme','coupon.remove':'Entfernen','coupon.invalid':'Ungültiger Code','coupon.expired':'Code abgelaufen','coupon.used':'Code bereits verwendet','coupon.na':'Gilt nicht für diese Artikel','coupon.empty':'Bitte Code eingeben','coupon.unavail':'Rabatt-Service nicht verfügbar, bitte später erneut versuchen.','coupon.appliesto':'Code gilt nur für',
       'ck.title':'Fast geschafft!','ck.sub':'Folge diesen 3 Schritten, um deine Bestellung abzuschließen.',
       'ck.order':'Deine Bestellung','ck.next':'Nächste Schritte',
       'ck.s1.t':'Bestellung per E-Mail senden','ck.s1.d':'Klicke unten auf „E-Mail senden". Dein E-Mail-Programm öffnet sich mit allen Details bereits ausgefüllt.',
@@ -106,7 +106,7 @@ const I18N = (function(){
       'footer.rights':'© 2026 DigitalStore · All rights reserved.',
       'drawer.title':'Cart','drawer.empty':'Your cart is empty','drawer.total':'Total',
       'drawer.note':'A window with bank details & payment instructions will open after you click.','drawer.checkout':'Send order',
-      'coupon.label':'Discount code','coupon.placeholder':'Enter discount code','coupon.apply':'Apply','coupon.applied':'Code applied ✓','coupon.discount':'Discount','coupon.remove':'Remove','coupon.invalid':'Invalid code','coupon.expired':'Code expired','coupon.used':'Code already used','coupon.na':'Not valid for these items','coupon.empty':'Please enter a code','coupon.unavail':'Discount service unavailable, please try again later.','coupon.appliesto':'Code applies only to',
+      'coupon.label':'Discount code','coupon.placeholder':'Enter discount code','coupon.apply':'Apply','coupon.applied':'Code applied ✓','coupon.discount':'Discount','coupon.subtotal':'Subtotal','coupon.remove':'Remove','coupon.invalid':'Invalid code','coupon.expired':'Code expired','coupon.used':'Code already used','coupon.na':'Not valid for these items','coupon.empty':'Please enter a code','coupon.unavail':'Discount service unavailable, please try again later.','coupon.appliesto':'Code applies only to',
       'ck.title':'Almost done!','ck.sub':'Follow these 3 steps to complete your order.',
       'ck.order':'Your order','ck.next':'Next steps',
       'ck.s1.t':'Send the order by email','ck.s1.d':'Click "Send email" below. Your email client opens with all details pre-filled.',
@@ -168,7 +168,7 @@ const I18N = (function(){
       'footer.rights':'© 2026 DigitalStore · Все права защищены.',
       'drawer.title':'Корзина','drawer.empty':'Ваша корзина пуста','drawer.total':'Итого',
       'drawer.note':'После нажатия откроется окно с банковскими реквизитами и инструкцией по оплате.','drawer.checkout':'Отправить заказ',
-      'coupon.label':'Промокод','coupon.placeholder':'Введите промокод','coupon.apply':'Применить','coupon.applied':'Промокод применён ✓','coupon.discount':'Скидка','coupon.remove':'Убрать','coupon.invalid':'Неверный код','coupon.expired':'Срок действия истёк','coupon.used':'Код уже использован','coupon.na':'Не действует для этих товаров','coupon.empty':'Введите код','coupon.unavail':'Сервис скидок недоступен, попробуйте позже.','coupon.appliesto':'Промокод действует только для',
+      'coupon.label':'Промокод','coupon.placeholder':'Введите промокод','coupon.apply':'Применить','coupon.applied':'Промокод применён ✓','coupon.discount':'Скидка','coupon.subtotal':'Промежуточный итог','coupon.remove':'Убрать','coupon.invalid':'Неверный код','coupon.expired':'Срок действия истёк','coupon.used':'Код уже использован','coupon.na':'Не действует для этих товаров','coupon.empty':'Введите код','coupon.unavail':'Сервис скидок недоступен, попробуйте позже.','coupon.appliesto':'Промокод действует только для',
       'ck.title':'Почти готово!','ck.sub':'Выполните эти 3 шага, чтобы завершить заказ.',
       'ck.order':'Ваш заказ','ck.next':'Следующие шаги',
       'ck.s1.t':'Отправить заказ по email','ck.s1.d':'Нажмите «Отправить email» ниже. Ваш почтовый клиент откроется со всеми заполненными данными.',
@@ -1213,19 +1213,25 @@ function buildOrderSummary(){
   const ac = appliedCoupon;
   const matches = (c)=>{ if(!ac||!ac.scope||ac.scope==='order') return false; if(String(c.pid)!==String(ac.target_product)) return false; if(ac.scope==='variant' && (c.variant||'')!==(ac.target_variant||'')) return false; return true; };
   const matchedBase = (ac && ac.scope && ac.scope!=='order') ? cart.filter(matches).reduce((s,c)=>s+c.qty*c.price,0) : 0;
+  const discount = ac ? Math.min(ac.discount, subtotal) : 0;
+  const tag = (ac && ac.type==='percent') ? ('\u2212'+ac.value+'%') : (discount>0?('\u2212\u20ac'+discount.toFixed(2)):'');
   const rows = cart.map(c=>{
     const lt = c.qty*c.price;
-    let priceHtml = `<strong>€${lt.toFixed(2)}</strong>`;
+    let priceHtml = `<strong>\u20ac${lt.toFixed(2)}</strong>`;
     if(ac && ac.scope && ac.scope!=='order' && matches(c) && matchedBase>0){
       const newLt = Math.max(0, lt - ac.discount*(lt/matchedBase));
-      priceHtml = `<span style="text-align:right;white-space:nowrap"><s style="color:var(--text-3)">€${lt.toFixed(2)}</s><br><strong style="color:var(--success)">€${newLt.toFixed(2)}</strong></span>`;
+      priceHtml = `<span style="text-align:right;white-space:nowrap"><s style="color:var(--text-3)">\u20ac${lt.toFixed(2)}</s> <span style="color:var(--success);font-weight:600;font-size:11px">${tag}</span><br><strong style="color:var(--success)">\u20ac${newLt.toFixed(2)}</strong></span>`;
     }
-    return `<div class="os-row" style="align-items:flex-start"><span class="desc">${c.qty}× ${c.name} <small style="color:var(--text-3)">(${tVariant(c.variant)})</small></span>${priceHtml}</div>`;
+    return `<div class="os-row" style="align-items:flex-start"><span class="desc">${c.qty}\u00d7 ${c.name} <small style="color:var(--text-3)">(${tVariant(c.variant)})</small></span>${priceHtml}</div>`;
   }).join('');
-  const discount = ac ? Math.min(ac.discount, subtotal) : 0;
   const total = Math.max(0, subtotal-discount).toFixed(2);
-  const discRow = discount>0 ? `<div class="os-row" style="color:var(--success);font-weight:600"><span>${I18N.t('coupon.discount')}${ac&&ac.code?(' ('+ac.code+')'):''}</span><span>−€${discount.toFixed(2)}</span></div>` : '';
-  return { html: rows + discRow + `<div class="os-row total"><span>${I18N.t('drawer.total')}</span><span>€${total}</span></div>`, total };
+  let extra = '';
+  if(discount>0){
+    const codeLbl = (ac&&ac.code)?(' ('+ac.code+')'):'';
+    extra = `<div class="os-row" style="color:var(--text-2)"><span>${I18N.t('coupon.subtotal')}</span><span>\u20ac${subtotal.toFixed(2)}</span></div>`
+          + `<div class="os-row" style="color:var(--success);font-weight:600"><span>${I18N.t('coupon.discount')}${codeLbl}${ac&&ac.type==='percent'?(' \u2212'+ac.value+'%'):''}</span><span>\u2212\u20ac${discount.toFixed(2)}</span></div>`;
+  }
+  return { html: rows + extra + `<div class="os-row total"><span>${I18N.t('drawer.total')}</span><span>\u20ac${total}</span></div>`, total };
 }
 
 // Override modal lock helpers
