@@ -56,7 +56,7 @@ const I18N = (function(){
       'sm.title':'Bestellung erfolgreich!','sm.thanks':'Vielen Dank,','sm.sent':'! Deine Bestellung wurde gesendet.',
       'sm.info':'Bitte überweise den Betrag per SEPA. Nach Zahlungseingang erhältst du deine Zugangsdaten innerhalb von <strong>5–30 Minuten</strong> per E-Mail.',
       'sm.bank':'Bankverbindung (SEPA)','sm.l_name':'Name','sm.l_amount':'Betrag','sm.l_ref':'Verwendungszweck',
-      'sm.ok':'Ich habe es gesendet','sm.freeText':'Deine Bestellung ist kostenlos abgeschlossen. Die Zugangsdaten erhältst du in Kürze per E-Mail.','sm.close':'Schließen',
+      'sm.ok':'Ich habe es gesendet','sm.freeText':'Deine Bestellung wurde erfolgreich abgeschlossen. Du erhältst in Kürze eine Bestätigungs-E-Mail.','sm.close':'Schließen',
       'common.close':'Schließen','common.back':'Zurück','common.copy':'Kopieren','common.scrolltop':'Nach oben',
       'toast.added':'Hinzugefügt','toast.added_suffix':'hinzugefügt','toast.empty':'Warenkorb ist leer',
       'toast.amount_copied':'Betrag kopiert','toast.clipboard':'In Zwischenablage kopiert','toast.copied':'Kopiert','toast.copy_fail':'Kopieren fehlgeschlagen',
@@ -118,7 +118,7 @@ const I18N = (function(){
       'sm.title':'Order successful!','sm.thanks':'Thank you,','sm.sent':'! Your order has been sent.',
       'sm.info':'Please transfer the amount via SEPA. After payment is received you will get your credentials by email within <strong>5–30 minutes</strong>.',
       'sm.bank':'Bank details (SEPA)','sm.l_name':'Name','sm.l_amount':'Amount','sm.l_ref':'Payment reference',
-      'sm.ok':"I've sent it",'sm.freeText':'Your order is complete and free of charge. You will receive your credentials by email shortly.','sm.close':'Close',
+      'sm.ok':"I've sent it",'sm.freeText':'Your order has been completed successfully. You will receive a confirmation email shortly.','sm.close':'Close',
       'common.close':'Close','common.back':'Back','common.copy':'Copy','common.scrolltop':'Scroll to top',
       'toast.added':'Added','toast.added_suffix':'added','toast.empty':'Cart is empty',
       'toast.amount_copied':'Amount copied','toast.clipboard':'Copied to clipboard','toast.copied':'Copied','toast.copy_fail':'Copy failed',
@@ -180,7 +180,7 @@ const I18N = (function(){
       'sm.title':'Заказ успешно оформлен!','sm.thanks':'Спасибо,','sm.sent':'! Ваш заказ отправлен.',
       'sm.info':'Пожалуйста, переведите сумму через SEPA. После поступления оплаты вы получите данные для входа на email в течение <strong>5–30 минут</strong>.',
       'sm.bank':'Банковские реквизиты (SEPA)','sm.l_name':'Имя','sm.l_amount':'Сумма','sm.l_ref':'Назначение платежа',
-      'sm.ok':'Я отправил(а)','sm.freeText':'Ваш заказ оформлен бесплатно. Данные для входа придут на email в ближайшее время.','sm.close':'Закрыть',
+      'sm.ok':'Я отправил(а)','sm.freeText':'Ваш заказ успешно оформлен. В ближайшее время вы получите электронное письмо с подтверждением.','sm.close':'Закрыть',
       'common.close':'Закрыть','common.back':'Назад','common.copy':'Копировать','common.scrolltop':'Наверх',
       'toast.added':'Добавлено','toast.added_suffix':'добавлено','toast.empty':'Корзина пуста',
       'toast.amount_copied':'Сумма скопирована','toast.clipboard':'Скопировано в буфер','toast.copied':'Скопировано','toast.copy_fail':'Не удалось скопировать',
@@ -839,7 +839,7 @@ async function applyCoupon(){
   try{
     const r=await fetch(WORKER_URL.replace(/\/$/,'')+'/coupon/validate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code,items:cartItemsForApi()})});
     const d=await r.json();
-    if(d&&d.ok){ appliedCoupon={code:d.code,discount:d.discount}; if(msg){msg.className='coupon-msg ok';msg.textContent=I18N.t('coupon.applied');} }
+    if(d&&d.ok){ appliedCoupon={code:d.code,discount:d.discount,scope:d.scope,target_product:d.target_product,target_variant:d.target_variant}; if(msg){msg.className='coupon-msg ok';msg.textContent=I18N.t('coupon.applied');} }
     else { appliedCoupon=null; const map={not_found:'invalid',expired:'expired',used:'used',not_applicable:'na',empty:'empty',unavailable:'unavail'}; const k=map[d&&d.reason]||'invalid';
       let txt=I18N.t('coupon.'+k);
       if(d&&d.reason==='not_applicable'&&d.target_name){ txt=I18N.t('coupon.appliesto')+': '+d.target_name+(d.target_variant?(' · '+d.target_variant):''); }
@@ -1208,19 +1208,35 @@ document.getElementById('cartBtn').addEventListener('click',openDrawer);
 document.getElementById('closeDrawer').addEventListener('click',closeDrawer);
 drawerOverlay.addEventListener('click',closeDrawer);
 
+function buildOrderSummary(){
+  const subtotal = cart.reduce((s,c)=>s+c.qty*c.price,0);
+  const ac = appliedCoupon;
+  const matches = (c)=>{ if(!ac||!ac.scope||ac.scope==='order') return false; if(String(c.pid)!==String(ac.target_product)) return false; if(ac.scope==='variant' && (c.variant||'')!==(ac.target_variant||'')) return false; return true; };
+  const matchedBase = (ac && ac.scope && ac.scope!=='order') ? cart.filter(matches).reduce((s,c)=>s+c.qty*c.price,0) : 0;
+  const rows = cart.map(c=>{
+    const lt = c.qty*c.price;
+    let priceHtml = `<strong>€${lt.toFixed(2)}</strong>`;
+    if(ac && ac.scope && ac.scope!=='order' && matches(c) && matchedBase>0){
+      const newLt = Math.max(0, lt - ac.discount*(lt/matchedBase));
+      priceHtml = `<span style="text-align:right;white-space:nowrap"><s style="color:var(--text-3)">€${lt.toFixed(2)}</s><br><strong style="color:var(--success)">€${newLt.toFixed(2)}</strong></span>`;
+    }
+    return `<div class="os-row" style="align-items:flex-start"><span class="desc">${c.qty}× ${c.name} <small style="color:var(--text-3)">(${tVariant(c.variant)})</small></span>${priceHtml}</div>`;
+  }).join('');
+  const discount = ac ? Math.min(ac.discount, subtotal) : 0;
+  const total = Math.max(0, subtotal-discount).toFixed(2);
+  const discRow = discount>0 ? `<div class="os-row" style="color:var(--success);font-weight:600"><span>${I18N.t('coupon.discount')}${ac&&ac.code?(' ('+ac.code+')'):''}</span><span>−€${discount.toFixed(2)}</span></div>` : '';
+  return { html: rows + discRow + `<div class="os-row total"><span>${I18N.t('drawer.total')}</span><span>€${total}</span></div>`, total };
+}
+
 // Override modal lock helpers
 const _origShowModal = showCheckoutModal;
 showCheckoutModal = function(){
   if(cart.length===0){ showToast(I18N.t('toast.empty')); return; }
+  track('begin_checkout', null, null);
   closeDrawer();
-  const sumEl = document.getElementById('orderSummary');
-  const subtotal = cart.reduce((s,c)=>s+c.qty*c.price,0);
-  const discount = appliedCoupon ? Math.min(appliedCoupon.discount, subtotal) : 0;
-  const total = Math.max(0, subtotal - discount).toFixed(2);
-  const isFree = (+total) <= 0.0001;
-  sumEl.innerHTML = cart.map(c=>`<div class="os-row"><span class="desc">${c.qty}× ${c.name} <small style="color:var(--text-3)">(${tVariant(c.variant)})</small></span><strong>€${(c.qty*c.price).toFixed(2)}</strong></div>`).join('')
-    + `<div class="os-row total"><span>${I18N.t('drawer.total')}</span><span>€${total}</span></div>`;
-  document.getElementById('modalAmount').textContent = total;
+  const sm = buildOrderSummary();
+  document.getElementById('orderSummary').innerHTML = sm.html;
+  document.getElementById('modalAmount').textContent = sm.total;
   document.getElementById('checkoutModal').classList.add('open');
   lockBodyScroll();
 };
