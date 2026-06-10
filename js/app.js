@@ -1014,14 +1014,15 @@ function submitOrder(){
     Kundenname: name,
     'Kunden-Email': email,
     Bestellung: lines,
-    Gesamtsumme: `€${total}`,
-    Verwendungszweck: orderId,
-    Bankverbindung: `Name: ${BANK.name} | IBAN: ${BANK.iban}`
+    Gesamtsumme: `€${total}`
   };
+  // Rabatt-Zeilen direkt unter Gesamtsumme, vor Verwendungszweck
   if(appliedCoupon && discount>0){
     payload['Zwischensumme'] = `€${subtotal.toFixed(2)}`;
     payload[`Rabatt (${appliedCoupon.code})`] = `−€${discount.toFixed(2)}`;
   }
+  payload['Verwendungszweck'] = orderId;
+  payload['Bankverbindung'] = `Name: ${BANK.name} | IBAN: ${BANK.iban}`;
 
   // Bước 1: Chỉ gửi Web3Forms báo admin + lưu đơn trên Worker (KHÔNG gửi Brevo).
   // Brevo (email xác nhận khách) sẽ gửi ở bước 2 khi khách upload chứng từ.
@@ -1125,12 +1126,13 @@ async function confirmAndSendProof(){
       subject: `${I18N.t('email.proofSubject')} ${o.orderId} — ${o.name}`,
       from_name: o.name || 'Kunde', replyto: o.email || '',
       OrderID: o.orderId, Kundenname: o.name || '', 'Kunden-Email': o.email || '',
-      Bestellung: o.lines || '', Gesamtsumme: `€${o.total}`,
-      Zahlungsbeleg: fileInfo,
-      R2_Upload: 'OK — /order/' + o.orderId + '/proof',
-      Brevo_Status: brevoRes && brevoRes.brevo ? (brevoRes.brevo.ok ? 'OK' : 'Failed') : 'Skipped'
+      Bestellung: o.lines || '', Gesamtsumme: `€${o.total}`
     };
+    // Rabatt-Zeilen direkt unter Gesamtsumme, vor Zahlungsbeleg
     if(o.coupon && +o.discount>0){ w3payload['Zwischensumme'] = `€${o.subtotal}`; w3payload[`Rabatt (${o.coupon})`] = `−€${o.discount}`; }
+    w3payload['Zahlungsbeleg'] = fileInfo;
+    w3payload['R2_Upload'] = 'OK — /order/' + o.orderId + '/proof';
+    w3payload['Brevo_Status'] = brevoRes && brevoRes.brevo ? (brevoRes.brevo.ok ? 'OK' : 'Failed') : 'Skipped';
     fetch('https://api.web3forms.com/submit', {
       method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'},
       body: JSON.stringify(w3payload)
