@@ -439,7 +439,7 @@ body{overflow-x:hidden}
         <button type="button" data-v="out_of_stock"><i class="fa-solid fa-box-open"></i><span data-at="seg.oos">Ausverkauft</span></button>
         <button type="button" data-v="hidden"><i class="fa-solid fa-eye-slash"></i><span data-at="seg.hidden">Ẩn</span></button>
       </div>
-      <div class="help">“Hết hàng” = sichtbar, nicht kaufbar · “Ẩn” = Anfrage möglich. "Hidden" = unsichtbar.</div>
+      <div class="help" data-at="adm.statusHelp">“Ausverkauft” = sichtbar, nicht kaufbar · “Hidden” = ausgeblendet.</div>
     </label>
 
     <label class="field"><span data-at="adm.desc">Mô tả</span><textarea id="fDesc" class="textarea" data-at-ph="adm.descPh" placeholder="Mô tả ngắn hiển thị trên thẻ sản phẩm…"></textarea></label>
@@ -460,15 +460,15 @@ body{overflow-x:hidden}
     <label class="field"><span data-at="adm.features">Đặc điểm (mỗi dòng 1 ý)</span><textarea id="fFeatures" class="textarea" placeholder="Không quảng cáo&#10;Bảo hành đầy đủ&#10;Giao ngay"></textarea></label>
 
     <div class="divider"></div>
-    <div class="section-label"><i class="fa-solid fa-tags"></i>Gói & giá</div>
+    <div class="section-label"><i class="fa-solid fa-tags"></i><span data-at="adm.variantsTitle">Gói & giá</span></div>
     <div id="fVariants"></div>
-    <button id="addVariant" class="btn btn-ghost btn-sm"><i class="fa-solid fa-plus"></i>Thêm gói</button>
-    <div class="help" style="margin-top:8px">Mỗi gói có nhãn, giá và 4 trạng thái: verfügbar / nicht verfügbar / ausverkauft / ẩn.</div>
+    <button id="addVariant" class="btn btn-ghost btn-sm"><i class="fa-solid fa-plus"></i><span data-at="adm.addVariant">Thêm gói</span></button>
+    <div class="help" style="margin-top:8px" data-at="adm.variantHelp">Mỗi gói có nhãn, giá và 4 trạng thái.</div>
   </div>
   <div class="drawer-foot">
-    <button id="editDelete" class="btn btn-danger" style="margin-right:auto"><i class="fa-solid fa-trash"></i>Xoá</button>
-    <button id="editCancel" class="btn btn-ghost">Huỷ</button>
-    <button id="editSave" class="btn btn-primary"><i class="fa-solid fa-check"></i>Xong</button>
+    <button id="editDelete" class="btn btn-danger" style="margin-right:auto"><i class="fa-solid fa-trash"></i><span data-at="adm.delete">Xoá</span></button>
+    <button id="editCancel" class="btn btn-ghost" data-at="adm.cancel">Huỷ</button>
+    <button id="editSave" class="btn btn-primary"><i class="fa-solid fa-check"></i><span data-at="adm.done2">Xong</span></button>
   </div>
 </aside>
 
@@ -730,7 +730,7 @@ const ADMIN_LANGS = ['vi','de','en'];
 const AI = {
   vi:{
     'nav.coupons':'Mã giảm','nav.stats':'Thống kê',
-    'adm.brand':'Quản lý sản phẩm','adm.empty':'Không có sản phẩm phù hợp.','adm.fName':'Tên sản phẩm','adm.fNamePh':'vd: Claude Team','adm.cat':'Danh mục','adm.catOther':'Khác','adm.bs':'Bán chạy (bestseller)','adm.no':'Không','adm.yesBs':'Có — gắn nhãn Bestseller','adm.status':'Trạng thái','adm.desc':'Mô tả','adm.descPh':'Mô tả ngắn hiển thị trên thẻ sản phẩm…','adm.img':'Hình ảnh','adm.imgPh':'Dán URL ảnh hoặc tải lên →','adm.upload':'Tải ảnh lên','adm.features':'Đặc điểm (mỗi dòng 1 ý)','adm.preview':'Xem trước cửa hàng','adm.liveweb':'Web thật','adm.settings':'Cài đặt','adm.connect':'Kết nối','adm.authorName':'Tên tác giả','adm.authorEmail':'Email tác giả','adm.changePass':'Đổi mật khẩu admin','adm.logout':'Đăng xuất khỏi thiết bị này',
+    'adm.brand':'Quản lý sản phẩm','adm.empty':'Không có sản phẩm phù hợp.','adm.fName':'Tên sản phẩm','adm.fNamePh':'vd: Claude Team','adm.cat':'Danh mục','adm.catOther':'Khác','adm.bs':'Bán chạy (bestseller)','adm.no':'Không','adm.yesBs':'Có — gắn nhãn Bestseller','adm.status':'Trạng thái','adm.desc':'Mô tả','adm.descPh':'Mô tả ngắn hiển thị trên thẻ sản phẩm…','adm.img':'Hình ảnh','adm.imgPh':'Dán URL ảnh hoặc tải lên →','adm.upload':'Tải ảnh lên','adm.features':'Đặc điểm (mỗi dòng 1 ý)','adm.preview':'Xem trước cửa hàng','adm.liveweb':'Web thật','adm.settings':'Cài đặt','adm.connect':'Kết nối','adm.authorName':'Tên tác giả','adm.authorEmail':'Email tác giả','adm.changePass':'Đổi mật khẩu admin','adm.logout':'Đăng xuất khỏi thiết bị này','adm.variantsTitle':'Gói & giá','adm.addVariant':'Thêm gói','adm.variantHelp':'Mỗi gói có nhãn, giá và 4 trạng thái.','adm.statusHelp':'"Ausverkauft" = hiển thị, không mua được · "Hidden" = ẩn hoàn toàn.','adm.delete':'Xoá','adm.cancel':'Huỷ','adm.done2':'Xong','v.labelPh':'Nhãn gói (vd 12 tháng)','v.delTitle':'Xoá gói','badge.oos':'Hết hàng','badge.avail':'Đang bán','confirm.del':'Xoá "{name}"? (chỉ áp dụng khi bạn bấm Lưu)','noname':'(chưa đặt tên)',
     'cp.title':'Mã giảm giá','cp.intro':'Tạo mã giảm cho toàn đơn, theo sản phẩm hoặc biến thể. Dữ liệu lưu online (Cloudflare D1).','cp.create':'Tạo mã','cp.type':'Loại giảm','cp.percent':'Phần trăm (%)','cp.fixed':'Số tiền (€)','cp.value':'Giá trị','cp.scope':'Phạm vi','cp.scope.order':'Toàn đơn hàng','cp.scope.product':'Theo sản phẩm','cp.scope.variant':'Theo biến thể','cp.product':'Sản phẩm','cp.variant':'Biến thể','cp.usage':'Kiểu dùng','cp.single':'Dùng 1 lần','cp.multi':'Nhiều lượt','cp.maxuses':'Số lượt tối đa','cp.count':'Số mã tạo','cp.prefix':'Tiền tố (tuỳ chọn)','cp.expires':'Ngày hết hạn (tuỳ chọn)','cp.label':'Nhãn ghi chú (tuỳ chọn)','cp.generate':'Tạo mã','cp.done':'Đã tạo mã','cp.copy':'Copy tất cả','cp.copied':'Đã copy','cp.noauth':'Chưa kết nối/sai token — mở mục E-Mail để nhập token','cp.list':'Danh sách mã','cp.all':'Tất cả','cp.d1':'Hôm nay','cp.d7':'7 ngày','cp.d30':'30 ngày','cp.del7':'Xoá >7 ngày','cp.delall':'Xoá tất cả','cp.total':'Tổng','cp.usedn':'Đã dùng','cp.unusedn':'Chưa dùng','cp.code':'Mã','cp.col.type':'Giảm','cp.col.scope':'Phạm vi','cp.col.status':'Trạng thái','cp.col.exp':'Hết hạn','cp.s.off':'Tắt','cp.s.exp':'Hết hạn','cp.s.used':'Đã dùng','cp.s.live':'Còn hiệu lực','cp.deleted':'Đã xoá','cp.confirmall':'Xoá TẤT CẢ mã giảm giá?',
     'st.title':'Thống kê bán hàng','st.revchart':'Doanh thu theo ngày','st.byproduct':'Doanh thu theo sản phẩm','st.product':'Sản phẩm','st.qty':'SL','st.revenue':'Doanh thu','st.top':'Xếp hạng quan tâm','st.topsold':'Bán chạy','st.topclick':'Click nhiều','st.topcart':'Thêm giỏ nhiều','st.eventsh':'Sự kiện','st.del7':'Xoá dữ liệu >7 ngày','st.delall':'Xoá tất cả','st.revToday':'Doanh thu hôm nay','st.revMonth':'Doanh thu tháng','st.revTotal':'Tổng doanh thu','st.revRange':'Doanh thu (kỳ)','st.orders':'Số đơn','st.aov':'Giá trị đơn TB','st.conv':'Tỷ lệ chuyển đổi','st.sessions':'Phiên truy cập','st.nodata':'Chưa có dữ liệu / chưa bật D1','st.confirmall':'Xoá TẤT CẢ dữ liệu thống kê?','st.ev.impr':'Lượt xem','st.ev.click':'Click','st.ev.cart':'Thêm giỏ','st.ev.checkout':'Đặt hàng',
     'app.title':'Quản lý sản phẩm','stat.total':'Tổng sản phẩm',
@@ -751,7 +751,7 @@ const AI = {
   },
   de:{
     'nav.coupons':'Rabatt','nav.stats':'Statistik',
-    'adm.brand':'Produktverwaltung','adm.empty':'Keine passenden Produkte.','adm.fName':'Produktname','adm.fNamePh':'z.B. Claude Team','adm.cat':'Kategorie','adm.catOther':'Sonstige','adm.bs':'Bestseller','adm.no':'Nein','adm.yesBs':'Ja — Bestseller-Label','adm.status':'Status','adm.desc':'Beschreibung','adm.descPh':'Kurze Beschreibung für die Produktkarte…','adm.img':'Bild','adm.imgPh':'Bild-URL einfügen oder hochladen →','adm.upload':'Bild hochladen','adm.features':'Merkmale (1 pro Zeile)','adm.preview':'Shop-Vorschau','adm.liveweb':'Live-Website','adm.settings':'Einstellungen','adm.connect':'Verbindung','adm.authorName':'Autorenname','adm.authorEmail':'Autor-E-Mail','adm.changePass':'Admin-Passwort ändern','adm.logout':'Von diesem Gerät abmelden',
+    'adm.brand':'Produktverwaltung','adm.empty':'Keine passenden Produkte.','adm.fName':'Produktname','adm.fNamePh':'z.B. Claude Team','adm.cat':'Kategorie','adm.catOther':'Sonstige','adm.bs':'Bestseller','adm.no':'Nein','adm.yesBs':'Ja — Bestseller-Label','adm.status':'Status','adm.desc':'Beschreibung','adm.descPh':'Kurze Beschreibung für die Produktkarte…','adm.img':'Bild','adm.imgPh':'Bild-URL einfügen oder hochladen →','adm.upload':'Bild hochladen','adm.features':'Merkmale (1 pro Zeile)','adm.preview':'Shop-Vorschau','adm.liveweb':'Live-Website','adm.settings':'Einstellungen','adm.connect':'Verbindung','adm.authorName':'Autorenname','adm.authorEmail':'Autor-E-Mail','adm.changePass':'Admin-Passwort ändern','adm.logout':'Von diesem Gerät abmelden','adm.variantsTitle':'Pakete & Preise','adm.addVariant':'Paket hinzufügen','adm.variantHelp':'Jedes Paket hat Label, Preis und 4 Status.','adm.statusHelp':'"Ausverkauft" = sichtbar, nicht kaufbar · "Hidden" = komplett ausgeblendet.','adm.delete':'Löschen','adm.cancel':'Abbrechen','adm.done2':'Fertig','v.labelPh':'Paket-Label (z.B. 12 Monate)','v.delTitle':'Paket löschen','badge.oos':'Ausverkauft','badge.avail':'Aktiv','confirm.del':'"{name}" löschen? (gilt erst nach Speichern)','noname':'(ohne Namen)',
     'cp.title':'Rabattcodes','cp.intro':'Erstelle Rabattcodes für die ganze Bestellung, ein Produkt oder eine Variante. Daten online gespeichert (Cloudflare D1).','cp.create':'Code erstellen','cp.type':'Rabatttyp','cp.percent':'Prozent (%)','cp.fixed':'Betrag (€)','cp.value':'Wert','cp.scope':'Geltungsbereich','cp.scope.order':'Ganze Bestellung','cp.scope.product':'Pro Produkt','cp.scope.variant':'Pro Variante','cp.product':'Produkt','cp.variant':'Variante','cp.usage':'Nutzungsart','cp.single':'Einmalig','cp.multi':'Mehrfach','cp.maxuses':'Max. Nutzungen','cp.count':'Anzahl Codes','cp.prefix':'Präfix (optional)','cp.expires':'Ablaufdatum (optional)','cp.label':'Notiz (optional)','cp.generate':'Code erstellen','cp.done':'Codes erstellt','cp.copy':'Alle kopieren','cp.copied':'Kopiert','cp.noauth':'Nicht verbunden/falscher Token — im E-Mail-Bereich Token eingeben','cp.list':'Code-Liste','cp.all':'Alle','cp.d1':'Heute','cp.d7':'7 Tage','cp.d30':'30 Tage','cp.del7':'>7 Tage löschen','cp.delall':'Alle löschen','cp.total':'Gesamt','cp.usedn':'Verwendet','cp.unusedn':'Unbenutzt','cp.code':'Code','cp.col.type':'Rabatt','cp.col.scope':'Bereich','cp.col.status':'Status','cp.col.exp':'Ablauf','cp.s.off':'Inaktiv','cp.s.exp':'Abgelaufen','cp.s.used':'Verwendet','cp.s.live':'Aktiv','cp.deleted':'Gelöscht','cp.confirmall':'ALLE Rabattcodes löschen?',
     'st.title':'Verkaufsstatistik','st.revchart':'Umsatz pro Tag','st.byproduct':'Umsatz pro Produkt','st.product':'Produkt','st.qty':'Anz.','st.revenue':'Umsatz','st.top':'Interesse-Ranking','st.topsold':'Bestseller','st.topclick':'Meiste Klicks','st.topcart':'Meist in den Warenkorb','st.eventsh':'Ereignisse','st.del7':'Daten >7 Tage löschen','st.delall':'Alle löschen','st.revToday':'Umsatz heute','st.revMonth':'Umsatz Monat','st.revTotal':'Gesamtumsatz','st.revRange':'Umsatz (Zeitraum)','st.orders':'Bestellungen','st.aov':'Ø Bestellwert','st.conv':'Conversion-Rate','st.sessions':'Sitzungen','st.nodata':'Keine Daten / D1 nicht aktiv','st.confirmall':'ALLE Statistikdaten löschen?','st.ev.impr':'Impressionen','st.ev.click':'Klicks','st.ev.cart':'In den Warenkorb','st.ev.checkout':'Bestellungen',
     'app.title':'Produktverwaltung','stat.total':'Gesamt',
@@ -772,7 +772,7 @@ const AI = {
   },
   en:{
     'nav.coupons':'Coupons','nav.stats':'Analytics',
-    'adm.brand':'Product management','adm.empty':'No matching products.','adm.fName':'Product name','adm.fNamePh':'e.g. Claude Team','adm.cat':'Category','adm.catOther':'Other','adm.bs':'Bestseller','adm.no':'No','adm.yesBs':'Yes — Bestseller label','adm.status':'Status','adm.desc':'Description','adm.descPh':'Short description shown on the product card…','adm.img':'Image','adm.imgPh':'Paste image URL or upload →','adm.upload':'Upload image','adm.features':'Features (one per line)','adm.preview':'Store preview','adm.liveweb':'Live site','adm.settings':'Settings','adm.connect':'Connection','adm.authorName':'Author name','adm.authorEmail':'Author email','adm.changePass':'Change admin password','adm.logout':'Log out from this device',
+    'adm.brand':'Product management','adm.empty':'No matching products.','adm.fName':'Product name','adm.fNamePh':'e.g. Claude Team','adm.cat':'Category','adm.catOther':'Other','adm.bs':'Bestseller','adm.no':'No','adm.yesBs':'Yes — Bestseller label','adm.status':'Status','adm.desc':'Description','adm.descPh':'Short description shown on the product card…','adm.img':'Image','adm.imgPh':'Paste image URL or upload →','adm.upload':'Upload image','adm.features':'Features (one per line)','adm.preview':'Store preview','adm.liveweb':'Live site','adm.settings':'Settings','adm.connect':'Connection','adm.authorName':'Author name','adm.authorEmail':'Author email','adm.changePass':'Change admin password','adm.logout':'Log out from this device','adm.variantsTitle':'Packages & prices','adm.addVariant':'Add package','adm.variantHelp':'Each package has a label, price and 4 statuses.','adm.statusHelp':'"Out of stock" = visible, not buyable · "Hidden" = fully hidden.','adm.delete':'Delete','adm.cancel':'Cancel','adm.done2':'Done','v.labelPh':'Package label (e.g. 12 months)','v.delTitle':'Delete package','badge.oos':'Out of stock','badge.avail':'Active','confirm.del':'Delete "{name}"? (applies only after you save)','noname':'(no name)',
     'cp.title':'Discount codes','cp.intro':'Create discount codes for the whole order, a product or a variant. Stored online (Cloudflare D1).','cp.create':'Create code','cp.type':'Discount type','cp.percent':'Percent (%)','cp.fixed':'Amount (€)','cp.value':'Value','cp.scope':'Scope','cp.scope.order':'Whole order','cp.scope.product':'Per product','cp.scope.variant':'Per variant','cp.product':'Product','cp.variant':'Variant','cp.usage':'Usage type','cp.single':'Single use','cp.multi':'Multi use','cp.maxuses':'Max uses','cp.count':'Number of codes','cp.prefix':'Prefix (optional)','cp.expires':'Expiry date (optional)','cp.label':'Note (optional)','cp.generate':'Create code','cp.done':'Codes created','cp.copy':'Copy all','cp.copied':'Copied','cp.noauth':'Not connected/wrong token — open the E-Mail section to enter the token','cp.list':'Code list','cp.all':'All','cp.d1':'Today','cp.d7':'7 days','cp.d30':'30 days','cp.del7':'Delete >7 days','cp.delall':'Delete all','cp.total':'Total','cp.usedn':'Used','cp.unusedn':'Unused','cp.code':'Code','cp.col.type':'Discount','cp.col.scope':'Scope','cp.col.status':'Status','cp.col.exp':'Expiry','cp.s.off':'Inactive','cp.s.exp':'Expired','cp.s.used':'Used','cp.s.live':'Active','cp.deleted':'Deleted','cp.confirmall':'Delete ALL discount codes?',
     'st.title':'Sales analytics','st.revchart':'Revenue per day','st.byproduct':'Revenue per product','st.product':'Product','st.qty':'Qty','st.revenue':'Revenue','st.top':'Interest ranking','st.topsold':'Best sellers','st.topclick':'Most clicked','st.topcart':'Most added to cart','st.eventsh':'Events','st.del7':'Delete data >7 days','st.delall':'Delete all','st.revToday':'Revenue today','st.revMonth':'Revenue month','st.revTotal':'Total revenue','st.revRange':'Revenue (range)','st.orders':'Orders','st.aov':'Avg order value','st.conv':'Conversion rate','st.sessions':'Sessions','st.nodata':'No data / D1 not enabled','st.confirmall':'Delete ALL analytics data?','st.ev.impr':'Impressions','st.ev.click':'Clicks','st.ev.cart':'Add to cart','st.ev.checkout':'Orders',
     'app.title':'Product Management','stat.total':'Total',
@@ -1128,7 +1128,7 @@ function render(){
     <tr data-id="${p.id}">
       <td><div class="cell-prod">
         <div class="thumb">${p.img?`<img src="${esc(p.img)}" alt="">`:'<i class="fa-solid fa-image" style="color:var(--text-3)"></i>'}</div>
-        <div class="meta"><div class="nm">${esc(p.name)||'(chưa đặt tên)'}${p.bs?'<i class="fa-solid fa-star bs-star" title="Bestseller"></i>':''}</div>
+        <div class="meta"><div class="nm">${esc(p.name)||T('noname')}${p.bs?'<i class="fa-solid fa-star bs-star" title="Bestseller"></i>':''}</div>
         <div class="sub">${variantSummary(p)} · ${esc((p.desc||'').slice(0,40))}${(p.desc||'').length>40?'…':''}</div></div>
       </div></td>
       <td><span class="cat-tag">${CAT_LABEL[p.cat]||esc(p.cat)}</span></td>
@@ -1184,7 +1184,7 @@ $('#langBtn').onclick = ()=>{
 
 function delProduct(id){
   const p=STATE.products.find(x=>x.id==id); if(!p) return;
-  if(!confirm(`Xoá “${p.name}”? (chỉ áp dụng khi bạn bấm Lưu)`)) return;
+  if(!confirm(T('confirm.del').replace('{name}',p.name))) return;
   STATE.products = STATE.products.filter(x=>x.id!=id);
   markDirty(true); render();
   if(STATE.editingId==id) closeEditor();
@@ -1246,7 +1246,7 @@ function vStatusColor(s){ return s==='available'?'var(--green)':s==='unavailable
 function renderVariants(variants){
   $('#fVariants').innerHTML = variants.map((v,i)=>`
     <div class="variant-row" data-i="${i}">
-      <input class="input vlabel" placeholder="Nhãn gói (vd 12 tháng)" value="${esc(v.label)}">
+      <input class="input vlabel" placeholder="${T('v.labelPh')}" value="${esc(v.label)}">
       <input class="input vprice" type="number" step="0.01" min="0" placeholder="0.00" value="${v.price}">
       <select class="select vstatus" style="font-weight:600;color:${vStatusColor(v.status)}">
         <option value="available" ${v.status==='available'?'selected':''}>● ${T('v.available')}</option>
@@ -1254,7 +1254,7 @@ function renderVariants(variants){
         <option value="out_of_stock" ${v.status==='out_of_stock'?'selected':''}>● ${T('v.out_of_stock')}</option>
         <option value="hidden" ${v.status==='hidden'?'selected':''}>● ${T('v.hidden')}</option>
       </select>
-      <button class="vdel" data-vdel="${i}" title="Xoá gói"><i class="fa-solid fa-xmark"></i></button>
+      <button class="vdel" data-vdel="${i}" title="${T('v.delTitle')}"><i class="fa-solid fa-xmark"></i></button>
     </div>`).join('');
   // đổi màu select khi user chọn trạng thái khác
   $('#fVariants').querySelectorAll('.vstatus').forEach(sel=>{
@@ -1327,7 +1327,7 @@ $('#previewBtn').onclick=()=>{
     const oos=p.status==='out_of_stock' || vv.length===0 || vv.every(x=>x.status==='unavailable');
     const v=vv.find(x=>x.status==='available')||vv[0]||{price:0,label:''};
     return `<div class="pcard ${oos?'oos':''}">
-      <div class="pimg">${p.img?`<img src="${esc(p.img)}">`:''}<span class="pbadge pill ${oos?'out_of_stock':'available'}">${oos?'Hết hàng':'Đang bán'}</span></div>
+      <div class="pimg">${p.img?`<img src="${esc(p.img)}">`:''}<span class="pbadge pill ${oos?'out_of_stock':'available'}">${oos?T('badge.oos'):T('badge.avail')}</span></div>
       <div class="pbody"><div class="pt">${esc(p.name)}</div><div class="pd">${esc(p.desc)}</div>
       <div class="pp">${oos?'<span style="color:var(--amber)">Hết hàng</span>':fmtPrice(v.price)}</div></div>
     </div>`;
