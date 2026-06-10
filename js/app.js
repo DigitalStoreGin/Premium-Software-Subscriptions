@@ -44,7 +44,7 @@ const I18N = (function(){
       'footer.rights':'© 2026 DigitalStore · Alle Rechte vorbehalten.',
       'drawer.title':'Warenkorb','drawer.empty':'Dein Warenkorb ist leer','drawer.total':'Gesamtsumme',
       'drawer.note':'Nach dem Klick öffnet sich ein Fenster mit der Bankverbindung & Zahlungsanleitung.','drawer.checkout':'Bestellung abschicken',
-      'coupon.label':'Rabattcode','coupon.placeholder':'Rabattcode eingeben','coupon.apply':'Anwenden','coupon.applied':'Code angewendet ✓','coupon.discount':'Rabatt','coupon.remove':'Entfernen','coupon.invalid':'Ungültiger Code','coupon.expired':'Code abgelaufen','coupon.used':'Code bereits verwendet','coupon.na':'Gilt nicht für diese Artikel','coupon.empty':'Bitte Code eingeben',
+      'coupon.label':'Rabattcode','coupon.placeholder':'Rabattcode eingeben','coupon.apply':'Anwenden','coupon.applied':'Code angewendet ✓','coupon.discount':'Rabatt','coupon.remove':'Entfernen','coupon.invalid':'Ungültiger Code','coupon.expired':'Code abgelaufen','coupon.used':'Code bereits verwendet','coupon.na':'Gilt nicht für diese Artikel','coupon.empty':'Bitte Code eingeben','coupon.unavail':'Rabatt-Service nicht verfügbar, bitte später erneut versuchen.',
       'ck.title':'Fast geschafft!','ck.sub':'Folge diesen 3 Schritten, um deine Bestellung abzuschließen.',
       'ck.order':'Deine Bestellung','ck.next':'Nächste Schritte',
       'ck.s1.t':'Bestellung per E-Mail senden','ck.s1.d':'Klicke unten auf „E-Mail senden". Dein E-Mail-Programm öffnet sich mit allen Details bereits ausgefüllt.',
@@ -56,7 +56,7 @@ const I18N = (function(){
       'sm.title':'Bestellung erfolgreich!','sm.thanks':'Vielen Dank,','sm.sent':'! Deine Bestellung wurde gesendet.',
       'sm.info':'Bitte überweise den Betrag per SEPA. Nach Zahlungseingang erhältst du deine Zugangsdaten innerhalb von <strong>5–30 Minuten</strong> per E-Mail.',
       'sm.bank':'Bankverbindung (SEPA)','sm.l_name':'Name','sm.l_amount':'Betrag','sm.l_ref':'Verwendungszweck',
-      'sm.ok':'Ich habe es gesendet',
+      'sm.ok':'Ich habe es gesendet','sm.freeText':'Deine Bestellung ist kostenlos abgeschlossen. Die Zugangsdaten erhältst du in Kürze per E-Mail.','sm.close':'Schließen',
       'common.close':'Schließen','common.back':'Zurück','common.copy':'Kopieren','common.scrolltop':'Nach oben',
       'toast.added':'Hinzugefügt','toast.added_suffix':'hinzugefügt','toast.empty':'Warenkorb ist leer',
       'toast.amount_copied':'Betrag kopiert','toast.clipboard':'In Zwischenablage kopiert','toast.copied':'Kopiert','toast.copy_fail':'Kopieren fehlgeschlagen',
@@ -106,7 +106,7 @@ const I18N = (function(){
       'footer.rights':'© 2026 DigitalStore · All rights reserved.',
       'drawer.title':'Cart','drawer.empty':'Your cart is empty','drawer.total':'Total',
       'drawer.note':'A window with bank details & payment instructions will open after you click.','drawer.checkout':'Send order',
-      'coupon.label':'Discount code','coupon.placeholder':'Enter discount code','coupon.apply':'Apply','coupon.applied':'Code applied ✓','coupon.discount':'Discount','coupon.remove':'Remove','coupon.invalid':'Invalid code','coupon.expired':'Code expired','coupon.used':'Code already used','coupon.na':'Not valid for these items','coupon.empty':'Please enter a code',
+      'coupon.label':'Discount code','coupon.placeholder':'Enter discount code','coupon.apply':'Apply','coupon.applied':'Code applied ✓','coupon.discount':'Discount','coupon.remove':'Remove','coupon.invalid':'Invalid code','coupon.expired':'Code expired','coupon.used':'Code already used','coupon.na':'Not valid for these items','coupon.empty':'Please enter a code','coupon.unavail':'Discount service unavailable, please try again later.',
       'ck.title':'Almost done!','ck.sub':'Follow these 3 steps to complete your order.',
       'ck.order':'Your order','ck.next':'Next steps',
       'ck.s1.t':'Send the order by email','ck.s1.d':'Click "Send email" below. Your email client opens with all details pre-filled.',
@@ -118,7 +118,7 @@ const I18N = (function(){
       'sm.title':'Order successful!','sm.thanks':'Thank you,','sm.sent':'! Your order has been sent.',
       'sm.info':'Please transfer the amount via SEPA. After payment is received you will get your credentials by email within <strong>5–30 minutes</strong>.',
       'sm.bank':'Bank details (SEPA)','sm.l_name':'Name','sm.l_amount':'Amount','sm.l_ref':'Payment reference',
-      'sm.ok':"I've sent it",
+      'sm.ok':"I've sent it",'sm.freeText':'Your order is complete and free of charge. You will receive your credentials by email shortly.','sm.close':'Close',
       'common.close':'Close','common.back':'Back','common.copy':'Copy','common.scrolltop':'Scroll to top',
       'toast.added':'Added','toast.added_suffix':'added','toast.empty':'Cart is empty',
       'toast.amount_copied':'Amount copied','toast.clipboard':'Copied to clipboard','toast.copied':'Copied','toast.copy_fail':'Copy failed',
@@ -168,7 +168,7 @@ const I18N = (function(){
       'footer.rights':'© 2026 DigitalStore · Все права защищены.',
       'drawer.title':'Корзина','drawer.empty':'Ваша корзина пуста','drawer.total':'Итого',
       'drawer.note':'После нажатия откроется окно с банковскими реквизитами и инструкцией по оплате.','drawer.checkout':'Отправить заказ',
-      'coupon.label':'Промокод','coupon.placeholder':'Введите промокод','coupon.apply':'Применить','coupon.applied':'Промокод применён ✓','coupon.discount':'Скидка','coupon.remove':'Убрать','coupon.invalid':'Неверный код','coupon.expired':'Срок действия истёк','coupon.used':'Код уже использован','coupon.na':'Не действует для этих товаров','coupon.empty':'Введите код',
+      'coupon.label':'Промокод','coupon.placeholder':'Введите промокод','coupon.apply':'Применить','coupon.applied':'Промокод применён ✓','coupon.discount':'Скидка','coupon.remove':'Убрать','coupon.invalid':'Неверный код','coupon.expired':'Срок действия истёк','coupon.used':'Код уже использован','coupon.na':'Не действует для этих товаров','coupon.empty':'Введите код','coupon.unavail':'Сервис скидок недоступен, попробуйте позже.',
       'ck.title':'Почти готово!','ck.sub':'Выполните эти 3 шага, чтобы завершить заказ.',
       'ck.order':'Ваш заказ','ck.next':'Следующие шаги',
       'ck.s1.t':'Отправить заказ по email','ck.s1.d':'Нажмите «Отправить email» ниже. Ваш почтовый клиент откроется со всеми заполненными данными.',
@@ -180,7 +180,7 @@ const I18N = (function(){
       'sm.title':'Заказ успешно оформлен!','sm.thanks':'Спасибо,','sm.sent':'! Ваш заказ отправлен.',
       'sm.info':'Пожалуйста, переведите сумму через SEPA. После поступления оплаты вы получите данные для входа на email в течение <strong>5–30 минут</strong>.',
       'sm.bank':'Банковские реквизиты (SEPA)','sm.l_name':'Имя','sm.l_amount':'Сумма','sm.l_ref':'Назначение платежа',
-      'sm.ok':'Я отправил(а)',
+      'sm.ok':'Я отправил(а)','sm.freeText':'Ваш заказ оформлен бесплатно. Данные для входа придут на email в ближайшее время.','sm.close':'Закрыть',
       'common.close':'Закрыть','common.back':'Назад','common.copy':'Копировать','common.scrolltop':'Наверх',
       'toast.added':'Добавлено','toast.added_suffix':'добавлено','toast.empty':'Корзина пуста',
       'toast.amount_copied':'Сумма скопирована','toast.clipboard':'Скопировано в буфер','toast.copied':'Скопировано','toast.copy_fail':'Не удалось скопировать',
@@ -840,7 +840,7 @@ async function applyCoupon(){
     const r=await fetch(WORKER_URL.replace(/\/$/,'')+'/coupon/validate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code,items:cartItemsForApi()})});
     const d=await r.json();
     if(d&&d.ok){ appliedCoupon={code:d.code,discount:d.discount}; if(msg){msg.className='coupon-msg ok';msg.textContent=I18N.t('coupon.applied');} }
-    else { appliedCoupon=null; const map={not_found:'invalid',expired:'expired',used:'used',not_applicable:'na',empty:'empty'}; const k=map[d&&d.reason]||'invalid'; if(msg){msg.className='coupon-msg err';msg.textContent=I18N.t('coupon.'+k);} }
+    else { appliedCoupon=null; const map={not_found:'invalid',expired:'expired',used:'used',not_applicable:'na',empty:'empty',unavailable:'unavail'}; const k=map[d&&d.reason]||'invalid'; if(msg){msg.className='coupon-msg err';msg.textContent=I18N.t('coupon.'+k);} }
   }catch(e){ appliedCoupon=null; if(msg){msg.className='coupon-msg err';msg.textContent=I18N.t('coupon.invalid');} }
   updateCartUI();
 }
@@ -919,6 +919,7 @@ function buildOrderText(){
   const subtotal = cart.reduce((s,c)=>s+c.qty*c.price,0);
   const discount = appliedCoupon ? Math.min(appliedCoupon.discount, subtotal) : 0;
   const total = Math.max(0, subtotal - discount).toFixed(2);
+  const isFree = (+total) <= 0.0001;
   return I18N.t('email.body', {lines, total, name:BANK.name, iban:BANK.iban});
 }
 
@@ -932,6 +933,7 @@ function showCheckoutModal(){
   const subtotal = cart.reduce((s,c)=>s+c.qty*c.price,0);
   const discount = appliedCoupon ? Math.min(appliedCoupon.discount, subtotal) : 0;
   const total = Math.max(0, subtotal - discount).toFixed(2);
+  const isFree = (+total) <= 0.0001;
   sumEl.innerHTML = cart.map(c=>`<div class="os-row"><span class="desc">${c.qty}× ${c.name} <small style="color:var(--text-3)">(${tVariant(c.variant)})</small></span><strong>€${(c.qty*c.price).toFixed(2)}</strong></div>`).join('')
     + `<div class="os-row total"><span>${I18N.t('drawer.total')}</span><span>€${total}</span></div>`;
   document.getElementById('modalAmount').textContent = total;
@@ -971,6 +973,7 @@ function submitOrder(){
   const subtotal = cart.reduce((s,c)=>s+c.qty*c.price,0);
   const discount = appliedCoupon ? Math.min(appliedCoupon.discount, subtotal) : 0;
   const total = Math.max(0, subtotal - discount).toFixed(2);
+  const isFree = (+total) <= 0.0001;
   const lines = cart.map(c=>`${c.qty}× ${c.name} (${c.variant}) = €${(c.qty*c.price).toFixed(2)}`).join('\n');
   // Lưu lại toàn bộ thông tin đơn để gửi kèm bằng chứng ở bước xác nhận
   CURRENT_ORDER = { orderId, name, email, total, lines, items: cart.map(c=>({name:c.name,variant:c.variant,qty:c.qty,price:c.price})) };
@@ -991,6 +994,10 @@ function submitOrder(){
     if(refEl) refEl.textContent = orderId;
     // reset trạng thái upload bằng chứng (bắt buộc trước khi xác nhận)
     resetProofUI();
+    const pf=document.getElementById('paidFlow'),ff=document.getElementById('freeFlow'),ib=document.getElementById('smInfoBox');
+    const cs=document.getElementById('confirmSentBtn'),ph=document.getElementById('proofHint'),fc=document.getElementById('freeCloseBtn');
+    if(isFree){ if(pf)pf.style.display='none'; if(ff)ff.style.display='block'; if(ib)ib.style.display='none'; if(cs)cs.style.display='none'; if(ph)ph.style.display='none'; if(fc)fc.style.display='inline-flex'; }
+    else{ if(pf)pf.style.display='block'; if(ff)ff.style.display='none'; if(ib)ib.style.display='block'; if(cs)cs.style.display='inline-flex'; if(ph)ph.style.display='block'; if(fc)fc.style.display='none'; }
     document.getElementById('successModal').classList.add('open');
     lockBodyScroll();
   };
@@ -1017,7 +1024,7 @@ function submitOrder(){
 
   const saveOrder = ()=> WORKER_URL ? fetch(WORKER_URL.replace(/\/$/,'') + '/order', {
     method:'POST', headers:{'Content-Type':'application/json','Accept':'application/json'},
-    body: JSON.stringify({ orderId, name, email, items: cart.map(c=>({id:c.pid,name:c.name,variant:c.variant,qty:c.qty,price:c.price})), total, lines, lang: I18N.current, coupon: appliedCoupon?appliedCoupon.code:undefined, skipBrevo: true })
+    body: JSON.stringify({ orderId, name, email, items: cart.map(c=>({id:c.pid,name:c.name,variant:c.variant,qty:c.qty,price:c.price})), total, lines, lang: I18N.current, coupon: appliedCoupon?appliedCoupon.code:undefined, skipBrevo: !isFree })
   }).then(r=>r.json()).catch(()=>null) : Promise.resolve(null);
 
   Promise.allSettled([notifyAdmin(), saveOrder()])
@@ -1206,6 +1213,7 @@ showCheckoutModal = function(){
   const subtotal = cart.reduce((s,c)=>s+c.qty*c.price,0);
   const discount = appliedCoupon ? Math.min(appliedCoupon.discount, subtotal) : 0;
   const total = Math.max(0, subtotal - discount).toFixed(2);
+  const isFree = (+total) <= 0.0001;
   sumEl.innerHTML = cart.map(c=>`<div class="os-row"><span class="desc">${c.qty}× ${c.name} <small style="color:var(--text-3)">(${tVariant(c.variant)})</small></span><strong>€${(c.qty*c.price).toFixed(2)}</strong></div>`).join('')
     + `<div class="os-row total"><span>${I18N.t('drawer.total')}</span><span>€${total}</span></div>`;
   document.getElementById('modalAmount').textContent = total;

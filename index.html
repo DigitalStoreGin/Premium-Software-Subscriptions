@@ -427,12 +427,12 @@
       <button class="modal-close" onclick="closeSuccessModal()" aria-label="Schließen"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="modal-body">
-      <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:14px 16px;margin-bottom:18px;font-size:13px;color:#166534;line-height:1.5">
+      <div id="smInfoBox" style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:14px 16px;margin-bottom:18px;font-size:13px;color:#166534;line-height:1.5">
         <i class="fa-solid fa-circle-info" style="margin-right:6px"></i>
         <span data-i18n-html="sm.info">Bitte überweise den Betrag per SEPA. Nach Zahlungseingang erhältst du deine Zugangsdaten innerhalb von <strong>5–30 Minuten</strong> per E-Mail.</span>
       </div>
 
-      <div class="section-title" data-i18n="sm.bank">Bankverbindung (SEPA)</div>
+      <div id="paidFlow"><div class="section-title" data-i18n="sm.bank">Bankverbindung (SEPA)</div>
       <div class="bank-box">
         <div class="bank-row">
           <span class="lbl" data-i18n="sm.l_name">Name</span>
@@ -462,10 +462,18 @@
         <input type="file" id="proofFile" accept="image/png,image/jpeg,image/jpg,application/pdf" style="width:100%;font-size:13px;padding:8px;border:1px dashed var(--line);border-radius:8px;background:var(--bg-2)" onchange="onProofSelected(this.files[0])">
         <div id="proofFileName" style="font-size:12px;color:var(--success);margin-top:8px;display:none"><i class="fa-solid fa-circle-check" style="margin-right:4px"></i><span></span></div>
       </div>
+      </div><!--/paidFlow-->
+      <div id="freeFlow" style="display:none">
+        <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:20px;text-align:center;color:#166534">
+          <i class="fa-solid fa-circle-check" style="font-size:26px;margin-bottom:10px"></i>
+          <p style="font-size:14px;line-height:1.6;margin:0" data-i18n="sm.freeText">Deine Bestellung ist kostenlos abgeschlossen. Die Zugangsdaten erhältst du in Kürze per E-Mail.</p>
+        </div>
+      </div>
     </div>
     <div class="modal-foot" style="justify-content:center;flex-direction:column;gap:8px">
       <button id="confirmSentBtn" class="btn btn-primary" onclick="confirmAndSendProof()" style="padding:10px 28px"><i class="fa-solid fa-paper-plane"></i><span data-i18n="sm.ok">Ich habe es gesendet</span></button>
       <small id="proofHint" style="color:var(--text-3);font-size:12px;text-align:center" data-i18n="proof.required">Bitte lade zuerst den Zahlungsbeleg hoch.</small>
+      <button id="freeCloseBtn" class="btn btn-primary" style="display:none;padding:10px 28px" onclick="closeSuccessModal()"><i class="fa-solid fa-check"></i><span data-i18n="sm.close">Schließen</span></button>
     </div>
   </div>
 </div>
