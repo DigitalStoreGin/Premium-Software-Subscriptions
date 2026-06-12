@@ -33,8 +33,11 @@ export default {
         if (request.method === 'POST') return requireAdmin(request, env, cors, () => saveConfig(request, env, cors));
       }
       if (url.pathname === '/translate' && request.method === 'POST') return requireAdmin(request, env, cors, () => translatePreview(request, env, cors));
+      if (url.pathname === '/translate/batch' && request.method === 'POST') return requireAdmin(request, env, cors, () => translateBatch(request, env, cors));
       // Coupons
       if (url.pathname === '/coupon/validate' && request.method === 'POST') return validateCouponReq(request, env, cors);
+      if (url.pathname === '/loyalty/check' && request.method === 'POST') return loyaltyCheckReq(request, env, cors);
+      if (url.pathname === '/admin/loyalty') return requireAdmin(request, env, cors, () => loyaltyAdminReq(request, env, cors));
       if (url.pathname === '/admin/coupons') {
         if (request.method === 'GET') return requireAdmin(request, env, cors, () => listCoupons(request, env, cors));
         if (request.method === 'POST') return requireAdmin(request, env, cors, () => createCoupons(request, env, cors));
@@ -116,6 +119,17 @@ async function createOrder(request, env, cors) {
   if (b.coupon && env.DB) {
     const applied = await applyCouponForOrder(env, String(b.coupon).toUpperCase().trim(), norm.map(i => ({ product_id: i.product_id, variant: i.variant, qty: i.qty })), orderId);
     if (applied && applied.ok) { discount = applied.discount; couponCode = String(b.coupon).toUpperCase().trim(); serverSubtotal = applied.subtotal; }
+  }
+  if (!couponCode && env.DB) {
+    try {
+      const lr = await loyaltyEligible(env, email);
+      if (lr.eligible) {
+        const priced = await priceCart(env, norm.map(i => ({ product_id: i.product_id, variant: i.variant, qty: i.qty })));
+        const base = priced.subtotal > 0 ? priced.subtotal : subtotal;
+        discount = Math.round(base * lr.cfg.percent) / 100;
+        if (discount > 0) { couponCode = 'TREUE' + lr.cfg.percent; serverSubtotal = base; }
+      }
+    } catch (e) {}
   }
   const finalTotal = couponCode ? Math.max(0, Math.round((serverSubtotal - discount) * 100) / 100) : (Number(total) || subtotal);
   const lang = (b.lang === 'en' || b.lang === 'ru') ? b.lang : 'de';
@@ -307,6 +321,25 @@ async function translatePreview(request, env, cors) {
   return json({ ok: true, translations: tr }, 200, cors);
 }
 
+
+// Translate arbitrary text arrays (used by admin product editor). Admin-only.
+async function translateBatch(request, env, cors){
+  let b; try { b = await request.json(); } catch { return json({ error:'bad_json' }, 400, cors); }
+  const texts = Array.isArray(b.texts) ? b.texts.map(t => String(t == null ? '' : t)).slice(0, 200) : [];
+  if (!texts.length) return json({ ok:false, error:'no_texts' }, 200, cors);
+  const source = ['DE','EN','VI','RU'].includes(String(b.source||'').toUpperCase()) ? String(b.source).toUpperCase() : 'DE';
+  const targets = (Array.isArray(b.targets) ? b.targets : []).map(t => String(t).toUpperCase()).filter(t => ['DE','EN','RU','VI'].includes(t) && t !== source).slice(0, 4);
+  if (!targets.length) return json({ ok:false, error:'no_targets' }, 200, cors);
+  if (!env.DEEPL_API_KEY) return json({ ok:false, error:'deepl_unavailable' }, 200, cors);
+  const out = {};
+  for (const tg of targets) {
+    const tr = await deeplTranslate(texts, tg === 'EN' ? 'EN-US' : tg, env, source);
+    if (tr) out[tg.toLowerCase()] = tr;
+  }
+  if (!Object.keys(out).length) return json({ ok:false, error:'deepl_failed' }, 200, cors);
+  return json({ ok:true, source: source.toLowerCase(), translations: out }, 200, cors);
+}
+
 // ───────── Admin online sync (GitHub cfg/token) ─────────
 const ADMIN_SYNC_KEY = '__admin_sync';
 async function adminSync(request, env, cors) {
@@ -351,13 +384,13 @@ function localizeConfig(cfg, lang){
   return out;
 }
 
-async function deeplTranslate(texts, target, env){
+async function deeplTranslate(texts, target, env, source){
   if (!env.DEEPL_API_KEY || !texts.length) return null;
   try {
     const host = String(env.DEEPL_API_KEY).endsWith(':fx') ? 'https://api-free.deepl.com' : 'https://api.deepl.com';
     const params = new URLSearchParams();
     for (const t of texts) params.append('text', t == null ? '' : String(t));
-    params.append('source_lang', 'DE');
+    params.append('source_lang', source || 'DE');
     params.append('target_lang', target);
     const r = await fetch(host + '/v2/translate', {
       method: 'POST',
@@ -393,6 +426,45 @@ async function translateConfig(cfg, env){
   return cfg;
 }
 
+
+// ───────── Loyalty (Treuerabatt): auto discount for returning customers ─────────
+const LOYALTY_KEY = '__loyalty';
+async function getLoyaltyCfg(env){
+  if (!env.ORDERS) return { enabled: false };
+  try { const c = await env.ORDERS.get(LOYALTY_KEY, { type: 'json' }); return c && typeof c === 'object' ? c : { enabled: false }; } catch (e) { return { enabled: false }; }
+}
+function normLoyalty(b){
+  return {
+    enabled: !!b.enabled,
+    percent: Math.min(100, Math.max(0, Number(b.percent) || 0)),
+    from_order: Math.max(2, Math.round(Number(b.from_order) || 2)), // discount applies from the Nth order
+  };
+}
+async function loyaltyEligible(env, email){
+  const cfg = await getLoyaltyCfg(env);
+  if (!cfg.enabled || !(cfg.percent > 0) || !env.DB || !email) return { eligible: false, cfg };
+  await ensureSchema(env);
+  try {
+    const row = await env.DB.prepare('SELECT orders_count FROM customers WHERE email=?').bind(String(email).toLowerCase().trim()).first();
+    const prev = row ? Number(row.orders_count) || 0 : 0;
+    return { eligible: prev >= (cfg.from_order - 1), prev, cfg };
+  } catch (e) { return { eligible: false, cfg }; }
+}
+async function loyaltyCheckReq(request, env, cors){
+  let b; try { b = await request.json(); } catch { return json({ ok:false }, 400, cors); }
+  const email = String(b.email || '').toLowerCase().trim();
+  if (!email || !email.includes('@')) return json({ ok:true, eligible:false }, 200, cors);
+  const r = await loyaltyEligible(env, email);
+  return json({ ok:true, eligible: r.eligible, percent: r.eligible ? r.cfg.percent : 0, from_order: r.cfg.from_order || 2 }, 200, cors);
+}
+async function loyaltyAdminReq(request, env, cors){
+  if (request.method === 'GET') return json({ ok:true, config: await getLoyaltyCfg(env) }, 200, cors);
+  let b; try { b = await request.json(); } catch { return json({ error:'bad_json' }, 400, cors); }
+  const cfg = normLoyalty(b || {});
+  if (env.ORDERS) await env.ORDERS.put(LOYALTY_KEY, JSON.stringify(cfg));
+  return json({ ok:true, config: cfg }, 200, cors);
+}
+
 // ───────── D1: coupons + analytics ─────────
 let __schemaReady = false;
 async function ensureSchema(env){
@@ -408,6 +480,7 @@ async function ensureSchema(env){
       env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_events_day ON events(day)`),
       env.DB.prepare(`CREATE INDEX IF NOT EXISTS idx_sales_day ON sales(day)`),
     ]);
+    try { await env.DB.prepare('ALTER TABLE coupons ADD COLUMN exclude_products TEXT').run(); } catch (e) { /* column exists */ }
     __schemaReady = true;
   } catch (e) { /* retry next call */ }
 }
@@ -462,16 +535,21 @@ function couponLive(c){
   const max = c.usage_mode === 'multi' ? (c.max_uses || 1) : 1;
   return (c.used_count || 0) < max;
 }
+function couponExcluded(c){
+  try { const a = c && c.exclude_products ? JSON.parse(c.exclude_products) : []; return Array.isArray(a) ? a.map(String) : []; } catch (e) { return []; }
+}
 function couponBase(c, priced){
   if (c.scope === 'product') return priced.lines.filter(l => String(l.product_id) === String(c.target_product)).reduce((s,l)=>s+l.line_total,0);
   if (c.scope === 'variant') return priced.lines.filter(l => String(l.product_id) === String(c.target_product) && (l.variant||'') === (c.target_variant||'')).reduce((s,l)=>s+l.line_total,0);
+  const ex = couponExcluded(c);
+  if (ex.length) return priced.lines.filter(l => !ex.includes(String(l.product_id))).reduce((s,l)=>s+l.line_total,0);
   return priced.subtotal;
 }
 function couponDiscount(c, priced){
   const base = couponBase(c, priced);
   if (base <= 0) return 0;
   let d = c.type === 'percent' ? base * (Number(c.value)||0) / 100 : Math.min(Number(c.value)||0, base);
-  d = Math.min(d, priced.subtotal);
+  d = Math.min(d, base);
   return Math.round(d * 100) / 100;
 }
 
@@ -488,6 +566,15 @@ async function validateCouponReq(request, env, cors){
   const priced = await priceCart(env, items);
   const discount = couponDiscount(c, priced);
   if (discount <= 0) {
+    if (c.scope === 'order') {
+      const ex = couponExcluded(c);
+      if (ex.length) {
+        const map = await getPriceMap(env);
+        const names = []; const seen = {};
+        for (const k in map) { const pid = k.split('|')[0]; if (ex.includes(pid) && !seen[pid]) { seen[pid] = 1; names.push(map[k].name); } }
+        return json({ ok:false, reason:'excluded', excluded_names: names }, 200, cors);
+      }
+    }
     let target_name = null;
     if (c.scope !== 'order' && c.target_product != null) {
       const map = await getPriceMap(env);
@@ -526,6 +613,8 @@ async function createCoupons(request, env, cors){
   const max_uses = usage_mode === 'multi' ? Math.max(1, Number(b.max_uses)||1) : 1;
   const count = Math.min(500, Math.max(1, Number(b.count)||1));
   const expires_at = b.expires_at ? String(b.expires_at) : null;
+  const exclude_products = (scope === 'order' && Array.isArray(b.exclude_products) && b.exclude_products.length)
+    ? JSON.stringify(b.exclude_products.map(String).slice(0, 100)) : null;
   const prefix = b.prefix || '';
   const batch_id = 'B' + Date.now().toString(36).toUpperCase();
   const label = String(b.label||'');
@@ -534,8 +623,8 @@ async function createCoupons(request, env, cors){
   for (let i=0;i<count;i++){
     let code = (b.code && count===1) ? String(b.code).toUpperCase().trim() : genCouponCode(prefix);
     try {
-      await env.DB.prepare('INSERT INTO coupons(code,type,value,scope,target_product,target_variant,usage_mode,max_uses,used_count,active,expires_at,batch_id,label,created_at) VALUES(?,?,?,?,?,?,?,?,0,1,?,?,?,?)')
-        .bind(code, type, value, scope, b.target_product?String(b.target_product):null, b.target_variant?String(b.target_variant):null, usage_mode, max_uses, expires_at, batch_id, label, now).run();
+      await env.DB.prepare('INSERT INTO coupons(code,type,value,scope,target_product,target_variant,usage_mode,max_uses,used_count,active,expires_at,batch_id,label,created_at,exclude_products) VALUES(?,?,?,?,?,?,?,?,0,1,?,?,?,?,?)')
+        .bind(code, type, value, scope, b.target_product?String(b.target_product):null, b.target_variant?String(b.target_variant):null, usage_mode, max_uses, expires_at, batch_id, label, now, exclude_products).run();
       created.push(code);
     } catch (e) { /* collision, skip */ }
   }

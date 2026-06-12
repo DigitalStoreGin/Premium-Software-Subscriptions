@@ -44,7 +44,7 @@ const I18N = (function(){
       'footer.rights':'© 2026 DigitalStore · Alle Rechte vorbehalten.',
       'drawer.title':'Warenkorb','drawer.empty':'Dein Warenkorb ist leer','drawer.total':'Gesamtsumme',
       'drawer.note':'Nach dem Klick öffnet sich ein Fenster mit der Bankverbindung & Zahlungsanleitung.','drawer.checkout':'Bestellung abschicken',
-      'coupon.label':'Rabattcode','coupon.placeholder':'Rabattcode eingeben','coupon.apply':'Anwenden','coupon.applied':'Code angewendet ✓','coupon.discount':'Rabatt','coupon.subtotal':'Zwischensumme','coupon.remove':'Entfernen','coupon.invalid':'Ungültiger Code','coupon.expired':'Code abgelaufen','coupon.used':'Code bereits verwendet','coupon.na':'Gilt nicht für diese Artikel','coupon.empty':'Bitte Code eingeben','coupon.unavail':'Rabatt-Service nicht verfügbar, bitte später erneut versuchen.','coupon.appliesto':'Code gilt nur für',
+      'coupon.label':'Rabattcode','coupon.placeholder':'Rabattcode eingeben','coupon.apply':'Anwenden','coupon.applied':'Code angewendet ✓','coupon.discount':'Rabatt','coupon.subtotal':'Zwischensumme','coupon.remove':'Entfernen','coupon.invalid':'Ungültiger Code','coupon.expired':'Code abgelaufen','coupon.used':'Code bereits verwendet','coupon.na':'Gilt nicht für diese Artikel','coupon.empty':'Bitte Code eingeben','coupon.unavail':'Rabatt-Service nicht verfügbar, bitte später erneut versuchen.','coupon.appliesto':'Code gilt nur für','coupon.excluded':'Code gilt nicht für','loyalty.applied':'Treuerabatt −{p}% wird automatisch angewendet 🎉','loyalty.label':'Treuerabatt',
       'ck.title':'Fast geschafft!','ck.sub':'Folge diesen 3 Schritten, um deine Bestellung abzuschließen.',
       'ck.order':'Deine Bestellung','ck.next':'Nächste Schritte',
       'ck.s1.t':'Bestellung per E-Mail senden','ck.s1.d':'Klicke unten auf „E-Mail senden". Dein E-Mail-Programm öffnet sich mit allen Details bereits ausgefüllt.',
@@ -106,7 +106,7 @@ const I18N = (function(){
       'footer.rights':'© 2026 DigitalStore · All rights reserved.',
       'drawer.title':'Cart','drawer.empty':'Your cart is empty','drawer.total':'Total',
       'drawer.note':'A window with bank details & payment instructions will open after you click.','drawer.checkout':'Send order',
-      'coupon.label':'Discount code','coupon.placeholder':'Enter discount code','coupon.apply':'Apply','coupon.applied':'Code applied ✓','coupon.discount':'Discount','coupon.subtotal':'Subtotal','coupon.remove':'Remove','coupon.invalid':'Invalid code','coupon.expired':'Code expired','coupon.used':'Code already used','coupon.na':'Not valid for these items','coupon.empty':'Please enter a code','coupon.unavail':'Discount service unavailable, please try again later.','coupon.appliesto':'Code applies only to',
+      'coupon.label':'Discount code','coupon.placeholder':'Enter discount code','coupon.apply':'Apply','coupon.applied':'Code applied ✓','coupon.discount':'Discount','coupon.subtotal':'Subtotal','coupon.remove':'Remove','coupon.invalid':'Invalid code','coupon.expired':'Code expired','coupon.used':'Code already used','coupon.na':'Not valid for these items','coupon.empty':'Please enter a code','coupon.unavail':'Discount service unavailable, please try again later.','coupon.appliesto':'Code applies only to','coupon.excluded':'Code is not valid for','loyalty.applied':'Loyalty discount −{p}% is applied automatically 🎉','loyalty.label':'Loyalty discount',
       'ck.title':'Almost done!','ck.sub':'Follow these 3 steps to complete your order.',
       'ck.order':'Your order','ck.next':'Next steps',
       'ck.s1.t':'Send the order by email','ck.s1.d':'Click "Send email" below. Your email client opens with all details pre-filled.',
@@ -168,7 +168,7 @@ const I18N = (function(){
       'footer.rights':'© 2026 DigitalStore · Все права защищены.',
       'drawer.title':'Корзина','drawer.empty':'Ваша корзина пуста','drawer.total':'Итого',
       'drawer.note':'После нажатия откроется окно с банковскими реквизитами и инструкцией по оплате.','drawer.checkout':'Отправить заказ',
-      'coupon.label':'Промокод','coupon.placeholder':'Введите промокод','coupon.apply':'Применить','coupon.applied':'Промокод применён ✓','coupon.discount':'Скидка','coupon.subtotal':'Промежуточный итог','coupon.remove':'Убрать','coupon.invalid':'Неверный код','coupon.expired':'Срок действия истёк','coupon.used':'Код уже использован','coupon.na':'Не действует для этих товаров','coupon.empty':'Введите код','coupon.unavail':'Сервис скидок недоступен, попробуйте позже.','coupon.appliesto':'Промокод действует только для',
+      'coupon.label':'Промокод','coupon.placeholder':'Введите промокод','coupon.apply':'Применить','coupon.applied':'Промокод применён ✓','coupon.discount':'Скидка','coupon.subtotal':'Промежуточный итог','coupon.remove':'Убрать','coupon.invalid':'Неверный код','coupon.expired':'Срок действия истёк','coupon.used':'Код уже использован','coupon.na':'Не действует для этих товаров','coupon.empty':'Введите код','coupon.unavail':'Сервис скидок недоступен, попробуйте позже.','coupon.appliesto':'Промокод действует только для','coupon.excluded':'Промокод не действует для','loyalty.applied':'Скидка постоянного клиента −{p}% применяется автоматически 🎉','loyalty.label':'Скидка постоянного клиента',
       'ck.title':'Почти готово!','ck.sub':'Выполните эти 3 шага, чтобы завершить заказ.',
       'ck.order':'Ваш заказ','ck.next':'Следующие шаги',
       'ck.s1.t':'Отправить заказ по email','ck.s1.d':'Нажмите «Отправить email» ниже. Ваш почтовый клиент откроется со всеми заполненными данными.',
@@ -325,13 +325,32 @@ const I18N = (function(){
 
   function getDesc(p){
     if(current==='de') return p.desc;
+    const j = p.i18n && p.i18n[current];
+    if(j && j.desc) return j.desc;
     const pd = productDict[p.id]; if(!pd || !pd[current]) return p.desc;
     return pd[current].desc;
   }
   function getFeatures(p){
     if(current==='de') return p.features;
+    const j = p.i18n && p.i18n[current];
+    if(j && Array.isArray(j.features) && j.features.length) return j.features;
     const pd = productDict[p.id]; if(!pd || !pd[current]) return p.features;
     return pd[current].features;
+  }
+  function getName(p){
+    if(current==='de') return p.name;
+    const j = p.i18n && p.i18n[current];
+    return (j && j.name) ? j.name : p.name;
+  }
+  // Variant label translated from products.json i18n (looked up by base label), fallback token map
+  function tVariantOf(p, baseLabel){
+    if(current==='de' || !p) return tVariant(baseLabel);
+    const j = p.i18n && p.i18n[current];
+    if(j && Array.isArray(j.variants) && Array.isArray(p.variants)){
+      const idx = p.variants.findIndex(v=>v.label===baseLabel);
+      if(idx>=0 && j.variants[idx]) return j.variants[idx];
+    }
+    return tVariant(baseLabel);
   }
 
   function applyDom(){
@@ -444,13 +463,15 @@ const I18N = (function(){
     }
   }
 
-  return { t, setLang, init, tVariant, tNote, getDesc, getFeatures, get current(){return current;} };
+  return { t, setLang, init, tVariant, tNote, getDesc, getFeatures, getName, tVariantOf, get current(){return current;} };
 })();
 // Expose helpers used inline by the existing render code
 const tVariant = I18N.tVariant;
 const tNote    = I18N.tNote;
 const getDesc  = I18N.getDesc;
 const getFeatures = I18N.getFeatures;
+const getName  = I18N.getName;
+const tVariantOf = I18N.tVariantOf;
 // Init i18n as soon as DOM is parsed.
 // WICHTIG: nicht synchron aufrufen — der Rest dieser Datei (cart, appliedCoupon,
 // renderProducts ...) wird erst weiter unten ausgewertet. setTimeout(0) sorgt
@@ -689,7 +710,7 @@ function renderProducts(){
   const filtered = products.filter(p=>{
     if(p.status==='hidden') return false;          // hidden products are never shown on the public site
     const fMatch = currentFilter==='all' || (currentFilter==='bestseller' ? p.bs : p.cat===currentFilter);
-    const sMatch = !currentSearch || p.name.toLowerCase().includes(currentSearch) || (p.desc||'').toLowerCase().includes(currentSearch);
+    const sMatch = !currentSearch || p.name.toLowerCase().includes(currentSearch) || getName(p).toLowerCase().includes(currentSearch) || (p.desc||'').toLowerCase().includes(currentSearch) || (getDesc(p)||'').toLowerCase().includes(currentSearch);
     return fMatch && sMatch;
   });
   if(filtered.length===0){
@@ -719,13 +740,13 @@ function renderProducts(){
       <div class="product-img"><img src="${p.img}" alt="${p.name}" loading="lazy"></div>
       <div class="product-body">
         <div class="product-cat">${catLabel(p.cat)}</div>
-        <h3 class="product-title">${p.name}</h3>
+        <h3 class="product-title">${getName(p)}</h3>
         <p class="product-desc">${getDesc(p)}</p>
         <div class="product-features" data-features-id="${p.id}">
           ${getFeatures(p).map(f=>{const isWarn=f.startsWith('Nur für')||f.startsWith('Upgrade')||f==='Zugangsdaten';const isCode=f.startsWith('Code:');return isWarn?`<div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:6px;padding:4px 8px;color:#92400e;font-size:11px;font-weight:600;margin-top:2px"><i class="fa-solid fa-triangle-exclamation" style="color:#d97706;margin-right:2px"></i>${f}</div>`:isCode?`<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:4px 8px;color:#1e40af;font-size:11px;font-weight:600;margin-top:2px"><i class="fa-solid fa-tag" style="color:#3b82f6;margin-right:2px"></i>${f}</div>`:`<div><i class="fa-solid fa-check"></i>${f}</div>`;}).join('')}${defaultV.note?`<div class="variant-feature"><i class="fa-solid fa-check"></i>${tNote(defaultV.note)}</div>`:''}
         </div>
         <div class="variants">
-          ${list.map(x=>{const vDis=oos||x.v.status==='unavailable'||x.v.status==='out_of_stock';return`<button class="variant ${x.origIdx===defaultIdx?'selected':''}${vDis?' unavailable':''}" data-id="${p.id}" data-idx="${x.origIdx}">${tVariant(x.v.label)} · €${x.v.price.toFixed(2)}</button>`;}).join('')}
+          ${list.map(x=>{const vDis=oos||x.v.status==='unavailable'||x.v.status==='out_of_stock';return`<button class="variant ${x.origIdx===defaultIdx?'selected':''}${vDis?' unavailable':''}" data-id="${p.id}" data-idx="${x.origIdx}">${tVariantOf(p, x.v.label)} · €${x.v.price.toFixed(2)}</button>`;}).join('')}
         </div>
         <div class="product-footer">
           <div>
@@ -755,7 +776,7 @@ function attachVariantListeners(){
       card.querySelectorAll('.variant').forEach(b=>b.classList.remove('selected'));
       btn.classList.add('selected');
       card.querySelector(`[data-price-id="${pid}"]`).textContent = v.price.toFixed(2);
-      card.querySelector(`[data-period-id="${pid}"]`).textContent = tVariant(v.label);
+      card.querySelector(`[data-period-id="${pid}"]`).textContent = tVariantOf(p, v.label);
       const pUnavail = p.status==='unavailable';
       const pSoldOut = p.status==='out_of_stock';
       const effSt = pSoldOut ? 'out_of_stock' : pUnavail ? 'unavailable' : v.status;
@@ -837,6 +858,29 @@ function trackImpressions(ids){
   }catch(e){}
 }
 let appliedCoupon = null;
+// Treuerabatt: auto loyalty discount checked against the typed email (server authoritative)
+let LOYALTY = null; let __loyT = null;
+function loyaltyNoteUI(){
+  const n = document.getElementById('loyaltyNote');
+  if(!n) return;
+  if(LOYALTY && !appliedCoupon){
+    n.style.display='block';
+    n.textContent = I18N.t('loyalty.applied').replace('{p}', LOYALTY.percent);
+  } else { n.style.display='none'; }
+}
+function checkLoyalty(){
+  const el = document.getElementById('customerEmail');
+  const email = el ? el.value.trim() : '';
+  if(!WORKER_URL || !email || !email.includes('@')){ LOYALTY=null; loyaltyNoteUI(); return; }
+  fetch(WORKER_URL.replace(/\/$/,'')+'/loyalty/check',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})})
+    .then(r=>r.json()).then(d=>{
+      LOYALTY = (d && d.ok && d.eligible && d.percent>0) ? {percent:d.percent} : null;
+      loyaltyNoteUI();
+    }).catch(()=>{ LOYALTY=null; loyaltyNoteUI(); });
+}
+document.addEventListener('input', (e)=>{
+  if(e.target && e.target.id==='customerEmail'){ clearTimeout(__loyT); __loyT=setTimeout(checkLoyalty, 600); }
+});
 function cartItemsForApi(){ return cart.map(c=>({id:c.pid, variant:c.variant, qty:c.qty})); }
 async function applyCoupon(){
   const inp=document.getElementById('couponInput'); const msg=document.getElementById('couponMsg');
@@ -848,9 +892,10 @@ async function applyCoupon(){
     const r=await fetch(WORKER_URL.replace(/\/$/,'')+'/coupon/validate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code,items:cartItemsForApi()})});
     const d=await r.json();
     if(d&&d.ok){ appliedCoupon={code:d.code,discount:d.discount,scope:d.scope,target_product:d.target_product,target_variant:d.target_variant}; if(msg){msg.className='coupon-msg ok';msg.textContent=I18N.t('coupon.applied');} }
-    else { appliedCoupon=null; const map={not_found:'invalid',expired:'expired',used:'used',not_applicable:'na',empty:'empty',unavailable:'unavail'}; const k=map[d&&d.reason]||'invalid';
+    else { appliedCoupon=null; const map={not_found:'invalid',expired:'expired',used:'used',not_applicable:'na',excluded:'na',empty:'empty',unavailable:'unavail'}; const k=map[d&&d.reason]||'invalid';
       let txt=I18N.t('coupon.'+k);
       if(d&&d.reason==='not_applicable'&&d.target_name){ txt=I18N.t('coupon.appliesto')+': '+d.target_name+(d.target_variant?(' · '+d.target_variant):''); }
+      if(d&&d.reason==='excluded'&&Array.isArray(d.excluded_names)&&d.excluded_names.length){ txt=I18N.t('coupon.excluded')+': '+d.excluded_names.join(', '); }
       if(msg){msg.className='coupon-msg err';msg.textContent=txt;} }
   }catch(e){ appliedCoupon=null; if(msg){msg.className='coupon-msg err';msg.textContent=I18N.t('coupon.invalid');} }
   updateCartUI();
@@ -928,7 +973,12 @@ function buildOrderText(){
   if(cart.length===0) return '';
   const lines = cart.map(c=>`• ${c.name} (${tVariant(c.variant)}) × ${c.qty} = €${(c.qty*c.price).toFixed(2)}`).join('\n');
   const subtotal = cart.reduce((s,c)=>s+c.qty*c.price,0);
-  const discount = appliedCoupon ? Math.min(appliedCoupon.discount, subtotal) : 0;
+  let discount = appliedCoupon ? Math.min(appliedCoupon.discount, subtotal) : 0;
+  let rabattLabel = appliedCoupon ? appliedCoupon.code : '';
+  if(!appliedCoupon && LOYALTY && LOYALTY.percent>0){
+    discount = Math.min(subtotal, Math.round(subtotal*LOYALTY.percent)/100);
+    rabattLabel = 'TREUE'+LOYALTY.percent;
+  }
   const total = Math.max(0, subtotal - discount).toFixed(2);
   const isFree = (+total) <= 0.0001;
   return I18N.t('email.body', {lines, total, name:BANK.name, iban:BANK.iban});
@@ -943,7 +993,12 @@ function showCheckoutModal(){
   // populate summary
   const sumEl = document.getElementById('orderSummary');
   const subtotal = cart.reduce((s,c)=>s+c.qty*c.price,0);
-  const discount = appliedCoupon ? Math.min(appliedCoupon.discount, subtotal) : 0;
+  let discount = appliedCoupon ? Math.min(appliedCoupon.discount, subtotal) : 0;
+  let rabattLabel = appliedCoupon ? appliedCoupon.code : '';
+  if(!appliedCoupon && LOYALTY && LOYALTY.percent>0){
+    discount = Math.min(subtotal, Math.round(subtotal*LOYALTY.percent)/100);
+    rabattLabel = 'TREUE'+LOYALTY.percent;
+  }
   const total = Math.max(0, subtotal - discount).toFixed(2);
   const isFree = (+total) <= 0.0001;
   sumEl.innerHTML = cart.map(c=>`<div class="os-row"><span class="desc">${c.qty}× ${c.name} <small style="color:var(--text-3)">(${tVariant(c.variant)})</small></span><strong>€${(c.qty*c.price).toFixed(2)}</strong></div>`).join('')
@@ -983,12 +1038,17 @@ function submitOrder(){
   const orderId = generateOrderId();
   CURRENT_ORDER_ID = orderId;
   const subtotal = cart.reduce((s,c)=>s+c.qty*c.price,0);
-  const discount = appliedCoupon ? Math.min(appliedCoupon.discount, subtotal) : 0;
+  let discount = appliedCoupon ? Math.min(appliedCoupon.discount, subtotal) : 0;
+  let rabattLabel = appliedCoupon ? appliedCoupon.code : '';
+  if(!appliedCoupon && LOYALTY && LOYALTY.percent>0){
+    discount = Math.min(subtotal, Math.round(subtotal*LOYALTY.percent)/100);
+    rabattLabel = 'TREUE'+LOYALTY.percent;
+  }
   const total = Math.max(0, subtotal - discount).toFixed(2);
   const isFree = (+total) <= 0.0001;
   const lines = cart.map(c=>`${c.qty}× ${c.name} (${c.variant}) = €${(c.qty*c.price).toFixed(2)}`).join('\n');
   // Lưu lại toàn bộ thông tin đơn để gửi kèm bằng chứng ở bước xác nhận
-  CURRENT_ORDER = { orderId, name, email, total, lines, subtotal:subtotal.toFixed(2), discount:discount.toFixed(2), coupon:(appliedCoupon?appliedCoupon.code:''), items: cart.map(c=>({name:c.name,variant:c.variant,qty:c.qty,price:c.price})) };
+  CURRENT_ORDER = { orderId, name, email, total, lines, subtotal:subtotal.toFixed(2), discount:discount.toFixed(2), coupon:(discount>0?rabattLabel:''), items: cart.map(c=>({name:c.name,variant:c.variant,qty:c.qty,price:c.price})) };
   CURRENT_PROOF_FILE = null;
   track('checkout', null, null);
   const submitBtn = document.querySelector('#customerModal .btn-primary');
@@ -1024,9 +1084,9 @@ function submitOrder(){
     Bestellung: lines
   };
   // Reihenfolge: Zwischensumme -> Rabatt -> Gesamtsumme
-  if(appliedCoupon && discount>0){
+  if(discount>0){
     payload['Zwischensumme'] = `€${subtotal.toFixed(2)}`;
-    payload[`Rabatt (${appliedCoupon.code})`] = `−€${discount.toFixed(2)}`;
+    payload[`Rabatt (${rabattLabel})`] = `−€${discount.toFixed(2)}`;
   }
   payload['Gesamtsumme'] = `€${total}`;
   payload['Verwendungszweck'] = orderId;
