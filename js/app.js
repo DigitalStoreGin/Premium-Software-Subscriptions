@@ -44,7 +44,7 @@ const I18N = (function(){
       'footer.rights':'© 2026 DigitalStore · Alle Rechte vorbehalten.',
       'drawer.title':'Warenkorb','drawer.empty':'Dein Warenkorb ist leer','drawer.total':'Gesamtsumme',
       'drawer.note':'Nach dem Klick öffnet sich ein Fenster mit der Bankverbindung & Zahlungsanleitung.','drawer.checkout':'Bestellung abschicken',
-      'coupon.label':'Rabattcode','coupon.placeholder':'Rabattcode eingeben','coupon.apply':'Anwenden','coupon.applied':'Code angewendet ✓','coupon.discount':'Rabatt','coupon.subtotal':'Zwischensumme','coupon.remove':'Entfernen','coupon.invalid':'Ungültiger Code','coupon.expired':'Code abgelaufen','coupon.used':'Code bereits verwendet','coupon.na':'Gilt nicht für diese Artikel','coupon.empty':'Bitte Code eingeben','coupon.unavail':'Rabatt-Service nicht verfügbar, bitte später erneut versuchen.','coupon.appliesto':'Code gilt nur für','coupon.excluded':'Code gilt nicht für','loyalty.applied':'Treuerabatt −{p}% wird automatisch angewendet 🎉','loyalty.label':'Treuerabatt',
+      'coupon.label':'Rabattcode','coupon.placeholder':'Rabattcode eingeben','coupon.apply':'Anwenden','coupon.applied':'Code angewendet ✓','coupon.discount':'Rabatt','coupon.subtotal':'Zwischensumme','coupon.remove':'Entfernen','coupon.invalid':'Ungültiger Code','coupon.expired':'Code abgelaufen','coupon.used':'Code bereits verwendet','coupon.na':'Gilt nicht für diese Artikel','coupon.empty':'Bitte Code eingeben','coupon.unavail':'Rabatt-Service nicht verfügbar, bitte später erneut versuchen.','coupon.appliesto':'Code gilt nur für','coupon.excluded':'Code gilt nicht für','loyalty.applied':'Treuerabatt −{p}% wird automatisch angewendet 🎉','loyalty.label':'Treuerabatt','qty.label':'Mengenrabatt','qty.tier':'ab {n} Artikel −{p}%',
       'ck.title':'Fast geschafft!','ck.sub':'Folge diesen 3 Schritten, um deine Bestellung abzuschließen.',
       'ck.order':'Deine Bestellung','ck.next':'Nächste Schritte',
       'ck.s1.t':'Bestellung per E-Mail senden','ck.s1.d':'Klicke unten auf „E-Mail senden". Dein E-Mail-Programm öffnet sich mit allen Details bereits ausgefüllt.',
@@ -106,7 +106,7 @@ const I18N = (function(){
       'footer.rights':'© 2026 DigitalStore · All rights reserved.',
       'drawer.title':'Cart','drawer.empty':'Your cart is empty','drawer.total':'Total',
       'drawer.note':'A window with bank details & payment instructions will open after you click.','drawer.checkout':'Send order',
-      'coupon.label':'Discount code','coupon.placeholder':'Enter discount code','coupon.apply':'Apply','coupon.applied':'Code applied ✓','coupon.discount':'Discount','coupon.subtotal':'Subtotal','coupon.remove':'Remove','coupon.invalid':'Invalid code','coupon.expired':'Code expired','coupon.used':'Code already used','coupon.na':'Not valid for these items','coupon.empty':'Please enter a code','coupon.unavail':'Discount service unavailable, please try again later.','coupon.appliesto':'Code applies only to','coupon.excluded':'Code is not valid for','loyalty.applied':'Loyalty discount −{p}% is applied automatically 🎉','loyalty.label':'Loyalty discount',
+      'coupon.label':'Discount code','coupon.placeholder':'Enter discount code','coupon.apply':'Apply','coupon.applied':'Code applied ✓','coupon.discount':'Discount','coupon.subtotal':'Subtotal','coupon.remove':'Remove','coupon.invalid':'Invalid code','coupon.expired':'Code expired','coupon.used':'Code already used','coupon.na':'Not valid for these items','coupon.empty':'Please enter a code','coupon.unavail':'Discount service unavailable, please try again later.','coupon.appliesto':'Code applies only to','coupon.excluded':'Code is not valid for','loyalty.applied':'Loyalty discount −{p}% is applied automatically 🎉','loyalty.label':'Loyalty discount','qty.label':'Quantity discount','qty.tier':'from {n} items −{p}%',
       'ck.title':'Almost done!','ck.sub':'Follow these 3 steps to complete your order.',
       'ck.order':'Your order','ck.next':'Next steps',
       'ck.s1.t':'Send the order by email','ck.s1.d':'Click "Send email" below. Your email client opens with all details pre-filled.',
@@ -168,7 +168,7 @@ const I18N = (function(){
       'footer.rights':'© 2026 DigitalStore · Все права защищены.',
       'drawer.title':'Корзина','drawer.empty':'Ваша корзина пуста','drawer.total':'Итого',
       'drawer.note':'После нажатия откроется окно с банковскими реквизитами и инструкцией по оплате.','drawer.checkout':'Отправить заказ',
-      'coupon.label':'Промокод','coupon.placeholder':'Введите промокод','coupon.apply':'Применить','coupon.applied':'Промокод применён ✓','coupon.discount':'Скидка','coupon.subtotal':'Промежуточный итог','coupon.remove':'Убрать','coupon.invalid':'Неверный код','coupon.expired':'Срок действия истёк','coupon.used':'Код уже использован','coupon.na':'Не действует для этих товаров','coupon.empty':'Введите код','coupon.unavail':'Сервис скидок недоступен, попробуйте позже.','coupon.appliesto':'Промокод действует только для','coupon.excluded':'Промокод не действует для','loyalty.applied':'Скидка постоянного клиента −{p}% применяется автоматически 🎉','loyalty.label':'Скидка постоянного клиента',
+      'coupon.label':'Промокод','coupon.placeholder':'Введите промокод','coupon.apply':'Применить','coupon.applied':'Промокод применён ✓','coupon.discount':'Скидка','coupon.subtotal':'Промежуточный итог','coupon.remove':'Убрать','coupon.invalid':'Неверный код','coupon.expired':'Срок действия истёк','coupon.used':'Код уже использован','coupon.na':'Не действует для этих товаров','coupon.empty':'Введите код','coupon.unavail':'Сервис скидок недоступен, попробуйте позже.','coupon.appliesto':'Промокод действует только для','coupon.excluded':'Промокод не действует для','loyalty.applied':'Скидка постоянного клиента −{p}% применяется автоматически 🎉','loyalty.label':'Скидка постоянного клиента','qty.label':'Скидка за количество','qty.tier':'от {n} шт. −{p}%',
       'ck.title':'Почти готово!','ck.sub':'Выполните эти 3 шага, чтобы завершить заказ.',
       'ck.order':'Ваш заказ','ck.next':'Следующие шаги',
       'ck.s1.t':'Отправить заказ по email','ck.s1.d':'Нажмите «Отправить email» ниже. Ваш почтовый клиент откроется со всеми заполненными данными.',
@@ -858,12 +858,67 @@ function trackImpressions(ids){
   }catch(e){}
 }
 let appliedCoupon = null;
+// Automatic promotions (server authoritative; client mirrors for display)
+let PROMO = null; // { qty:{enabled,tiers:[{min,percent}],exclude:[]}, loyalty:{...} }
+function loadPromo(){
+  if(!WORKER_URL) return;
+  fetch(WORKER_URL.replace(/\/$/,'')+'/promo').then(r=>r.json()).then(d=>{
+    if(d && d.ok){ PROMO = d; qtyPromoBarUI(); updateCartUI(); }
+  }).catch(()=>{});
+}
+// Exclusion entries: "pid" or "pid|Variant Label"
+function lineExcludedC(ex, pid, variant){
+  if(!ex || !ex.length) return false;
+  return ex.includes(String(pid)) || ex.includes(String(pid)+'|'+(variant||''));
+}
+// Best quantity tier for the current cart → {discount, percent, code} or null
+function qtyAuto(){
+  const q = PROMO && PROMO.qty;
+  if(!q || !q.enabled || !(q.tiers||[]).length || !cart.length) return null;
+  const lines = cart.filter(c=>!lineExcludedC(q.exclude, c.pid, c.variant));
+  const n = lines.reduce((s,c)=>s+c.qty,0);
+  const base = lines.reduce((s,c)=>s+c.qty*c.price,0);
+  let best=null; for(const t of q.tiers){ if(n>=t.min && (!best || t.percent>best.percent)) best=t; }
+  if(!best || base<=0) return null;
+  const d = Math.round(base*best.percent)/100;
+  return d>0 ? {discount:d, percent:best.percent, code:'MENGE'+best.percent} : null;
+}
+// Loyalty discount for the current cart (requires LOYALTY from /loyalty/check)
+function loyAuto(){
+  if(!LOYALTY || !(LOYALTY.percent>0) || !cart.length) return null;
+  const lines = cart.filter(c=>!lineExcludedC(LOYALTY.exclude, c.pid, c.variant));
+  const base = lines.reduce((s,c)=>s+c.qty*c.price,0);
+  if(base<=0) return null;
+  const d = Math.round(base*LOYALTY.percent)/100;
+  return d>0 ? {discount:d, percent:LOYALTY.percent, code:'TREUE'+LOYALTY.percent} : null;
+}
+// Pick the best deal among coupon / quantity / loyalty (mirrors the Worker)
+function bestDiscount(subtotal, withLoyalty){
+  const cands=[];
+  if(appliedCoupon) cands.push({discount:Math.min(appliedCoupon.discount, subtotal), code:appliedCoupon.code, kind:'coupon'});
+  const q=qtyAuto(); if(q) cands.push({discount:q.discount, code:q.code, kind:'qty'});
+  if(withLoyalty){ const l=loyAuto(); if(l) cands.push({discount:l.discount, code:l.code, kind:'loyalty'}); }
+  if(!cands.length) return null;
+  cands.sort((x,y)=>y.discount-x.discount);
+  return cands[0];
+}
+function qtyPromoBarUI(){
+  const bar=document.getElementById('qtyPromoBar');
+  if(!bar) return;
+  const q=PROMO && PROMO.qty;
+  if(q && q.enabled && (q.tiers||[]).length){
+    bar.style.display='block';
+    bar.innerHTML='<i class="fa-solid fa-tags" style="margin-right:6px"></i>'+I18N.t('qty.label')+': '+q.tiers.map(t=>I18N.t('qty.tier').replace('{n}',t.min).replace('{p}',t.percent)).join(' · ');
+  } else { bar.style.display='none'; }
+}
 // Treuerabatt: auto loyalty discount checked against the typed email (server authoritative)
 let LOYALTY = null; let __loyT = null;
 function loyaltyNoteUI(){
   const n = document.getElementById('loyaltyNote');
   if(!n) return;
-  if(LOYALTY && !appliedCoupon){
+  const subtotal = cart.reduce((s,c)=>s+c.qty*c.price,0);
+  const best = bestDiscount(subtotal, true);
+  if(best && best.kind==='loyalty'){
     n.style.display='block';
     n.textContent = I18N.t('loyalty.applied').replace('{p}', LOYALTY.percent);
   } else { n.style.display='none'; }
@@ -874,7 +929,7 @@ function checkLoyalty(){
   if(!WORKER_URL || !email || !email.includes('@')){ LOYALTY=null; loyaltyNoteUI(); return; }
   fetch(WORKER_URL.replace(/\/$/,'')+'/loyalty/check',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})})
     .then(r=>r.json()).then(d=>{
-      LOYALTY = (d && d.ok && d.eligible && d.percent>0) ? {percent:d.percent} : null;
+      LOYALTY = (d && d.ok && d.eligible && d.percent>0) ? {percent:d.percent, exclude:d.exclude||[]} : null;
       loyaltyNoteUI();
     }).catch(()=>{ LOYALTY=null; loyaltyNoteUI(); });
 }
@@ -961,10 +1016,17 @@ function updateCartUI(){
         </div>
       </div>`).join('');
     foot.style.display = 'block';
-    const discount = appliedCoupon ? Math.min(appliedCoupon.discount, totalPrice) : 0;
+    qtyPromoBarUI();
+    const best = bestDiscount(totalPrice, false);
+    const discount = best ? Math.min(best.discount, totalPrice) : 0;
     const grand = Math.max(0, totalPrice - discount);
-    const dr = document.getElementById('discountRow'); const da = document.getElementById('discountAmt');
-    if(dr && da){ if(discount>0){ dr.style.display='flex'; da.textContent = discount.toFixed(2); } else { dr.style.display='none'; } }
+    const dr = document.getElementById('discountRow'); const da = document.getElementById('discountAmt'); const dl = document.getElementById('discountLbl');
+    if(dr && da){
+      if(discount>0){
+        dr.style.display='flex'; da.textContent = discount.toFixed(2);
+        if(dl) dl.textContent = best.kind==='qty' ? (I18N.t('qty.label')+' ('+best.code+')') : (I18N.t('coupon.discount')+' ('+best.code+')');
+      } else { dr.style.display='none'; }
+    }
     document.getElementById('cartTotal').textContent = grand.toFixed(2);
   }
 }
@@ -973,12 +1035,9 @@ function buildOrderText(){
   if(cart.length===0) return '';
   const lines = cart.map(c=>`• ${c.name} (${tVariant(c.variant)}) × ${c.qty} = €${(c.qty*c.price).toFixed(2)}`).join('\n');
   const subtotal = cart.reduce((s,c)=>s+c.qty*c.price,0);
-  let discount = appliedCoupon ? Math.min(appliedCoupon.discount, subtotal) : 0;
-  let rabattLabel = appliedCoupon ? appliedCoupon.code : '';
-  if(!appliedCoupon && LOYALTY && LOYALTY.percent>0){
-    discount = Math.min(subtotal, Math.round(subtotal*LOYALTY.percent)/100);
-    rabattLabel = 'TREUE'+LOYALTY.percent;
-  }
+  const bestDeal = bestDiscount(subtotal, true); // best of coupon / quantity / loyalty (server re-validates)
+  let discount = bestDeal ? Math.min(bestDeal.discount, subtotal) : 0;
+  let rabattLabel = bestDeal ? bestDeal.code : '';
   const total = Math.max(0, subtotal - discount).toFixed(2);
   const isFree = (+total) <= 0.0001;
   return I18N.t('email.body', {lines, total, name:BANK.name, iban:BANK.iban});
@@ -993,12 +1052,9 @@ function showCheckoutModal(){
   // populate summary
   const sumEl = document.getElementById('orderSummary');
   const subtotal = cart.reduce((s,c)=>s+c.qty*c.price,0);
-  let discount = appliedCoupon ? Math.min(appliedCoupon.discount, subtotal) : 0;
-  let rabattLabel = appliedCoupon ? appliedCoupon.code : '';
-  if(!appliedCoupon && LOYALTY && LOYALTY.percent>0){
-    discount = Math.min(subtotal, Math.round(subtotal*LOYALTY.percent)/100);
-    rabattLabel = 'TREUE'+LOYALTY.percent;
-  }
+  const bestDeal = bestDiscount(subtotal, true); // best of coupon / quantity / loyalty (server re-validates)
+  let discount = bestDeal ? Math.min(bestDeal.discount, subtotal) : 0;
+  let rabattLabel = bestDeal ? bestDeal.code : '';
   const total = Math.max(0, subtotal - discount).toFixed(2);
   const isFree = (+total) <= 0.0001;
   sumEl.innerHTML = cart.map(c=>`<div class="os-row"><span class="desc">${c.qty}× ${c.name} <small style="color:var(--text-3)">(${tVariant(c.variant)})</small></span><strong>€${(c.qty*c.price).toFixed(2)}</strong></div>`).join('')
@@ -1038,12 +1094,9 @@ function submitOrder(){
   const orderId = generateOrderId();
   CURRENT_ORDER_ID = orderId;
   const subtotal = cart.reduce((s,c)=>s+c.qty*c.price,0);
-  let discount = appliedCoupon ? Math.min(appliedCoupon.discount, subtotal) : 0;
-  let rabattLabel = appliedCoupon ? appliedCoupon.code : '';
-  if(!appliedCoupon && LOYALTY && LOYALTY.percent>0){
-    discount = Math.min(subtotal, Math.round(subtotal*LOYALTY.percent)/100);
-    rabattLabel = 'TREUE'+LOYALTY.percent;
-  }
+  const bestDeal = bestDiscount(subtotal, true); // best of coupon / quantity / loyalty (server re-validates)
+  let discount = bestDeal ? Math.min(bestDeal.discount, subtotal) : 0;
+  let rabattLabel = bestDeal ? bestDeal.code : '';
   const total = Math.max(0, subtotal - discount).toFixed(2);
   const isFree = (+total) <= 0.0001;
   const lines = cart.map(c=>`${c.qty}× ${c.name} (${c.variant}) = €${(c.qty*c.price).toFixed(2)}`).join('\n');
@@ -1398,3 +1451,4 @@ async function loadProducts(){
   observeReveal();
 }
 loadProducts();
+loadPromo();

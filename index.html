@@ -306,13 +306,14 @@
     </div>
   </div>
   <div class="drawer-foot" id="drawerFoot" style="display:none">
+    <div id="qtyPromoBar" style="display:none;margin-bottom:10px;background:#eef2ff;border:1px solid #c7d2fe;color:#3730a3;border-radius:8px;padding:8px 12px;font-size:12.5px;font-weight:600"></div>
     <div class="coupon-box">
       <input id="couponInput" class="coupon-input" type="text" autocomplete="off" placeholder="Rabattcode eingeben" data-i18n-attr="placeholder:coupon.placeholder">
       <button class="coupon-apply" type="button" onclick="applyCoupon()" data-i18n="coupon.apply">Anwenden</button>
     </div>
     <div id="couponMsg" class="coupon-msg" style="display:none"></div>
     <div class="cart-total cart-discount" id="discountRow" style="display:none">
-      <span data-i18n="coupon.discount">Rabatt</span>
+      <span id="discountLbl" data-i18n="coupon.discount">Rabatt</span>
       <span>−€<span id="discountAmt">0.00</span></span>
     </div>
     <div class="cart-total">
