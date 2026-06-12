@@ -21,7 +21,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;ba
 .lang{display:flex;gap:4px}
 .lang button{padding:6px 11px;border:1px solid var(--line);background:var(--surface);border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text2);font-family:inherit}
 .lang button.on{background:var(--brand);color:#fff;border-color:var(--brand)}
-.filterbar{position:sticky;top:0;z-index:20;background:var(--bg);padding:10px 0 14px;display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin-bottom:18px}
+.hero{background:linear-gradient(120deg,var(--brand),var(--brand2));border-radius:var(--radius);padding:16px 20px;color:#fff;margin-bottom:14px;box-shadow:0 6px 20px var(--brandsoft)}
+.hero-t{font-size:16px;font-weight:800;letter-spacing:-.01em;display:flex;align-items:center;gap:9px}
+.hero-s{font-size:12.5px;opacity:.85;margin-top:3px;font-variant-numeric:tabular-nums}
+.filterbar{position:sticky;top:0;z-index:20;background:var(--bg);padding:10px 0 14px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--line);margin-bottom:18px}
+.fsep{width:1px;height:22px;background:var(--line2);margin:0 4px}
+.dinp{padding:6px 8px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--text);font-family:inherit;font-size:12.5px;outline:none;max-width:135px}
+.dapply{padding:7px 13px;border:1px solid var(--brand);background:var(--brand);color:#fff;border-radius:20px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit}
+.ftog{padding:7px 13px;border:1px solid var(--line);background:var(--surface);border-radius:20px;font-size:12.5px;font-weight:600;cursor:pointer;color:var(--text2);font-family:inherit;display:inline-flex;align-items:center;gap:6px}
+.ftog.on{background:var(--brandsoft);border-color:var(--brand);color:var(--brand)}
+body.nocmp .trend{display:none}
+@media(max-width:640px){.dinp{max-width:118px;font-size:11.5px}.fsep{display:none}}
 .filterbar button{padding:7px 16px;border:1px solid var(--line);background:var(--surface);border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;color:var(--text2);font-family:inherit}
 .filterbar button.on{background:var(--brand);color:#fff;border-color:var(--brand);box-shadow:0 2px 8px var(--brandsoft)}
 .alert{background:#fef2f2;border:1px solid #fecaca;color:#b91c1c;border-radius:12px;padding:12px 16px;margin-bottom:16px;font-size:13.5px;display:none;align-items:center;gap:10px}
@@ -119,10 +129,24 @@ canvas{max-height:260px}
     <a class="btn" href="./index.html"><i class="fa-solid fa-arrow-left"></i> <span data-i="back">Admin</span></a>
   </div>
 
+  <div class="hero">
+    <div class="hero-t"><i class="fa-solid fa-chart-pie"></i> <span data-i="heroT">Tổng quan hiệu suất</span></div>
+    <div class="hero-s" id="rangeLabel"></div>
+  </div>
+
   <div class="filterbar" id="filters">
     <button data-d="1" data-i="today">Hôm nay</button>
     <button data-d="7" class="on" data-i="d7">7 ngày</button>
     <button data-d="30" data-i="d30">30 ngày</button>
+    <span class="fsep"></span>
+    <input type="date" id="dFrom" class="dinp" title="Von">
+    <span style="color:var(--text3)">→</span>
+    <input type="date" id="dTo" class="dinp" title="Bis">
+    <button id="dApply" class="dapply" data-i="apply">Áp dụng</button>
+    <span class="fsep"></span>
+    <button id="cmpBtn" class="ftog on" title=""><i class="fa-solid fa-arrow-trend-up"></i> <span data-i="compare">So sánh kỳ trước</span></button>
+    <button id="csvBtn" class="ftog" title=""><i class="fa-solid fa-file-csv"></i> <span data-i="exportcsv">Xuất CSV</span></button>
+    <button id="reloadBtn" class="ftog" title="Reload"><i class="fa-solid fa-rotate"></i></button>
   </div>
 
   <div class="alert" id="alertBox"><i class="fa-solid fa-triangle-exclamation"></i> <span id="alertMsg"></span></div>
@@ -199,21 +223,21 @@ canvas{max-height:260px}
 
 <script>
 const I18N={
- vi:{title:'Phân tích bán hàng',back:'Admin',today:'Hôm nay',d7:'7 ngày',d30:'30 ngày',funnel:'Phễu chuyển đổi',revchart:'Doanh thu theo ngày',sesschart:'Phiên theo ngày',product:'Phân tích sản phẩm',customers:'Khách hàng',del7:'Xóa dữ liệu >7 ngày',delall:'Xóa tất cả',search:'Tìm sản phẩm…',cmTitle:'Quản lý mã giảm giá',cm_code:'Mã',cm_rabatt:'Giảm',cm_scope:'Phạm vi',cm_status:'Trạng thái',cm_exp:'Hết hạn',sc_order:'Toàn đơn',sc_product:'Theo sản phẩm',sc_variant:'Theo biến thể',st_off:'Tắt',st_exp:'Hết hạn',st_used:'Đã dùng',st_active:'Còn hiệu lực',cm_confirm:'Xóa mã này?',seg_all:'Tất cả',seg_sales:'Có bán ra',seg_nosales:'Chưa bán',seg_best:'Bán chạy',seg_lowcr:'CR thấp',seg_ht:'Nhiều xem, 0 đơn',
+ vi:{title:'Phân tích bán hàng',back:'Admin',today:'Hôm nay',d7:'7 ngày',d30:'30 ngày',heroT:'Tổng quan hiệu suất',apply:'Áp dụng',compare:'So sánh kỳ trước',exportcsv:'Xuất CSV',funnel:'Phễu chuyển đổi',revchart:'Doanh thu theo ngày',sesschart:'Phiên theo ngày',product:'Phân tích sản phẩm',customers:'Khách hàng',del7:'Xóa dữ liệu >7 ngày',delall:'Xóa tất cả',search:'Tìm sản phẩm…',cmTitle:'Quản lý mã giảm giá',cm_code:'Mã',cm_rabatt:'Giảm',cm_scope:'Phạm vi',cm_status:'Trạng thái',cm_exp:'Hết hạn',sc_order:'Toàn đơn',sc_product:'Theo sản phẩm',sc_variant:'Theo biến thể',st_off:'Tắt',st_exp:'Hết hạn',st_used:'Đã dùng',st_active:'Còn hiệu lực',cm_confirm:'Xóa mã này?',seg_all:'Tất cả',seg_sales:'Có bán ra',seg_nosales:'Chưa bán',seg_best:'Bán chạy',seg_lowcr:'CR thấp',seg_ht:'Nhiều xem, 0 đơn',
   k_rev:'Doanh thu (kỳ)',k_orders:'Số đơn',k_cr:'Tỷ lệ chuyển đổi',k_aov:'Giá trị đơn TB',k_sessions:'Phiên',k_units:'SP bán ra',k_revToday:'Doanh thu hôm nay',k_revMonth:'Doanh thu tháng',
   c_new:'Khách mới',c_ret:'Khách quay lại',c_repeat:'Tỷ lệ quay lại',c_ltv:'LTV trung bình',novsprev:'so kỳ trước',
   f_view:'Lượt xem',f_click:'Click',f_cart:'Thêm giỏ',f_begin:'Bắt đầu đặt',f_pay:'Gửi đơn',f_order:'Hoàn tất',drop:'rớt',
   p_product:'Sản phẩm',p_views:'Lượt xem',p_clicks:'Lượt click',p_ctr:'CTR',p_cart:'Giỏ',p_units:'Bán',p_rev:'Doanh thu',p_cr:'CR',p_tag:'Nhãn',
   bestseller:'Bán chạy',lowconv:'CR thấp',notraffic:'Xem nhiều, 0 đơn',
   alertMsg:'Cảnh báo: có bước trong phễu rớt trên 80% — kiểm tra ngay.',gateT:'Chưa kết nối',gateM:'Chưa có token admin trên thiết bị này. Mở Admin, vào mục E-Mail/Cài đặt nhập token một lần rồi quay lại.',gateB:'Mở Admin',confirmAll:'Xóa TẤT CẢ dữ liệu thống kê?',nodata:'—'},
- de:{title:'Verkaufsanalyse',back:'Admin',today:'Heute',d7:'7 Tage',d30:'30 Tage',funnel:'Conversion-Funnel',revchart:'Umsatz pro Tag',sesschart:'Sitzungen pro Tag',product:'Produktanalyse',customers:'Kunden',del7:'Daten >7 Tage löschen',delall:'Alle löschen',search:'Produkt suchen…',cmTitle:'Rabattcodes verwalten',cm_code:'Code',cm_rabatt:'Rabatt',cm_scope:'Bereich',cm_status:'Status',cm_exp:'Ablauf',sc_order:'Ganze Bestellung',sc_product:'Pro Produkt',sc_variant:'Pro Variante',st_off:'Inaktiv',st_exp:'Abgelaufen',st_used:'Verwendet',st_active:'Aktiv',cm_confirm:'Diesen Code löschen?',seg_all:'Alle',seg_sales:'Mit Verkäufen',seg_nosales:'Ohne Verkäufe',seg_best:'Bestseller',seg_lowcr:'Niedrige CR',seg_ht:'Viel Traffic, 0 Verkauf',
+ de:{title:'Verkaufsanalyse',back:'Admin',today:'Heute',d7:'7 Tage',d30:'30 Tage',heroT:'Performance-Überblick',apply:'Anwenden',compare:'Vergleich Vorperiode',exportcsv:'CSV exportieren',funnel:'Conversion-Funnel',revchart:'Umsatz pro Tag',sesschart:'Sitzungen pro Tag',product:'Produktanalyse',customers:'Kunden',del7:'Daten >7 Tage löschen',delall:'Alle löschen',search:'Produkt suchen…',cmTitle:'Rabattcodes verwalten',cm_code:'Code',cm_rabatt:'Rabatt',cm_scope:'Bereich',cm_status:'Status',cm_exp:'Ablauf',sc_order:'Ganze Bestellung',sc_product:'Pro Produkt',sc_variant:'Pro Variante',st_off:'Inaktiv',st_exp:'Abgelaufen',st_used:'Verwendet',st_active:'Aktiv',cm_confirm:'Diesen Code löschen?',seg_all:'Alle',seg_sales:'Mit Verkäufen',seg_nosales:'Ohne Verkäufe',seg_best:'Bestseller',seg_lowcr:'Niedrige CR',seg_ht:'Viel Traffic, 0 Verkauf',
   k_rev:'Umsatz (Zeitraum)',k_orders:'Bestellungen',k_cr:'Conversion-Rate',k_aov:'Ø Bestellwert',k_sessions:'Sitzungen',k_units:'Verkauft',k_revToday:'Umsatz heute',k_revMonth:'Umsatz Monat',
   c_new:'Neue Kunden',c_ret:'Wiederkehrend',c_repeat:'Wiederkaufrate',c_ltv:'Ø LTV',novsprev:'vs. Vorperiode',
   f_view:'Aufrufe',f_click:'Klicks',f_cart:'In den Warenkorb',f_begin:'Checkout gestartet',f_pay:'Bestellung gesendet',f_order:'Abgeschlossen',drop:'Absprung',
   p_product:'Produkt',p_views:'Aufrufe',p_clicks:'Klicks',p_ctr:'CTR',p_cart:'Warenkorb',p_units:'Verkauft',p_rev:'Umsatz',p_cr:'CR',p_tag:'Label',
   bestseller:'Bestseller',lowconv:'Niedrige CR',notraffic:'Viel Traffic, 0 Verkauf',
   alertMsg:'Warnung: Ein Funnel-Schritt verliert über 80% — bitte prüfen.',gateT:'Nicht verbunden',gateM:'Kein Admin-Token. Öffne Admin, gib im E-Mail/Einstellungen-Bereich den Token ein und komm zurück.',gateB:'Admin öffnen',confirmAll:'ALLE Statistikdaten löschen?',nodata:'—'},
- en:{title:'Sales analytics',back:'Admin',today:'Today',d7:'7 days',d30:'30 days',funnel:'Conversion funnel',revchart:'Revenue per day',sesschart:'Sessions per day',product:'Product analytics',customers:'Customers',del7:'Delete data >7 days',delall:'Delete all',search:'Search product…',cmTitle:'Manage coupons',cm_code:'Code',cm_rabatt:'Discount',cm_scope:'Scope',cm_status:'Status',cm_exp:'Expiry',sc_order:'Whole order',sc_product:'Per product',sc_variant:'Per variant',st_off:'Inactive',st_exp:'Expired',st_used:'Used',st_active:'Active',cm_confirm:'Delete this code?',seg_all:'All',seg_sales:'With sales',seg_nosales:'No sales',seg_best:'Best sellers',seg_lowcr:'Low CR',seg_ht:'High traffic, 0 sales',
+ en:{title:'Sales analytics',back:'Admin',today:'Today',d7:'7 days',d30:'30 days',heroT:'Performance overview',apply:'Apply',compare:'Compare previous period',exportcsv:'Export CSV',funnel:'Conversion funnel',revchart:'Revenue per day',sesschart:'Sessions per day',product:'Product analytics',customers:'Customers',del7:'Delete data >7 days',delall:'Delete all',search:'Search product…',cmTitle:'Manage coupons',cm_code:'Code',cm_rabatt:'Discount',cm_scope:'Scope',cm_status:'Status',cm_exp:'Expiry',sc_order:'Whole order',sc_product:'Per product',sc_variant:'Per variant',st_off:'Inactive',st_exp:'Expired',st_used:'Used',st_active:'Active',cm_confirm:'Delete this code?',seg_all:'All',seg_sales:'With sales',seg_nosales:'No sales',seg_best:'Best sellers',seg_lowcr:'Low CR',seg_ht:'High traffic, 0 sales',
   k_rev:'Revenue (range)',k_orders:'Orders',k_cr:'Conversion rate',k_aov:'Avg order value',k_sessions:'Sessions',k_units:'Units sold',k_revToday:'Revenue today',k_revMonth:'Revenue month',
   c_new:'New customers',c_ret:'Returning',c_repeat:'Repeat rate',c_ltv:'Avg LTV',novsprev:'vs previous',
   f_view:'Views',f_click:'Clicks',f_cart:'Add to cart',f_begin:'Begin checkout',f_pay:'Order sent',f_order:'Completed',drop:'drop-off',
@@ -222,7 +246,7 @@ const I18N={
   alertMsg:'Alert: a funnel step drops over 80% — please investigate.',gateT:'Not connected',gateM:'No admin token. Open Admin, enter the token in the E-Mail/Settings area, then come back.',gateB:'Open Admin',confirmAll:'Delete ALL analytics data?',nodata:'—'}
 };
 let LANG=localStorage.getItem('pm_admin_lang')||'vi'; if(!I18N[LANG])LANG='vi';
-let DAYS=7, lastData=null, PMAP={}, sortKey='rev', sortDir=-1, chRev=null, chSess=null, sparks=[];
+let DAYS=7, RANGE=null, lastData=null, PMAP={}, sortKey='rev', sortDir=-1, chRev=null, chSess=null, sparks=[];
 const $=s=>document.querySelector(s);
 const T=k=>(I18N[LANG]||I18N.vi)[k]||k;
 const eur=n=>'€'+(Number(n)||0).toFixed(2);
@@ -327,7 +351,35 @@ function render(d){
   ].map(x=>`<div class="kpi"><div class="lbl">${x[0]}</div><div class="val">${x[1]}</div></div>`).join('');
 }
 async function loadProductNames(){ try{ const r=await fetch('../products.json',{cache:'no-store'}); const arr=await r.json(); (Array.isArray(arr)?arr:[]).forEach(p=>PMAP[String(p.id)]=p.name); }catch(e){} }
-async function load(){ try{ $('#kpis').style.opacity=.4; const d=await api('/admin/stats?days='+DAYS); $('#kpis').style.opacity=1; if(!d||!d.ok){gate();return;} render(d);}catch(e){ if(e.status===401)gate(); } }
+async function load(){ try{ $('#kpis').style.opacity=.4; const qs=RANGE?('from='+RANGE.from+'&to='+RANGE.to):('days='+DAYS); const d=await api('/admin/stats?'+qs); $('#kpis').style.opacity=1; if(!d||!d.ok){gate();return;} rangeLabel(d); render(d);}catch(e){ if(e.status===401)gate(); } }
+function rangeLabel(d){ const el=$('#rangeLabel'); if(el&&d&&d.since) el.textContent=d.since+' → '+d.until+' · '+d.days+'d'; }
+function csvCell(v){ v=String(v==null?'':v); return /[",\n;]/.test(v)?('"'+v.replace(/"/g,'""')+'"'):v; }
+function exportCSV(){
+  const d=lastData; if(!d) return;
+  const rows=[];
+  rows.push(['DigitalStore Analytics', d.since||'', d.until||'']);
+  rows.push([]);
+  rows.push(['KPI','Value']);
+  const k=d.kpi||{};
+  [['Revenue (range)',k.revenueRange],['Orders (range)',k.ordersRange],['AOV',k.aov],['Sessions',k.sessions],['Conversion %',k.conversion],['Units sold',k.unitsRange],['Revenue today',k.revenueToday],['Revenue month',k.revenueMonth],['Revenue total',k.revenueTotal]].forEach(r=>rows.push(r));
+  rows.push([]);
+  rows.push(['Day','Revenue','Orders']);
+  (d.series||[]).forEach(r=>rows.push([r.day,r.rev,r.orders]));
+  rows.push([]);
+  rows.push(['Day','Sessions']);
+  (d.seriesSessions||[]).forEach(r=>rows.push([r.day,r.s]));
+  rows.push([]);
+  rows.push(['Product','Revenue','Units']);
+  (d.revByProduct||[]).forEach(r=>rows.push([r.name||PMAP[String(r.product_id)]||r.product_id,r.rev,r.q]));
+  rows.push([]);
+  rows.push(['Coupon','Uses','Discount']);
+  ((d.coupons||{}).top||[]).forEach(r=>rows.push([r.code,r.c,r.d]));
+  const csv='\ufeff'+rows.map(r=>r.map(csvCell).join(';')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download='digitalstore-analytics-'+(d.since||'')+'_'+(d.until||'')+'.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+}
 function gate(){ $('#app').classList.add('hidden'); const g=$('#gate'); g.classList.remove('hidden'); $('#g_title').textContent=T('gateT'); $('#g_msg').textContent=T('gateM'); $('#g_back').textContent=T('gateB'); }
 function setTheme(t){ document.documentElement.setAttribute('data-theme',t); localStorage.setItem('pm_theme',t); const i=$('#themeBtn').querySelector('i'); i.className=t==='dark'?'fa-solid fa-sun':'fa-solid fa-moon'; if(lastData)render(lastData); }
 async function boot(){
@@ -335,7 +387,11 @@ async function boot(){
   if(!creds().tok){ gate(); return; }
   $('#app').classList.remove('hidden');
   await loadProductNames();
-  document.querySelectorAll('#filters button').forEach(b=>b.onclick=()=>{DAYS=+b.dataset.d;document.querySelectorAll('#filters button').forEach(x=>x.classList.toggle('on',x===b));load();});
+  document.querySelectorAll('#filters button[data-d]').forEach(b=>b.onclick=()=>{DAYS=+b.dataset.d;RANGE=null;$('#dFrom').value='';$('#dTo').value='';document.querySelectorAll('#filters button[data-d]').forEach(x=>x.classList.toggle('on',x===b));load();});
+  $('#dApply').onclick=()=>{ const f=$('#dFrom').value,t=$('#dTo').value; if(!f||!t||f>t) return; RANGE={from:f,to:t}; document.querySelectorAll('#filters button[data-d]').forEach(x=>x.classList.remove('on')); load(); };
+  $('#cmpBtn').onclick=()=>{ const on=$('#cmpBtn').classList.toggle('on'); document.body.classList.toggle('nocmp',!on); };
+  $('#csvBtn').onclick=exportCSV;
+  $('#reloadBtn').onclick=()=>load();
   document.querySelectorAll('#langSwitch button').forEach(b=>b.onclick=()=>{LANG=b.dataset.l;localStorage.setItem('pm_admin_lang',LANG);applyI18n();if(lastData)render(lastData);});
   $('#themeBtn').onclick=()=>setTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');
   document.querySelectorAll('#tblProd th[data-sort]').forEach(th=>th.onclick=()=>{const k=th.dataset.sort;if(sortKey===k)sortDir*=-1;else{sortKey=k;sortDir=-1;}const ps=$('#prodSort');if(ps&&[...ps.options].some(o=>o.value===k))ps.value=k;const pd=$('#prodDir');if(pd)pd.textContent=sortDir<0?'↓':'↑';renderProducts();});
