@@ -38,6 +38,8 @@ export default {
       if (url.pathname === '/coupon/validate' && request.method === 'POST') return validateCouponReq(request, env, cors);
       if (url.pathname === '/loyalty/check' && request.method === 'POST') return loyaltyCheckReq(request, env, cors);
       if (url.pathname === '/admin/loyalty') return requireAdmin(request, env, cors, () => loyaltyAdminReq(request, env, cors));
+      if (url.pathname === '/admin/qty') return requireAdmin(request, env, cors, () => qtyAdminReq(request, env, cors));
+      if (url.pathname === '/promo' && request.method === 'GET') return promoReq(env, cors);
       if (url.pathname === '/admin/coupons') {
         if (request.method === 'GET') return requireAdmin(request, env, cors, () => listCoupons(request, env, cors));
         if (request.method === 'POST') return requireAdmin(request, env, cors, () => createCoupons(request, env, cors));
@@ -114,20 +116,38 @@ async function createOrder(request, env, cors) {
     product_id: (i.product_id ?? i.id ?? null), name: i.name || '', variant: i.variant || '', qty: Number(i.qty) || 1, price: Number(i.price) || 0,
   })) : [];
   const subtotal = norm.reduce((s, i) => s + i.qty * i.price, 0);
-  // Coupon: re-validate + consume server-side (authoritative pricing)
+  // Discounts: pick the BEST deal for the customer among manual coupon,
+  // quantity tiers (Mengenrabatt) and loyalty (Treuerabatt). Server prices are
+  // authoritative; the coupon is only consumed if it actually wins.
   let discount = 0, couponCode = null, serverSubtotal = subtotal;
-  if (b.coupon && env.DB) {
-    const applied = await applyCouponForOrder(env, String(b.coupon).toUpperCase().trim(), norm.map(i => ({ product_id: i.product_id, variant: i.variant, qty: i.qty })), orderId);
-    if (applied && applied.ok) { discount = applied.discount; couponCode = String(b.coupon).toUpperCase().trim(); serverSubtotal = applied.subtotal; }
-  }
-  if (!couponCode && env.DB) {
+  if (env.DB) {
     try {
-      const lr = await loyaltyEligible(env, email);
-      if (lr.eligible) {
-        const priced = await priceCart(env, norm.map(i => ({ product_id: i.product_id, variant: i.variant, qty: i.qty })));
-        const base = priced.subtotal > 0 ? priced.subtotal : subtotal;
-        discount = Math.round(base * lr.cfg.percent) / 100;
-        if (discount > 0) { couponCode = 'TREUE' + lr.cfg.percent; serverSubtotal = base; }
+      await ensureSchema(env);
+      const itemsApi = norm.map(i => ({ product_id: i.product_id, variant: i.variant, qty: i.qty }));
+      const priced = await priceCart(env, itemsApi);
+      if (priced.subtotal > 0) {
+        const cands = [];
+        const code = b.coupon ? String(b.coupon).toUpperCase().trim() : null;
+        if (code) {
+          const c = await env.DB.prepare('SELECT * FROM coupons WHERE code=?').bind(code).first();
+          if (c && couponLive(c)) { const d = couponDiscount(c, priced); if (d > 0) cands.push({ discount: d, code, kind: 'coupon' }); }
+        }
+        const qd = qtyDiscount(await getQtyCfg(env), priced);
+        if (qd) cands.push({ discount: qd.discount, code: qd.code, kind: 'qty' });
+        const lr = await loyaltyEligible(env, email);
+        if (lr.eligible && lr.cfg.percent > 0) {
+          const base = eligibleBase(normExclude(lr.cfg.exclude), priced);
+          const d = Math.round(base * lr.cfg.percent) / 100;
+          if (d > 0) cands.push({ discount: d, code: 'TREUE' + lr.cfg.percent, kind: 'loyalty' });
+        }
+        cands.sort((a, b2) => b2.discount - a.discount);
+        for (const cand of cands) {
+          if (cand.kind === 'coupon') {
+            const applied = await applyCouponForOrder(env, cand.code, itemsApi, orderId); // atomic consume
+            if (applied && applied.ok) { discount = applied.discount; couponCode = cand.code; serverSubtotal = applied.subtotal; break; }
+            // coupon lost a race / got used up → fall through to next-best candidate
+          } else { discount = cand.discount; couponCode = cand.code; serverSubtotal = priced.subtotal; break; }
+        }
       }
     } catch (e) {}
   }
@@ -433,12 +453,55 @@ async function getLoyaltyCfg(env){
   if (!env.ORDERS) return { enabled: false };
   try { const c = await env.ORDERS.get(LOYALTY_KEY, { type: 'json' }); return c && typeof c === 'object' ? c : { enabled: false }; } catch (e) { return { enabled: false }; }
 }
+function normExclude(a){
+  return (Array.isArray(a) ? a : []).map(String).filter(s => s.length && s.length < 120).slice(0, 200);
+}
 function normLoyalty(b){
   return {
     enabled: !!b.enabled,
     percent: Math.min(100, Math.max(0, Number(b.percent) || 0)),
     from_order: Math.max(2, Math.round(Number(b.from_order) || 2)), // discount applies from the Nth order
+    exclude: normExclude(b.exclude),
   };
+}
+// ───── Quantity discount tiers (Mengenrabatt), eBay-style ─────
+const QTY_KEY = '__qty';
+async function getQtyCfg(env){
+  if (!env.ORDERS) return { enabled: false, tiers: [], exclude: [] };
+  try { const c = await env.ORDERS.get(QTY_KEY, { type: 'json' }); return c && typeof c === 'object' ? { enabled: !!c.enabled, tiers: Array.isArray(c.tiers)?c.tiers:[], exclude: normExclude(c.exclude) } : { enabled: false, tiers: [], exclude: [] }; } catch (e) { return { enabled: false, tiers: [], exclude: [] }; }
+}
+function normQty(b){
+  const tiers = (Array.isArray(b.tiers) ? b.tiers : [])
+    .map(t => ({ min: Math.max(2, Math.round(Number(t.min) || 0)), percent: Math.min(100, Math.max(0, Number(t.percent) || 0)) }))
+    .filter(t => t.min >= 2 && t.percent > 0)
+    .sort((a,b2) => a.min - b2.min)
+    .slice(0, 5);
+  return { enabled: !!b.enabled && tiers.length > 0, tiers, exclude: normExclude(b.exclude) };
+}
+async function qtyAdminReq(request, env, cors){
+  if (request.method === 'GET') return json({ ok:true, config: await getQtyCfg(env) }, 200, cors);
+  let b; try { b = await request.json(); } catch { return json({ error:'bad_json' }, 400, cors); }
+  const cfg = normQty(b || {});
+  if (env.ORDERS) await env.ORDERS.put(QTY_KEY, JSON.stringify(cfg));
+  return json({ ok:true, config: cfg }, 200, cors);
+}
+// Public promo config so the storefront can show & mirror automatic discounts
+async function promoReq(env, cors){
+  const qty = await getQtyCfg(env);
+  const loy = await getLoyaltyCfg(env);
+  return json({ ok:true, qty, loyalty: { enabled: !!loy.enabled, percent: Number(loy.percent)||0, from_order: loy.from_order||2, exclude: normExclude(loy.exclude) } }, 200, cors);
+}
+// Quantity discount for a priced cart: best tier by total eligible quantity
+function qtyDiscount(cfg, priced){
+  if (!cfg || !cfg.enabled || !cfg.tiers || !cfg.tiers.length) return null;
+  const lines = priced.lines.filter(l => !lineExcluded(cfg.exclude || [], l));
+  const q = lines.reduce((s,l)=>s+l.qty,0);
+  const base = lines.reduce((s,l)=>s+l.line_total,0);
+  let best = null;
+  for (const t of cfg.tiers) if (q >= t.min && (!best || t.percent > best.percent)) best = t;
+  if (!best || base <= 0) return null;
+  const d = Math.round(base * best.percent) / 100;
+  return d > 0 ? { discount: d, percent: best.percent, code: 'MENGE' + best.percent } : null;
 }
 async function loyaltyEligible(env, email){
   const cfg = await getLoyaltyCfg(env);
@@ -455,7 +518,7 @@ async function loyaltyCheckReq(request, env, cors){
   const email = String(b.email || '').toLowerCase().trim();
   if (!email || !email.includes('@')) return json({ ok:true, eligible:false }, 200, cors);
   const r = await loyaltyEligible(env, email);
-  return json({ ok:true, eligible: r.eligible, percent: r.eligible ? r.cfg.percent : 0, from_order: r.cfg.from_order || 2 }, 200, cors);
+  return json({ ok:true, eligible: r.eligible, percent: r.eligible ? r.cfg.percent : 0, from_order: r.cfg.from_order || 2, exclude: normExclude(r.cfg.exclude) }, 200, cors);
 }
 async function loyaltyAdminReq(request, env, cors){
   if (request.method === 'GET') return json({ ok:true, config: await getLoyaltyCfg(env) }, 200, cors);
@@ -538,11 +601,34 @@ function couponLive(c){
 function couponExcluded(c){
   try { const a = c && c.exclude_products ? JSON.parse(c.exclude_products) : []; return Array.isArray(a) ? a.map(String) : []; } catch (e) { return []; }
 }
+// Exclusion entries: "pid" (whole product) or "pid|Variant Label" (single variant)
+function lineExcluded(ex, l){
+  if (!ex || !ex.length) return false;
+  const pid = String(l.product_id);
+  return ex.includes(pid) || ex.includes(pid + '|' + (l.variant || ''));
+}
+function eligibleBase(ex, priced){
+  return priced.lines.filter(l => !lineExcluded(ex, l)).reduce((s,l)=>s+l.line_total,0);
+}
+async function exclNames(env, ex){
+  const map = await getPriceMap(env);
+  const names = []; const seen = {};
+  for (const e of ex) {
+    if (e.includes('|')) {
+      const [pid, vlab] = [e.slice(0, e.indexOf('|')), e.slice(e.indexOf('|')+1)];
+      const info = map[pid + '|' + vlab];
+      if (info && !seen[e]) { seen[e]=1; names.push(info.name + ' · ' + vlab); }
+    } else if (!seen[e]) {
+      for (const k in map) { if (k.indexOf(e + '|') === 0) { seen[e]=1; names.push(map[k].name); break; } }
+    }
+  }
+  return names;
+}
 function couponBase(c, priced){
   if (c.scope === 'product') return priced.lines.filter(l => String(l.product_id) === String(c.target_product)).reduce((s,l)=>s+l.line_total,0);
   if (c.scope === 'variant') return priced.lines.filter(l => String(l.product_id) === String(c.target_product) && (l.variant||'') === (c.target_variant||'')).reduce((s,l)=>s+l.line_total,0);
   const ex = couponExcluded(c);
-  if (ex.length) return priced.lines.filter(l => !ex.includes(String(l.product_id))).reduce((s,l)=>s+l.line_total,0);
+  if (ex.length) return eligibleBase(ex, priced);
   return priced.subtotal;
 }
 function couponDiscount(c, priced){
@@ -569,9 +655,7 @@ async function validateCouponReq(request, env, cors){
     if (c.scope === 'order') {
       const ex = couponExcluded(c);
       if (ex.length) {
-        const map = await getPriceMap(env);
-        const names = []; const seen = {};
-        for (const k in map) { const pid = k.split('|')[0]; if (ex.includes(pid) && !seen[pid]) { seen[pid] = 1; names.push(map[k].name); } }
+        const names = await exclNames(env, ex);
         return json({ ok:false, reason:'excluded', excluded_names: names }, 200, cors);
       }
     }
@@ -695,45 +779,54 @@ async function getStats(request, env, cors){
   if (!env.DB) return json({ ok:false, stats:null }, 200, cors);
   await ensureSchema(env);
   const u = new URL(request.url);
-  const days = Math.max(1, Number(u.searchParams.get('days')) || 7);
-  const since = new Date(Date.now()-days*86400000).toISOString().slice(0,10);
   const today = new Date().toISOString().slice(0,10);
+  const isDay = s => /^\d{4}-\d{2}-\d{2}$/.test(String(s||''));
+  let since, until, days;
+  const pFrom = u.searchParams.get('from'), pTo = u.searchParams.get('to');
+  if (isDay(pFrom) && isDay(pTo) && pFrom <= pTo) {
+    since = pFrom; until = pTo > today ? today : pTo;
+    days = Math.max(1, Math.round((new Date(until) - new Date(since)) / 86400000) + 1);
+  } else {
+    days = Math.max(1, Number(u.searchParams.get('days')) || 7);
+    since = new Date(Date.now()-days*86400000).toISOString().slice(0,10);
+    until = today;
+  }
   const md = new Date(); md.setDate(1); const mStart = md.toISOString().slice(0,10);
   const q = (sql,...b) => env.DB.prepare(sql).bind(...b).first();
   const all = (sql,...b) => env.DB.prepare(sql).bind(...b).all().then(r=>r.results||[]);
   const revTotal = await q('SELECT COALESCE(SUM(revenue),0) v, COUNT(*) n FROM sales');
   const revToday = await q('SELECT COALESCE(SUM(revenue),0) v, COUNT(*) n FROM sales WHERE day=?', today);
   const revMonth = await q('SELECT COALESCE(SUM(revenue),0) v FROM sales WHERE day>=?', mStart);
-  const revRange = await q('SELECT COALESCE(SUM(revenue),0) v, COUNT(*) n FROM sales WHERE day>=?', since);
+  const revRange = await q('SELECT COALESCE(SUM(revenue),0) v, COUNT(*) n FROM sales WHERE day>=? AND day<=?', since, until);
   const ordersRange = revRange.n || 0;
   const aov = ordersRange ? revRange.v/ordersRange : 0;
-  const sess = await q('SELECT COUNT(DISTINCT session_id) n FROM events WHERE day>=? AND session_id IS NOT NULL', since);
+  const sess = await q('SELECT COUNT(DISTINCT session_id) n FROM events WHERE day>=? AND day<=? AND session_id IS NOT NULL', since, until);
   const conversion = sess.n ? (ordersRange/sess.n*100) : 0;
-  const topClicks = await all("SELECT product_id, COUNT(*) c FROM events WHERE type='click' AND day>=? GROUP BY product_id ORDER BY c DESC LIMIT 10", since);
-  const topCart = await all("SELECT product_id, COUNT(*) c FROM events WHERE type='add_cart' AND day>=? GROUP BY product_id ORDER BY c DESC LIMIT 10", since);
-  const topSold = await all("SELECT product_id, name, SUM(qty) q, COALESCE(SUM(line_total),0) rev FROM sale_items WHERE day>=? GROUP BY product_id ORDER BY q DESC LIMIT 10", since);
-  const revByProduct = await all("SELECT product_id, name, COALESCE(SUM(line_total),0) rev, SUM(qty) q FROM sale_items WHERE day>=? GROUP BY product_id ORDER BY rev DESC LIMIT 50", since);
-  const series = await all("SELECT day, COALESCE(SUM(revenue),0) rev, COUNT(*) orders FROM sales WHERE day>=? GROUP BY day ORDER BY day", since);
-  const seriesSessions = await all("SELECT day, COUNT(DISTINCT session_id) s FROM events WHERE day>=? AND session_id IS NOT NULL GROUP BY day ORDER BY day", since);
+  const topClicks = await all("SELECT product_id, COUNT(*) c FROM events WHERE type='click' AND day>=? AND day<=? GROUP BY product_id ORDER BY c DESC LIMIT 10", since, until);
+  const topCart = await all("SELECT product_id, COUNT(*) c FROM events WHERE type='add_cart' AND day>=? AND day<=? GROUP BY product_id ORDER BY c DESC LIMIT 10", since, until);
+  const topSold = await all("SELECT product_id, name, SUM(qty) q, COALESCE(SUM(line_total),0) rev FROM sale_items WHERE day>=? AND day<=? GROUP BY product_id ORDER BY q DESC LIMIT 10", since, until);
+  const revByProduct = await all("SELECT product_id, name, COALESCE(SUM(line_total),0) rev, SUM(qty) q FROM sale_items WHERE day>=? AND day<=? GROUP BY product_id ORDER BY rev DESC LIMIT 50", since, until);
+  const series = await all("SELECT day, COALESCE(SUM(revenue),0) rev, COUNT(*) orders FROM sales WHERE day>=? AND day<=? GROUP BY day ORDER BY day", since, until);
+  const seriesSessions = await all("SELECT day, COUNT(DISTINCT session_id) s FROM events WHERE day>=? AND day<=? AND session_id IS NOT NULL GROUP BY day ORDER BY day", since, until);
   const custTotal = await q('SELECT COUNT(*) n, COALESCE(SUM(total_spent),0) s FROM customers');
-  const custNew = await q('SELECT COUNT(*) n FROM customers WHERE first_seen>=?', since+'T00:00:00');
+  const custNew = await q('SELECT COUNT(*) n FROM customers WHERE first_seen>=? AND first_seen<=?', since+'T00:00:00', until+'T23:59:59');
   const custRet = await q('SELECT COUNT(*) n FROM customers WHERE orders_count>1');
   const totalCust = custTotal.n||0;
   const customers = { total: totalCust, new: custNew.n||0, returning: custRet.n||0, repeatRate: totalCust ? (custRet.n/totalCust*100) : 0, ltv: totalCust ? (custTotal.s/totalCust) : 0 };
-  const eventTotals = await all("SELECT type, COUNT(*) c FROM events WHERE day>=? GROUP BY type", since);
-  const prodEvents = await all("SELECT product_id, type, COUNT(*) c FROM events WHERE day>=? AND product_id IS NOT NULL GROUP BY product_id, type", since);
-  const unitsRange = await q('SELECT COALESCE(SUM(qty),0) q FROM sale_items WHERE day>=?', since);
-  // Previous period (same length) for trend arrows
-  const prevSinceD = new Date(Date.now()-days*2*86400000).toISOString().slice(0,10);
+  const eventTotals = await all("SELECT type, COUNT(*) c FROM events WHERE day>=? AND day<=? GROUP BY type", since, until);
+  const prodEvents = await all("SELECT product_id, type, COUNT(*) c FROM events WHERE day>=? AND day<=? AND product_id IS NOT NULL GROUP BY product_id, type", since, until);
+  const unitsRange = await q('SELECT COALESCE(SUM(qty),0) q FROM sale_items WHERE day>=? AND day<=?', since, until);
+  // Previous window of the same length, immediately before `since` (for trends / comparison)
+  const prevSinceD = new Date(new Date(since).getTime()-days*86400000).toISOString().slice(0,10);
   const prevRev = await q('SELECT COALESCE(SUM(revenue),0) v, COUNT(*) n FROM sales WHERE day>=? AND day<?', prevSinceD, since);
   const prevSess = await q('SELECT COUNT(DISTINCT session_id) n FROM events WHERE day>=? AND day<? AND session_id IS NOT NULL', prevSinceD, since);
   const prevUnits = await q('SELECT COALESCE(SUM(qty),0) q FROM sale_items WHERE day>=? AND day<?', prevSinceD, since);
   const prevAov = prevRev.n ? prevRev.v/prevRev.n : 0;
   const prevConv = prevSess.n ? (prevRev.n/prevSess.n*100) : 0;
   // Coupon usage summary
-  const cpUses = await q('SELECT COUNT(*) n, COALESCE(SUM(amount),0) d FROM coupon_uses WHERE used_at>=?', since+'T00:00:00');
-  const cpTop = await all('SELECT code, COUNT(*) c, COALESCE(SUM(amount),0) d FROM coupon_uses WHERE used_at>=? GROUP BY code ORDER BY c DESC LIMIT 10', since+'T00:00:00');
-  return json({ ok:true, days,
+  const cpUses = await q('SELECT COUNT(*) n, COALESCE(SUM(amount),0) d FROM coupon_uses WHERE used_at>=? AND used_at<=?', since+'T00:00:00', until+'T23:59:59');
+  const cpTop = await all('SELECT code, COUNT(*) c, COALESCE(SUM(amount),0) d FROM coupon_uses WHERE used_at>=? AND used_at<=? GROUP BY code ORDER BY c DESC LIMIT 10', since+'T00:00:00', until+'T23:59:59');
+  return json({ ok:true, days, since, until,
     kpi:{ revenueTotal:revTotal.v, ordersTotal:revTotal.n, revenueToday:revToday.v, ordersToday:revToday.n, revenueMonth:revMonth.v, revenueRange:revRange.v, ordersRange, aov, sessions:sess.n, conversion, unitsRange:unitsRange.q },
     prev:{ revenue:prevRev.v, orders:prevRev.n, aov:prevAov, conversion:prevConv, sessions:prevSess.n, units:prevUnits.q },
     coupons:{ uses:cpUses.n, discount:cpUses.d, top:cpTop },
