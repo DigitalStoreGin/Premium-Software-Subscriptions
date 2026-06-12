@@ -947,8 +947,8 @@ function updateCartUI(){
       <div class="cart-item">
         <div class="ci-img"><img src="${c.img}" alt="${c.name}"></div>
         <div class="cart-item-info">
-          <h4>${c.name}</h4>
-          <div class="meta">${tVariant(c.variant)}</div>
+          <h4>${(p_=>p_?getName(p_):c.name)(products.find(p=>p.id===c.pid))}</h4>
+          <div class="meta">${tVariantOf(products.find(p=>p.id===c.pid), c.variant)}</div>
           <div class="price-row">
             <div class="qty">
               <button onclick="updateQty('${c.key}',-1)" aria-label="weniger">−</button>
