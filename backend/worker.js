@@ -43,6 +43,7 @@ export default {
       if (url.pathname === '/admin/coupons') {
         if (request.method === 'GET') return requireAdmin(request, env, cors, () => listCoupons(request, env, cors));
         if (request.method === 'POST') return requireAdmin(request, env, cors, () => createCoupons(request, env, cors));
+        if (request.method === 'PATCH') return requireAdmin(request, env, cors, () => updateCoupon(request, env, cors));
         if (request.method === 'DELETE') return requireAdmin(request, env, cors, () => deleteCoupons(request, env, cors));
       }
       // Analytics
@@ -84,7 +85,7 @@ function corsHeaders(request, env) {
   }
   return {
     'Access-Control-Allow-Origin': allowed,
-    'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, POST, PATCH, DELETE, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, x-admin-token',
     'Access-Control-Max-Age': '86400',
   };
@@ -725,6 +726,23 @@ async function listCoupons(request, env, cors){
   sql += ' ORDER BY created_at DESC LIMIT 2000';
   const rows = (await env.DB.prepare(sql).bind(...binds).all()).results || [];
   return json({ ok:true, coupons: rows }, 200, cors);
+}
+
+// Cập nhật một mã: đổi ngày hết hạn (expires_at) và/hoặc bật-tắt (active).
+async function updateCoupon(request, env, cors){
+  if (!env.DB) return json({ error:'no_db' }, 500, cors);
+  let b = {}; try { b = await request.json(); } catch {}
+  const code = String(b.code || '').toUpperCase().trim();
+  if (!code) return json({ error:'no_code' }, 400, cors);
+  const sets = [], binds = [];
+  if ('expires_at' in b) { sets.push('expires_at=?'); binds.push(b.expires_at ? String(b.expires_at) : null); }
+  if ('active' in b)     { sets.push('active=?');     binds.push(b.active ? 1 : 0); }
+  if (!sets.length) return json({ error:'nothing_to_update' }, 400, cors);
+  binds.push(code);
+  const res = await env.DB.prepare('UPDATE coupons SET ' + sets.join(', ') + ' WHERE code=?').bind(...binds).run();
+  const changes = (res && res.meta && res.meta.changes) || 0;
+  if (!changes) return json({ ok:false, reason:'not_found', code }, 404, cors);
+  return json({ ok:true, code }, 200, cors);
 }
 
 async function deleteCoupons(request, env, cors){

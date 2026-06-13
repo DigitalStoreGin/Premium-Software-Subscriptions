@@ -199,7 +199,6 @@ canvas{max-height:260px}
     <div class="pdk" id="pdKpis"></div>
     <div class="pviz">
       <div class="subcard"><h3 id="tCat"></h3><div class="subwrap"><canvas id="chCat"></canvas><div id="chCatEmpty" class="muted" style="display:none">—</div></div></div>
-      <div class="subcard"><h3 id="tTop"></h3><div class="subwrap"><canvas id="chTop"></canvas><div id="chTopEmpty" class="muted" style="display:none">—</div></div></div>
     </div>
     <div style="overflow-x:auto"><table id="tblProd"><thead><tr>
       <th data-sort="name" data-i="p_product">Sản phẩm</th>
@@ -336,7 +335,6 @@ function renderProdViz(rows, rowsAll){
   if(!window.Chart) return;
   const useRev=(rowsAll.reduce((s,r)=>s+(Number(r.rev)||0),0))>0, metric=r=>useRev?(Number(r.rev)||0):(Number(r.views)||0), mLabel=useRev?T('p_rev'):T('p_views');
   $('#tCat').textContent=T('byCat').replace('{m}',mLabel);
-  $('#tTop').textContent=T('topProd').replace('{m}',mLabel);
   const cb=chartBase();
   // Donut: metric by category
   const byCat={}; rowsAll.forEach(r=>{ const c=PCAT[String(r.id)]||'—'; byCat[c]=(byCat[c]||0)+metric(r); });
@@ -349,16 +347,6 @@ function renderProdViz(rows, rowsAll){
     chCat=new Chart($('#chCat'),{type:'doughnut',data:{labels:cats.map(x=>catLabel(x[0])),datasets:[{data:cats.map(x=>Math.round(x[1]*100)/100),backgroundColor:colors,borderColor:cssv('--surface'),borderWidth:2}]},
       options:{responsive:true,maintainAspectRatio:false,cutout:'62%',onClick:(e,els)=>{ if(els&&els.length){ const k=cats[els[0].index][0]; CATF=(CATF===k)?null:k; renderProducts(); } },
         plugins:{legend:{position:'right',labels:{color:cb.tick,boxWidth:12,font:{size:11}}},tooltip:cb.tooltip}}});
-  }
-  // Horizontal bar: top products by metric
-  const top=[...rows].filter(r=>metric(r)>0).sort((a,b)=>metric(b)-metric(a)).slice(0,10);
-  if(chTop)chTop.destroy(); chTop=null;
-  const topEmpty=!top.length;
-  $('#chTop').style.display=topEmpty?'none':'block'; $('#chTopEmpty').style.display=topEmpty?'block':'none';
-  if(!topEmpty){
-    chTop=new Chart($('#chTop'),{type:'bar',data:{labels:top.map(r=>r.name.length>22?(r.name.slice(0,21)+'…'):r.name),datasets:[{data:top.map(r=>Math.round(metric(r)*100)/100),backgroundColor:hexA(cssv('--brand')||'#4f46e5',.85),borderRadius:6,maxBarThickness:18}]},
-      options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,onClick:(e,els)=>{ if(els&&els.length) openDetail(top[els[0].index].id); },
-        plugins:{legend:{display:false},tooltip:cb.tooltip},scales:{x:{grid:{color:cb.grid},ticks:{color:cb.tick},border:{display:false}},y:{grid:{display:false},ticks:{color:cb.tick,font:{size:11}}}}}});
   }
 }
 function openDetail(id){
