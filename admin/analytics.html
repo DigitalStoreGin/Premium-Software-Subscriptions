@@ -199,6 +199,7 @@ canvas{max-height:260px}
     <div class="pdk" id="pdKpis"></div>
     <div class="pviz">
       <div class="subcard"><h3 id="tCat"></h3><div class="subwrap"><canvas id="chCat"></canvas><div id="chCatEmpty" class="muted" style="display:none">—</div></div></div>
+      <div class="subcard"><h3 id="tTop"></h3><div class="subwrap"><canvas id="chTop"></canvas><div id="chTopEmpty" class="muted" style="display:none">—</div></div></div>
     </div>
     <div style="overflow-x:auto"><table id="tblProd"><thead><tr>
       <th data-sort="name" data-i="p_product">Sản phẩm</th>
@@ -239,21 +240,21 @@ canvas{max-height:260px}
 
 <script>
 const I18N={
- vi:{title:'Phân tích bán hàng',back:'Admin',today:'Hôm nay',d7:'7 ngày',d30:'30 ngày',heroT:'Tổng quan hiệu suất',apply:'Áp dụng',compare:'So sánh kỳ trước',exportcsv:'Xuất CSV',byCat:'{m} theo danh mục',catFilter:'Danh mục',cat_ai:'AI',cat_design:'Thiết kế',cat_office:'Văn phòng',cat_other:'Khác',cat_streaming:'Streaming',cat_vpn:'VPN',topProd:'Top sản phẩm — {m}',funnel:'Phễu chuyển đổi',revchart:'Doanh thu theo ngày',sesschart:'Phiên theo ngày',product:'Phân tích sản phẩm',customers:'Khách hàng',del7:'Xóa dữ liệu >7 ngày',delall:'Xóa tất cả',search:'Tìm sản phẩm…',cmTitle:'Quản lý mã giảm giá',cm_code:'Mã',cm_rabatt:'Giảm',cm_scope:'Phạm vi',cm_status:'Trạng thái',cm_exp:'Hết hạn',sc_order:'Toàn đơn',sc_product:'Theo sản phẩm',sc_variant:'Theo biến thể',st_off:'Tắt',st_exp:'Hết hạn',st_used:'Đã dùng',st_active:'Còn hiệu lực',cm_confirm:'Xóa mã này?',seg_all:'Tất cả',seg_sales:'Có bán ra',seg_nosales:'Chưa bán',seg_best:'Bán chạy',seg_lowcr:'CR thấp',seg_ht:'Nhiều xem, 0 đơn',
+ vi:{title:'Phân tích bán hàng',back:'Admin',today:'Hôm nay',d7:'7 ngày',d30:'30 ngày',heroT:'Tổng quan hiệu suất',apply:'Áp dụng',compare:'So sánh kỳ trước',exportcsv:'Xuất CSV',byCat:'{m} theo danh mục',catFilter:'Danh mục',cat_ai:'AI',cat_design:'Thiết kế',cat_office:'Văn phòng',cat_other:'Khác',cat_streaming:'Streaming',cat_vpn:'VPN',topProd:'Top sản phẩm',funnel:'Phễu chuyển đổi',revchart:'Doanh thu theo ngày',sesschart:'Phiên theo ngày',product:'Phân tích sản phẩm',customers:'Khách hàng',del7:'Xóa dữ liệu >7 ngày',delall:'Xóa tất cả',search:'Tìm sản phẩm…',cmTitle:'Quản lý mã giảm giá',cm_code:'Mã',cm_rabatt:'Giảm',cm_scope:'Phạm vi',cm_status:'Trạng thái',cm_exp:'Hết hạn',sc_order:'Toàn đơn',sc_product:'Theo sản phẩm',sc_variant:'Theo biến thể',st_off:'Tắt',st_exp:'Hết hạn',st_used:'Đã dùng',st_active:'Còn hiệu lực',cm_confirm:'Xóa mã này?',seg_all:'Tất cả',seg_sales:'Có bán ra',seg_nosales:'Chưa bán',seg_best:'Bán chạy',seg_lowcr:'CR thấp',seg_ht:'Nhiều xem, 0 đơn',
   k_rev:'Doanh thu (kỳ)',k_orders:'Số đơn',k_cr:'Tỷ lệ chuyển đổi',k_aov:'Giá trị đơn TB',k_sessions:'Phiên',k_units:'SP bán ra',k_revToday:'Doanh thu hôm nay',k_revMonth:'Doanh thu tháng',
   c_new:'Khách mới',c_ret:'Khách quay lại',c_repeat:'Tỷ lệ quay lại',c_ltv:'LTV trung bình',novsprev:'so kỳ trước',
   f_view:'Lượt xem',f_click:'Click',f_cart:'Thêm giỏ',f_begin:'Bắt đầu đặt',f_pay:'Gửi đơn',f_order:'Hoàn tất',drop:'rớt',
   p_product:'Sản phẩm',p_views:'Lượt xem',p_clicks:'Lượt click',p_ctr:'CTR',p_cart:'Giỏ',p_units:'Bán',p_rev:'Doanh thu',p_cr:'CR',p_tag:'Nhãn',
   bestseller:'Bán chạy',lowconv:'CR thấp',notraffic:'Xem nhiều, 0 đơn',
   alertMsg:'Cảnh báo: có bước trong phễu rớt trên 80% — kiểm tra ngay.',gateT:'Chưa kết nối',gateM:'Chưa có token admin trên thiết bị này. Mở Admin, vào mục E-Mail/Cài đặt nhập token một lần rồi quay lại.',gateB:'Mở Admin',confirmAll:'Xóa TẤT CẢ dữ liệu thống kê?',nodata:'—'},
- de:{title:'Verkaufsanalyse',back:'Admin',today:'Heute',d7:'7 Tage',d30:'30 Tage',heroT:'Performance-Überblick',apply:'Anwenden',compare:'Vergleich Vorperiode',exportcsv:'CSV exportieren',byCat:'{m} nach Kategorie',catFilter:'Kategorie',cat_ai:'KI',cat_design:'Design',cat_office:'Office',cat_other:'Sonstige',cat_streaming:'Streaming',cat_vpn:'VPN',topProd:'Top-Produkte — {m}',funnel:'Conversion-Funnel',revchart:'Umsatz pro Tag',sesschart:'Sitzungen pro Tag',product:'Produktanalyse',customers:'Kunden',del7:'Daten >7 Tage löschen',delall:'Alle löschen',search:'Produkt suchen…',cmTitle:'Rabattcodes verwalten',cm_code:'Code',cm_rabatt:'Rabatt',cm_scope:'Bereich',cm_status:'Status',cm_exp:'Ablauf',sc_order:'Ganze Bestellung',sc_product:'Pro Produkt',sc_variant:'Pro Variante',st_off:'Inaktiv',st_exp:'Abgelaufen',st_used:'Verwendet',st_active:'Aktiv',cm_confirm:'Diesen Code löschen?',seg_all:'Alle',seg_sales:'Mit Verkäufen',seg_nosales:'Ohne Verkäufe',seg_best:'Bestseller',seg_lowcr:'Niedrige CR',seg_ht:'Viel Traffic, 0 Verkauf',
+ de:{title:'Verkaufsanalyse',back:'Admin',today:'Heute',d7:'7 Tage',d30:'30 Tage',heroT:'Performance-Überblick',apply:'Anwenden',compare:'Vergleich Vorperiode',exportcsv:'CSV exportieren',byCat:'{m} nach Kategorie',catFilter:'Kategorie',cat_ai:'KI',cat_design:'Design',cat_office:'Office',cat_other:'Sonstige',cat_streaming:'Streaming',cat_vpn:'VPN',topProd:'Top-Produkte',funnel:'Conversion-Funnel',revchart:'Umsatz pro Tag',sesschart:'Sitzungen pro Tag',product:'Produktanalyse',customers:'Kunden',del7:'Daten >7 Tage löschen',delall:'Alle löschen',search:'Produkt suchen…',cmTitle:'Rabattcodes verwalten',cm_code:'Code',cm_rabatt:'Rabatt',cm_scope:'Bereich',cm_status:'Status',cm_exp:'Ablauf',sc_order:'Ganze Bestellung',sc_product:'Pro Produkt',sc_variant:'Pro Variante',st_off:'Inaktiv',st_exp:'Abgelaufen',st_used:'Verwendet',st_active:'Aktiv',cm_confirm:'Diesen Code löschen?',seg_all:'Alle',seg_sales:'Mit Verkäufen',seg_nosales:'Ohne Verkäufe',seg_best:'Bestseller',seg_lowcr:'Niedrige CR',seg_ht:'Viel Traffic, 0 Verkauf',
   k_rev:'Umsatz (Zeitraum)',k_orders:'Bestellungen',k_cr:'Conversion-Rate',k_aov:'Ø Bestellwert',k_sessions:'Sitzungen',k_units:'Verkauft',k_revToday:'Umsatz heute',k_revMonth:'Umsatz Monat',
   c_new:'Neue Kunden',c_ret:'Wiederkehrend',c_repeat:'Wiederkaufrate',c_ltv:'Ø LTV',novsprev:'vs. Vorperiode',
   f_view:'Aufrufe',f_click:'Klicks',f_cart:'In den Warenkorb',f_begin:'Checkout gestartet',f_pay:'Bestellung gesendet',f_order:'Abgeschlossen',drop:'Absprung',
   p_product:'Produkt',p_views:'Aufrufe',p_clicks:'Klicks',p_ctr:'CTR',p_cart:'Warenkorb',p_units:'Verkauft',p_rev:'Umsatz',p_cr:'CR',p_tag:'Label',
   bestseller:'Bestseller',lowconv:'Niedrige CR',notraffic:'Viel Traffic, 0 Verkauf',
   alertMsg:'Warnung: Ein Funnel-Schritt verliert über 80% — bitte prüfen.',gateT:'Nicht verbunden',gateM:'Kein Admin-Token. Öffne Admin, gib im E-Mail/Einstellungen-Bereich den Token ein und komm zurück.',gateB:'Admin öffnen',confirmAll:'ALLE Statistikdaten löschen?',nodata:'—'},
- en:{title:'Sales analytics',back:'Admin',today:'Today',d7:'7 days',d30:'30 days',heroT:'Performance overview',apply:'Apply',compare:'Compare previous period',exportcsv:'Export CSV',byCat:'{m} by category',catFilter:'Category',cat_ai:'AI',cat_design:'Design',cat_office:'Office',cat_other:'Other',cat_streaming:'Streaming',cat_vpn:'VPN',topProd:'Top products — {m}',funnel:'Conversion funnel',revchart:'Revenue per day',sesschart:'Sessions per day',product:'Product analytics',customers:'Customers',del7:'Delete data >7 days',delall:'Delete all',search:'Search product…',cmTitle:'Manage coupons',cm_code:'Code',cm_rabatt:'Discount',cm_scope:'Scope',cm_status:'Status',cm_exp:'Expiry',sc_order:'Whole order',sc_product:'Per product',sc_variant:'Per variant',st_off:'Inactive',st_exp:'Expired',st_used:'Used',st_active:'Active',cm_confirm:'Delete this code?',seg_all:'All',seg_sales:'With sales',seg_nosales:'No sales',seg_best:'Best sellers',seg_lowcr:'Low CR',seg_ht:'High traffic, 0 sales',
+ en:{title:'Sales analytics',back:'Admin',today:'Today',d7:'7 days',d30:'30 days',heroT:'Performance overview',apply:'Apply',compare:'Compare previous period',exportcsv:'Export CSV',byCat:'{m} by category',catFilter:'Category',cat_ai:'AI',cat_design:'Design',cat_office:'Office',cat_other:'Other',cat_streaming:'Streaming',cat_vpn:'VPN',topProd:'Top products',funnel:'Conversion funnel',revchart:'Revenue per day',sesschart:'Sessions per day',product:'Product analytics',customers:'Customers',del7:'Delete data >7 days',delall:'Delete all',search:'Search product…',cmTitle:'Manage coupons',cm_code:'Code',cm_rabatt:'Discount',cm_scope:'Scope',cm_status:'Status',cm_exp:'Expiry',sc_order:'Whole order',sc_product:'Per product',sc_variant:'Per variant',st_off:'Inactive',st_exp:'Expired',st_used:'Used',st_active:'Active',cm_confirm:'Delete this code?',seg_all:'All',seg_sales:'With sales',seg_nosales:'No sales',seg_best:'Best sellers',seg_lowcr:'Low CR',seg_ht:'High traffic, 0 sales',
   k_rev:'Revenue (range)',k_orders:'Orders',k_cr:'Conversion rate',k_aov:'Avg order value',k_sessions:'Sessions',k_units:'Units sold',k_revToday:'Revenue today',k_revMonth:'Revenue month',
   c_new:'New customers',c_ret:'Returning',c_repeat:'Repeat rate',c_ltv:'Avg LTV',novsprev:'vs previous',
   f_view:'Views',f_click:'Clicks',f_cart:'Add to cart',f_begin:'Begin checkout',f_pay:'Order sent',f_order:'Completed',drop:'drop-off',
@@ -335,6 +336,7 @@ function renderProdViz(rows, rowsAll){
   if(!window.Chart) return;
   const useRev=(rowsAll.reduce((s,r)=>s+(Number(r.rev)||0),0))>0, metric=r=>useRev?(Number(r.rev)||0):(Number(r.views)||0), mLabel=useRev?T('p_rev'):T('p_views');
   $('#tCat').textContent=T('byCat').replace('{m}',mLabel);
+  $('#tTop').textContent=T('topProd');
   const cb=chartBase();
   // Donut: metric by category
   const byCat={}; rowsAll.forEach(r=>{ const c=PCAT[String(r.id)]||'—'; byCat[c]=(byCat[c]||0)+metric(r); });
@@ -347,6 +349,16 @@ function renderProdViz(rows, rowsAll){
     chCat=new Chart($('#chCat'),{type:'doughnut',data:{labels:cats.map(x=>catLabel(x[0])),datasets:[{data:cats.map(x=>Math.round(x[1]*100)/100),backgroundColor:colors,borderColor:cssv('--surface'),borderWidth:2}]},
       options:{responsive:true,maintainAspectRatio:false,cutout:'62%',onClick:(e,els)=>{ if(els&&els.length){ const k=cats[els[0].index][0]; CATF=(CATF===k)?null:k; renderProducts(); } },
         plugins:{legend:{position:'right',labels:{color:cb.tick,boxWidth:12,font:{size:11}}},tooltip:cb.tooltip}}});
+  }
+  // Horizontal bar: top products by metric
+  const top=[...rows].filter(r=>metric(r)>0).sort((a,b)=>metric(b)-metric(a)).slice(0,10);
+  if(chTop)chTop.destroy(); chTop=null;
+  const topEmpty=!top.length;
+  $('#chTop').style.display=topEmpty?'none':'block'; $('#chTopEmpty').style.display=topEmpty?'block':'none';
+  if(!topEmpty){
+    chTop=new Chart($('#chTop'),{type:'bar',data:{labels:top.map(r=>r.name.length>22?(r.name.slice(0,21)+'\u2026'):r.name),datasets:[{data:top.map(r=>Math.round(metric(r)*100)/100),backgroundColor:hexA(cssv('--brand')||'#4f46e5',.85),borderRadius:6,maxBarThickness:18}]},
+      options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,onClick:(e,els)=>{ if(els&&els.length) openDetail(top[els[0].index].id); },
+        plugins:{legend:{display:false},tooltip:cb.tooltip},scales:{x:{grid:{color:cb.grid},ticks:{color:cb.tick},border:{display:false}},y:{grid:{display:false},ticks:{color:cb.tick,font:{size:11}}}}}});
   }
 }
 function openDetail(id){
