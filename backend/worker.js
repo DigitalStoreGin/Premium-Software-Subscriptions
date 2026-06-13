@@ -492,12 +492,12 @@ async function promoReq(env, cors){
   const loy = await getLoyaltyCfg(env);
   return json({ ok:true, qty, loyalty: { enabled: !!loy.enabled, percent: Number(loy.percent)||0, from_order: loy.from_order||2, exclude: normExclude(loy.exclude) } }, 200, cors);
 }
-// Quantity discount for a priced cart: best tier by total eligible quantity
+// Quantity discount for a priced cart: tier by TOTAL quantity, discount on eligible base
 function qtyDiscount(cfg, priced){
   if (!cfg || !cfg.enabled || !cfg.tiers || !cfg.tiers.length) return null;
   const lines = priced.lines.filter(l => !lineExcluded(cfg.exclude || [], l));
-  const q = lines.reduce((s,l)=>s+l.qty,0);
-  const base = lines.reduce((s,l)=>s+l.line_total,0);
+  const q = priced.lines.reduce((s,l)=>s+l.qty,0);   // Bậc tính trên TỔNG số lượng (kể cả sp ngoại lệ)
+  const base = lines.reduce((s,l)=>s+l.line_total,0); // Giảm giá chỉ trên sp KHÔNG ngoại lệ
   let best = null;
   for (const t of cfg.tiers) if (q >= t.min && (!best || t.percent > best.percent)) best = t;
   if (!best || base <= 0) return null;

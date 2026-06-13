@@ -876,8 +876,8 @@ function qtyAuto(){
   const q = PROMO && PROMO.qty;
   if(!q || !q.enabled || !(q.tiers||[]).length || !cart.length) return null;
   const lines = cart.filter(c=>!lineExcludedC(q.exclude, c.pid, c.variant));
-  const n = lines.reduce((s,c)=>s+c.qty,0);
-  const base = lines.reduce((s,c)=>s+c.qty*c.price,0);
+  const n = cart.reduce((s,c)=>s+c.qty,0);            // Bậc tính trên TỔNG số lượng (kể cả sp ngoại lệ)
+  const base = lines.reduce((s,c)=>s+c.qty*c.price,0); // Giảm giá chỉ trên sp KHÔNG ngoại lệ
   let best=null; for(const t of q.tiers){ if(n>=t.min && (!best || t.percent>best.percent)) best=t; }
   if(!best || base<=0) return null;
   const d = Math.round(base*best.percent)/100;
