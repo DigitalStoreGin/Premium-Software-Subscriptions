@@ -747,7 +747,7 @@ function renderProducts(){
           ${getFeatures(p).map(f=>{const isWarn=f.startsWith('Nur für')||f.startsWith('Upgrade')||f==='Zugangsdaten';const isCode=f.startsWith('Code:');return isWarn?`<div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:6px;padding:4px 8px;color:#92400e;font-size:11px;font-weight:600;margin-top:2px"><i class="fa-solid fa-triangle-exclamation" style="color:#d97706;margin-right:2px"></i>${f}</div>`:isCode?`<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:4px 8px;color:#1e40af;font-size:11px;font-weight:600;margin-top:2px"><i class="fa-solid fa-tag" style="color:#3b82f6;margin-right:2px"></i>${f}</div>`:`<div><i class="fa-solid fa-check"></i>${f}</div>`;}).join('')}${defaultV.note?`<div class="variant-feature"><i class="fa-solid fa-check"></i>${tNote(defaultV.note)}</div>`:''}
         </div>
         <div class="variants">
-          ${list.map(x=>{const vDis=oos||x.v.status==='unavailable'||x.v.status==='out_of_stock';return`<button class="variant ${x.origIdx===defaultIdx?'selected':''}${vDis?' unavailable':''}" data-id="${p.id}" data-idx="${x.origIdx}">${tVariantOf(p, x.v.label)} · €${x.v.price.toFixed(2)}</button>`;}).join('')}
+          ${list.map(x=>{const vDis=oos||x.v.status==='unavailable'||x.v.status==='out_of_stock';return`<button class="variant ${x.origIdx===defaultIdx?'selected':''}${vDis?' unavailable':''}" data-id="${p.id}" data-idx="${x.origIdx}">${tVariantOf(p, x.v.label)}</button>`;}).join('')}
         </div>
         <div class="product-footer">
           <div>
