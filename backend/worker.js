@@ -667,7 +667,9 @@ async function validateCouponReq(request, env, cors){
     }
     return json({ ok:false, reason:'not_applicable', scope:c.scope, target_product:c.target_product, target_variant:c.target_variant, target_name }, 200, cors);
   }
-  return json({ ok:true, code, type:c.type, value:c.value, scope:c.scope, target_product:c.target_product, target_variant:c.target_variant, discount, subtotal:priced.subtotal, total: Math.round((priced.subtotal-discount)*100)/100 }, 200, cors);
+  let excluded_names = [];
+  if (c.scope === 'order') { const ex = couponExcluded(c); if (ex.length) excluded_names = await exclNames(env, ex); }
+  return json({ ok:true, code, type:c.type, value:c.value, scope:c.scope, target_product:c.target_product, target_variant:c.target_variant, discount, subtotal:priced.subtotal, total: Math.round((priced.subtotal-discount)*100)/100, excluded_names }, 200, cors);
 }
 
 // Re-validate + atomically consume a coupon for an order. Returns {discount, ok} or null.
