@@ -1083,7 +1083,7 @@ function closeCustomerModal(){
 function closeSuccessModal(){
   document.getElementById('successModal').classList.remove('open');
   unlockBodyScroll();
-  cart.length=0; saveCart(); renderCart();
+  cart.length=0; updateCartUI();
 }
 
 function submitOrder(){
