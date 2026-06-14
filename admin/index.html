@@ -525,8 +525,10 @@ body{overflow-x:hidden}
   <div class="drawer-head"><h2 data-at="sepa.title">Bankverbindung (SEPA)</h2><button class="icon-x" id="bankClose"><i class="fa-solid fa-xmark"></i></button></div>
   <div class="drawer-body">
     <p class="help" style="margin-bottom:14px" data-at="sepa.intro">Kontoinhaber & IBAN erscheinen auf der Bestätigungsseite und in der Bestell-E-Mail.</p>
-    <label class="field"><span data-at="et.bankName">Kontoinhaber (SEPA)</span><input id="bk_name" class="input" autocomplete="off"></label>
-    <label class="field"><span data-at="et.bankIban">IBAN (SEPA)</span><input id="bk_iban" class="input" autocomplete="off"></label>
+    <label class="field"><span data-at="et.bankName">Kontoinhaber (SEPA)</span><input id="bk_name" class="input" autocomplete="off" oninput="bankPreview()"></label>
+    <label class="field"><span data-at="et.bankIban">IBAN (SEPA)</span><input id="bk_iban" class="input" autocomplete="off" oninput="bankPreview()"></label>
+    <div class="section-label" style="margin-top:6px"><i class="fa-solid fa-eye"></i> <span data-at="sepa.preview">Vorschau</span></div>
+    <div id="bk_preview" style="border:1px solid var(--line);border-radius:12px;padding:2px 14px;margin-bottom:16px;background:var(--bg-2)"></div>
     <button class="btn btn-success" onclick="bankSave()"><i class="fa-solid fa-check"></i> <span data-at="sepa.save">Speichern</span></button>
     <div id="bk_status" class="help" style="margin-top:10px"></div>
   </div>
@@ -801,7 +803,7 @@ const AI = {
     'et.delivery':'Ghi chú giao hàng','et.orderTitle':'Tiêu đề bảng đơn','et.totalLabel':'Nhãn tổng tiền',
     'et.upsell':'Gợi ý sản phẩm','et.upsellHead':'Tiêu đề mục gợi ý','et.addProd':'Thêm sản phẩm',
     'et.upsellNote':'Ghi chú dưới mục gợi ý','et.support':'Hỗ trợ & chữ ký',
-    'et.supportTitle':'Tiêu đề hỗ trợ','et.supportText':'Nội dung hỗ trợ','et.supportEmail':'Email hỗ trợ','et.sig':'Chữ ký cuối email','et.bankName':'Tên tài khoản (SEPA)','et.bankIban':'IBAN (SEPA)','nav.sepa':'Thanh toán','sepa.title':'Thông tin thanh toán (SEPA)','sepa.intro':'Tên tài khoản & IBAN hiển thị ở trang xác nhận và email báo đơn (Webform3). Sửa ở đây → tự cập nhật mọi nơi.','sepa.save':'Lưu thông tin thanh toán','sepa.saving':'Đang lưu…','sepa.saved':'Đã lưu thông tin thanh toán ✓',
+    'et.supportTitle':'Tiêu đề hỗ trợ','et.supportText':'Nội dung hỗ trợ','et.supportEmail':'Email hỗ trợ','et.sig':'Chữ ký cuối email','et.bankName':'Tên tài khoản (SEPA)','et.bankIban':'IBAN (SEPA)','nav.sepa':'Thanh toán','sepa.title':'Thông tin thanh toán (SEPA)','sepa.intro':'Tên tài khoản & IBAN hiển thị ở trang xác nhận và email báo đơn (Webform3). Sửa ở đây → tự cập nhật mọi nơi.','sepa.preview':'Xem trước','sepa.save':'Lưu thông tin thanh toán','sepa.saving':'Đang lưu…','sepa.saved':'Đã lưu thông tin thanh toán ✓',
   },
   de:{
     'nav.coupons':'Rabatt','nav.stats':'Statistik',
@@ -822,7 +824,7 @@ const AI = {
     'et.delivery':'Lieferhinweis','et.orderTitle':'Bestelltitel','et.totalLabel':'Gesamtsumme-Label',
     'et.upsell':'Produktempfehlungen','et.upsellHead':'Überschrift Empfehlungen','et.addProd':'Produkt hinzufügen',
     'et.upsellNote':'Hinweis unter Empfehlungen','et.support':'Support & Signatur',
-    'et.supportTitle':'Support-Titel','et.supportText':'Support-Text','et.supportEmail':'Support-E-Mail','et.sig':'Signatur','et.bankName':'Kontoinhaber (SEPA)','et.bankIban':'IBAN (SEPA)','nav.sepa':'Zahlung','sepa.title':'Bankverbindung (SEPA)','sepa.intro':'Kontoinhaber & IBAN erscheinen auf der Bestätigungsseite und in der Bestell-E-Mail. Hier ändern → überall aktualisiert.','sepa.save':'Bankverbindung speichern','sepa.saving':'Speichern…','sepa.saved':'Bankverbindung gespeichert ✓',
+    'et.supportTitle':'Support-Titel','et.supportText':'Support-Text','et.supportEmail':'Support-E-Mail','et.sig':'Signatur','et.bankName':'Kontoinhaber (SEPA)','et.bankIban':'IBAN (SEPA)','nav.sepa':'Zahlung','sepa.title':'Bankverbindung (SEPA)','sepa.intro':'Kontoinhaber & IBAN erscheinen auf der Bestätigungsseite und in der Bestell-E-Mail. Hier ändern → überall aktualisiert.','sepa.preview':'Vorschau','sepa.save':'Bankverbindung speichern','sepa.saving':'Speichern…','sepa.saved':'Bankverbindung gespeichert ✓',
   },
   en:{
     'nav.coupons':'Coupons','nav.stats':'Analytics',
@@ -843,7 +845,7 @@ const AI = {
     'et.delivery':'Delivery note','et.orderTitle':'Order title','et.totalLabel':'Total label',
     'et.upsell':'Product recommendations','et.upsellHead':'Recommendations heading','et.addProd':'Add product',
     'et.upsellNote':'Note below recommendations','et.support':'Support & signature',
-    'et.supportTitle':'Support title','et.supportText':'Support text','et.supportEmail':'Support email','et.sig':'Signature','et.bankName':'Account holder (SEPA)','et.bankIban':'IBAN (SEPA)','nav.sepa':'Payment','sepa.title':'Bank details (SEPA)','sepa.intro':'Account holder & IBAN appear on the success page and in the order email. Edit here → updates everywhere.','sepa.save':'Save bank details','sepa.saving':'Saving…','sepa.saved':'Bank details saved ✓',
+    'et.supportTitle':'Support title','et.supportText':'Support text','et.supportEmail':'Support email','et.sig':'Signature','et.bankName':'Account holder (SEPA)','et.bankIban':'IBAN (SEPA)','nav.sepa':'Payment','sepa.title':'Bank details (SEPA)','sepa.intro':'Account holder & IBAN appear on the success page and in the order email. Edit here → updates everywhere.','sepa.preview':'Preview','sepa.save':'Save bank details','sepa.saving':'Saving…','sepa.saved':'Bank details saved ✓',
   }
 };
 let ADMIN_LANG = localStorage.getItem('pm_admin_lang') || 'vi';
@@ -1657,9 +1659,17 @@ const bankDrawer=$('#bankDrawer'), bankOverlay=$('#bankOverlay');
 if($('#bankBtn')) $('#bankBtn').onclick=()=>{ bankOverlay.classList.add('open'); bankDrawer.classList.add('open'); bankLoad(); };
 function bankCloseFn(){ bankDrawer.classList.remove('open'); bankOverlay.classList.remove('open'); }
 if($('#bankClose')){ $('#bankClose').onclick=bankCloseFn; bankOverlay.onclick=bankCloseFn; }
+function bankPreview(){
+  const box=$('#bk_preview'); if(!box) return;
+  const nm=($('#bk_name')?$('#bk_name').value:'').trim()||'—';
+  const ib=($('#bk_iban')?$('#bk_iban').value:'').trim()||'—';
+  const lbl='color:var(--text-3);font-size:11px;letter-spacing:.05em;text-transform:uppercase';
+  const row=(l,v,mono,last)=>`<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0${last?'':';border-bottom:1px solid var(--line)'}"><span style="${lbl}">${l}</span><span style="font-weight:700;${mono?'font-family:ui-monospace,SFMono-Regular,Menlo,monospace':''}">${esc(v)}</span></div>`;
+  box.innerHTML = row('Name',nm,false)+row('IBAN',ib,true)+row('Betrag','\u20ac0.15',true)+row('Verwendungszweck','DS-260614-XXXX',true,true);
+}
 async function bankLoad(){
   const st=$('#bk_status'); if(st)st.textContent='';
-  try{ const d=await adminApi('/config'); const c=(d&&d.config)||{}; $('#bk_name').value=c.bankName||''; $('#bk_iban').value=c.bankIban||''; }
+  try{ const d=await adminApi('/config'); const c=(d&&d.config)||{}; $('#bk_name').value=c.bankName||''; $('#bk_iban').value=c.bankIban||''; bankPreview(); }
   catch(e){ toast(e.status===401?T('cp.noauth'):('Lỗi: '+e.message),'err'); }
 }
 async function bankSave(){
