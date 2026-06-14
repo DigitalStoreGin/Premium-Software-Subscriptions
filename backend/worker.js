@@ -326,7 +326,11 @@ async function getConfig(env, cors) {
 async function saveConfig(request, env, cors) {
   let b; try { b = await request.json(); } catch { return json({ error: 'bad_json' }, 400, cors); }
   if (!env.ORDERS) return json({ error: 'storage_unavailable' }, 500, cors);
-  const cfg = { ...DEFAULT_CONFIG, ...(b && b.config ? b.config : b) };
+  // Merge over the EXISTING stored config so a partial save (e.g. only bank info,
+  // or only email fields) never wipes the other fields.
+  const existing = await loadConfig(env);
+  const posted = (b && b.config ? b.config : b) || {};
+  const cfg = { ...DEFAULT_CONFIG, ...existing, ...posted };
   // chỉ giữ các trường hợp lệ của upsell
   if (Array.isArray(cfg.upsell)) cfg.upsell = cfg.upsell.map(u => ({ n: String(u.n || ''), d: String(u.d || ''), p: String(u.p || ''), t: String(u.t || '') })).filter(u => u.n);
   // Auto-translate German content -> EN/RU (DeepL) so customer emails match their language

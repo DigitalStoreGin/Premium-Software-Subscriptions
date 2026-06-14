@@ -377,6 +377,7 @@ body{overflow-x:hidden}
       <button id="previewBtn" class="btn btn-ghost btn-sm"><i class="fa-solid fa-eye"></i><span class="label-hide" data-at="adm.previewBtn">Preview</span></button>
       <button id="couponBtn" class="btn btn-ghost btn-sm"><i class="fa-solid fa-ticket"></i><span class="label-hide" data-at="nav.coupons">Mã giảm</span></button>
       <button id="statsBtn" class="btn btn-ghost btn-sm"><i class="fa-solid fa-chart-line"></i><span class="label-hide" data-at="nav.stats">Thống kê</span></button>
+      <button id="bankBtn" class="btn btn-ghost btn-sm"><i class="fa-solid fa-building-columns"></i><span class="label-hide" data-at="nav.sepa">SEPA</span></button>
       <button id="settingsBtn" class="btn btn-ghost btn-sm"><i class="fa-solid fa-gear"></i></button>
       <button id="saveBtn" class="btn btn-success btn-sm" disabled><i class="fa-solid fa-cloud-arrow-up"></i><span data-at="btn.save">Lưu</span></button>
     </div>
@@ -515,6 +516,19 @@ body{overflow-x:hidden}
     <div class="divider"></div>
     <button id="changePass" class="btn btn-ghost btn-block" style="margin-bottom:10px"><i class="fa-solid fa-key"></i><span data-at="adm.changePass">Đổi mật khẩu admin</span></button>
     <button id="disconnect" class="btn btn-danger btn-block"><i class="fa-solid fa-right-from-bracket"></i><span data-at="adm.logout">Đăng xuất khỏi thiết bị này</span></button>
+  </div>
+</aside>
+
+<!-- ============ SEPA / PAYMENT DRAWER ============ -->
+<div id="bankOverlay" class="overlay"></div>
+<aside id="bankDrawer" class="drawer">
+  <div class="drawer-head"><h2 data-at="sepa.title">Bankverbindung (SEPA)</h2><button class="icon-x" id="bankClose"><i class="fa-solid fa-xmark"></i></button></div>
+  <div class="drawer-body">
+    <p class="help" style="margin-bottom:14px" data-at="sepa.intro">Kontoinhaber & IBAN erscheinen auf der Bestätigungsseite und in der Bestell-E-Mail.</p>
+    <label class="field"><span data-at="et.bankName">Kontoinhaber (SEPA)</span><input id="bk_name" class="input" autocomplete="off"></label>
+    <label class="field"><span data-at="et.bankIban">IBAN (SEPA)</span><input id="bk_iban" class="input" autocomplete="off"></label>
+    <button class="btn btn-success" onclick="bankSave()"><i class="fa-solid fa-check"></i> <span data-at="sepa.save">Speichern</span></button>
+    <div id="bk_status" class="help" style="margin-top:10px"></div>
   </div>
 </aside>
 
@@ -698,8 +712,6 @@ body{overflow-x:hidden}
         <label class="field"><span data-at="et.supportText">Nội dung hỗ trợ</span><textarea id="et_supportText" class="textarea"></textarea></label>
         <label class="field"><span data-at="et.supportEmail">Email hỗ trợ</span><input id="et_supportEmail" class="input"></label>
         <label class="field"><span data-at="et.sig">Chữ ký cuối email</span><input id="et_signature" class="input"></label>
-        <label class="field"><span data-at="et.bankName">Tên tài khoản (SEPA)</span><input id="et_bankName" class="input"></label>
-        <label class="field"><span data-at="et.bankIban">IBAN (SEPA)</span><input id="et_bankIban" class="input"></label>
       </div>
     </div>
     </div>
@@ -789,7 +801,7 @@ const AI = {
     'et.delivery':'Ghi chú giao hàng','et.orderTitle':'Tiêu đề bảng đơn','et.totalLabel':'Nhãn tổng tiền',
     'et.upsell':'Gợi ý sản phẩm','et.upsellHead':'Tiêu đề mục gợi ý','et.addProd':'Thêm sản phẩm',
     'et.upsellNote':'Ghi chú dưới mục gợi ý','et.support':'Hỗ trợ & chữ ký',
-    'et.supportTitle':'Tiêu đề hỗ trợ','et.supportText':'Nội dung hỗ trợ','et.supportEmail':'Email hỗ trợ','et.sig':'Chữ ký cuối email','et.bankName':'Tên tài khoản (SEPA)','et.bankIban':'IBAN (SEPA)',
+    'et.supportTitle':'Tiêu đề hỗ trợ','et.supportText':'Nội dung hỗ trợ','et.supportEmail':'Email hỗ trợ','et.sig':'Chữ ký cuối email','et.bankName':'Tên tài khoản (SEPA)','et.bankIban':'IBAN (SEPA)','nav.sepa':'Thanh toán','sepa.title':'Thông tin thanh toán (SEPA)','sepa.intro':'Tên tài khoản & IBAN hiển thị ở trang xác nhận và email báo đơn (Webform3). Sửa ở đây → tự cập nhật mọi nơi.','sepa.save':'Lưu thông tin thanh toán','sepa.saving':'Đang lưu…','sepa.saved':'Đã lưu thông tin thanh toán ✓',
   },
   de:{
     'nav.coupons':'Rabatt','nav.stats':'Statistik',
@@ -810,7 +822,7 @@ const AI = {
     'et.delivery':'Lieferhinweis','et.orderTitle':'Bestelltitel','et.totalLabel':'Gesamtsumme-Label',
     'et.upsell':'Produktempfehlungen','et.upsellHead':'Überschrift Empfehlungen','et.addProd':'Produkt hinzufügen',
     'et.upsellNote':'Hinweis unter Empfehlungen','et.support':'Support & Signatur',
-    'et.supportTitle':'Support-Titel','et.supportText':'Support-Text','et.supportEmail':'Support-E-Mail','et.sig':'Signatur','et.bankName':'Kontoinhaber (SEPA)','et.bankIban':'IBAN (SEPA)',
+    'et.supportTitle':'Support-Titel','et.supportText':'Support-Text','et.supportEmail':'Support-E-Mail','et.sig':'Signatur','et.bankName':'Kontoinhaber (SEPA)','et.bankIban':'IBAN (SEPA)','nav.sepa':'Zahlung','sepa.title':'Bankverbindung (SEPA)','sepa.intro':'Kontoinhaber & IBAN erscheinen auf der Bestätigungsseite und in der Bestell-E-Mail. Hier ändern → überall aktualisiert.','sepa.save':'Bankverbindung speichern','sepa.saving':'Speichern…','sepa.saved':'Bankverbindung gespeichert ✓',
   },
   en:{
     'nav.coupons':'Coupons','nav.stats':'Analytics',
@@ -831,7 +843,7 @@ const AI = {
     'et.delivery':'Delivery note','et.orderTitle':'Order title','et.totalLabel':'Total label',
     'et.upsell':'Product recommendations','et.upsellHead':'Recommendations heading','et.addProd':'Add product',
     'et.upsellNote':'Note below recommendations','et.support':'Support & signature',
-    'et.supportTitle':'Support title','et.supportText':'Support text','et.supportEmail':'Support email','et.sig':'Signature','et.bankName':'Account holder (SEPA)','et.bankIban':'IBAN (SEPA)',
+    'et.supportTitle':'Support title','et.supportText':'Support text','et.supportEmail':'Support email','et.sig':'Signature','et.bankName':'Account holder (SEPA)','et.bankIban':'IBAN (SEPA)','nav.sepa':'Payment','sepa.title':'Bank details (SEPA)','sepa.intro':'Account holder & IBAN appear on the success page and in the order email. Edit here → updates everywhere.','sepa.save':'Save bank details','sepa.saving':'Saving…','sepa.saved':'Bank details saved ✓',
   }
 };
 let ADMIN_LANG = localStorage.getItem('pm_admin_lang') || 'vi';
@@ -1509,7 +1521,6 @@ function etFillForm(){
   g('et_upsellTitle',ET_CONFIG.upsellTitle); g('et_upsellNote',ET_CONFIG.upsellNote);
   g('et_supportTitle',ET_CONFIG.supportTitle); g('et_supportText',ET_CONFIG.supportText);
   g('et_supportEmail',ET_CONFIG.supportEmail); g('et_signature',ET_CONFIG.signature);
-  g('et_bankName',ET_CONFIG.bankName); g('et_bankIban',ET_CONFIG.bankIban);
   if(!Array.isArray(ET_CONFIG.upsell)) ET_CONFIG.upsell=[];
   ET_TRANS = (ET_CONFIG && ET_CONFIG.translations) ? ET_CONFIG.translations : {};
   etRenderUpsell();
@@ -1541,7 +1552,6 @@ function etCollect(){
     brandName:v('et_brandName'), subject:v('et_subject'), intro:v('et_intro'), deliveryNote:v('et_deliveryNote'),
     orderTitle:v('et_orderTitle'), totalLabel:v('et_totalLabel'), upsellTitle:v('et_upsellTitle'), upsellNote:v('et_upsellNote'),
     supportTitle:v('et_supportTitle'), supportText:v('et_supportText'), supportEmail:v('et_supportEmail'), signature:v('et_signature'),
-    bankName:v('et_bankName'), bankIban:v('et_bankIban'),
     upsell:(ET_CONFIG.upsell||[]).filter(u=>u.n&&u.n.trim())
   };
 }
@@ -1640,6 +1650,24 @@ async function adminApi(path, opts){
   const r=await fetch(c.url+path,{...opts,headers:{'x-admin-token':c.tok,...(opts.body?{'Content-Type':'application/json'}:{}),...(opts.headers||{})}});
   if(!r.ok){ const t=await r.text().catch(()=>''); const e=new Error('HTTP '+r.status+(t?(' — '+t.slice(0,150)):'')); e.status=r.status; throw e; }
   return r.json();
+}
+
+/* ===== SEPA / Payment drawer ===== */
+const bankDrawer=$('#bankDrawer'), bankOverlay=$('#bankOverlay');
+if($('#bankBtn')) $('#bankBtn').onclick=()=>{ bankOverlay.classList.add('open'); bankDrawer.classList.add('open'); bankLoad(); };
+function bankCloseFn(){ bankDrawer.classList.remove('open'); bankOverlay.classList.remove('open'); }
+if($('#bankClose')){ $('#bankClose').onclick=bankCloseFn; bankOverlay.onclick=bankCloseFn; }
+async function bankLoad(){
+  const st=$('#bk_status'); if(st)st.textContent='';
+  try{ const d=await adminApi('/config'); const c=(d&&d.config)||{}; $('#bk_name').value=c.bankName||''; $('#bk_iban').value=c.bankIban||''; }
+  catch(e){ toast(e.status===401?T('cp.noauth'):('Lỗi: '+e.message),'err'); }
+}
+async function bankSave(){
+  const st=$('#bk_status'); if(st)st.textContent=T('sepa.saving');
+  try{
+    await adminApi('/config',{method:'POST',body:JSON.stringify({config:{bankName:$('#bk_name').value.trim(), bankIban:$('#bk_iban').value.trim()}})});
+    if(st)st.textContent=T('sepa.saved'); toast(T('sepa.saved'),'ok');
+  }catch(e){ if(st)st.textContent=''; toast(e.status===401?T('cp.noauth'):('Lỗi: '+e.message),'err'); }
 }
 
 /* ===== Coupon drawer ===== */
