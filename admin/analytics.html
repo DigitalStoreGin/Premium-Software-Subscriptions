@@ -334,7 +334,12 @@ function renderProdViz(rows, rowsAll){
   box.innerHTML=[[fmtK(tv),T('p_views')],[fmtK(tc),T('p_clicks')],[fmtK(tg),T('p_cart')],[fmtK(tu),T('p_units')],[eur(trv),T('p_rev')]]
     .map(x=>`<div class="box"><div class="v">${x[0]}</div><div class="l">${x[1]}</div></div>`).join('');
   if(!window.Chart) return;
-  const useRev=(rowsAll.reduce((s,r)=>s+(Number(r.rev)||0),0))>0, metric=r=>useRev?(Number(r.rev)||0):(Number(r.views)||0), mLabel=useRev?T('p_rev'):T('p_views');
+  // Hai biểu đồ chạy theo chỉ số đang chọn ở bộ lọc (prodSort): Views/Clicks/Cart/Sold/Revenue.
+  // CTR & CR là tỉ lệ (%) không cộng dồn theo danh mục được, nên fallback về Revenue (hoặc Views nếu chưa có doanh thu).
+  const AGG={rev:'p_rev',views:'p_views',clicks:'p_clicks',cart:'p_cart',units:'p_units'};
+  const mKey = AGG[sortKey] ? sortKey : ((rowsAll.reduce((s,r)=>s+(Number(r.rev)||0),0))>0 ? 'rev' : 'views');
+  const metric = r => Number(r[mKey])||0;
+  const mLabel = T(AGG[mKey]);
   $('#tCat').textContent=T('byCat').replace('{m}',mLabel);
   $('#tTop').textContent=T('topProd');
   const cb=chartBase();
