@@ -669,7 +669,7 @@ let cart = [];
 const grid = document.getElementById('productGrid');
 const ORDER_EMAIL = 'cfvblue@gmail.com';
 const WEB3FORMS_KEY = '8a7b89a3-6dd5-4b90-bd30-e5f7139910de';
-const BANK = {name:'Dong Huy Truong', iban:'BE05 9675 8234 0775'};
+let BANK = {name:'Dong Huy Truong', iban:'BE05 9675 8234 0775'};
 // Cloudflare Worker đã deploy — bật tự động hoá đầy đủ (Brevo email, lưu đơn KV, status).
 const WORKER_URL = 'https://store.tdh1812.workers.dev';
 
@@ -1144,6 +1144,7 @@ function submitOrder(){
     const cs=document.getElementById('confirmSentBtn'),ph=document.getElementById('proofHint'),fc=document.getElementById('freeCloseBtn');
     if(isFree){ if(pf)pf.style.display='none'; if(ff)ff.style.display='block'; if(ib)ib.style.display='none'; if(cs)cs.style.display='none'; if(ph)ph.style.display='none'; if(fc)fc.style.display='inline-flex'; }
     else{ if(pf)pf.style.display='block'; if(ff)ff.style.display='none'; if(ib)ib.style.display='block'; if(cs)cs.style.display='inline-flex'; if(ph)ph.style.display='block'; if(fc)fc.style.display='none'; }
+    if(typeof applyBankToUI==='function') applyBankToUI();
     document.getElementById('successModal').classList.add('open');
     lockBodyScroll();
   };
@@ -1473,3 +1474,22 @@ async function loadProducts(){
 }
 loadProducts();
 loadPromo();
+loadBank();
+// Lấy thông tin thanh toán (Name + IBAN) từ cấu hình admin (Worker /config) và áp vào giao diện + email.
+function loadBank(){
+  if(!WORKER_URL) return;
+  fetch(WORKER_URL.replace(/\/$/,'')+'/config').then(r=>r.json()).then(d=>{
+    const c=d&&d.config; if(!c) return;
+    if(c.bankName && String(c.bankName).trim()) BANK.name=String(c.bankName).trim();
+    if(c.bankIban && String(c.bankIban).trim()) BANK.iban=String(c.bankIban).trim();
+    applyBankToUI();
+  }).catch(()=>{});
+}
+// Cập nhật phần "Bankverbindung (SEPA)" trong modal thành công theo BANK hiện tại.
+function applyBankToUI(){
+  const box=document.querySelector('#paidFlow .bank-box'); if(!box) return;
+  const rows=box.querySelectorAll('.bank-row');
+  // row[0] = Name, row[1] = IBAN
+  if(rows[0]){ const v=rows[0].querySelector('.val'); const b=rows[0].querySelector('.copy-btn'); if(v)v.textContent=BANK.name; if(b)b.setAttribute('data-copy',BANK.name); }
+  if(rows[1]){ const v=rows[1].querySelector('.val'); const b=rows[1].querySelector('.copy-btn'); if(v)v.textContent=BANK.iban; if(b)b.setAttribute('data-copy',BANK.iban); }
+}

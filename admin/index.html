@@ -698,6 +698,8 @@ body{overflow-x:hidden}
         <label class="field"><span data-at="et.supportText">Nội dung hỗ trợ</span><textarea id="et_supportText" class="textarea"></textarea></label>
         <label class="field"><span data-at="et.supportEmail">Email hỗ trợ</span><input id="et_supportEmail" class="input"></label>
         <label class="field"><span data-at="et.sig">Chữ ký cuối email</span><input id="et_signature" class="input"></label>
+        <label class="field"><span data-at="et.bankName">Tên tài khoản (SEPA)</span><input id="et_bankName" class="input"></label>
+        <label class="field"><span data-at="et.bankIban">IBAN (SEPA)</span><input id="et_bankIban" class="input"></label>
       </div>
     </div>
     </div>
@@ -787,7 +789,7 @@ const AI = {
     'et.delivery':'Ghi chú giao hàng','et.orderTitle':'Tiêu đề bảng đơn','et.totalLabel':'Nhãn tổng tiền',
     'et.upsell':'Gợi ý sản phẩm','et.upsellHead':'Tiêu đề mục gợi ý','et.addProd':'Thêm sản phẩm',
     'et.upsellNote':'Ghi chú dưới mục gợi ý','et.support':'Hỗ trợ & chữ ký',
-    'et.supportTitle':'Tiêu đề hỗ trợ','et.supportText':'Nội dung hỗ trợ','et.supportEmail':'Email hỗ trợ','et.sig':'Chữ ký cuối email',
+    'et.supportTitle':'Tiêu đề hỗ trợ','et.supportText':'Nội dung hỗ trợ','et.supportEmail':'Email hỗ trợ','et.sig':'Chữ ký cuối email','et.bankName':'Tên tài khoản (SEPA)','et.bankIban':'IBAN (SEPA)',
   },
   de:{
     'nav.coupons':'Rabatt','nav.stats':'Statistik',
@@ -808,7 +810,7 @@ const AI = {
     'et.delivery':'Lieferhinweis','et.orderTitle':'Bestelltitel','et.totalLabel':'Gesamtsumme-Label',
     'et.upsell':'Produktempfehlungen','et.upsellHead':'Überschrift Empfehlungen','et.addProd':'Produkt hinzufügen',
     'et.upsellNote':'Hinweis unter Empfehlungen','et.support':'Support & Signatur',
-    'et.supportTitle':'Support-Titel','et.supportText':'Support-Text','et.supportEmail':'Support-E-Mail','et.sig':'Signatur',
+    'et.supportTitle':'Support-Titel','et.supportText':'Support-Text','et.supportEmail':'Support-E-Mail','et.sig':'Signatur','et.bankName':'Kontoinhaber (SEPA)','et.bankIban':'IBAN (SEPA)',
   },
   en:{
     'nav.coupons':'Coupons','nav.stats':'Analytics',
@@ -829,7 +831,7 @@ const AI = {
     'et.delivery':'Delivery note','et.orderTitle':'Order title','et.totalLabel':'Total label',
     'et.upsell':'Product recommendations','et.upsellHead':'Recommendations heading','et.addProd':'Add product',
     'et.upsellNote':'Note below recommendations','et.support':'Support & signature',
-    'et.supportTitle':'Support title','et.supportText':'Support text','et.supportEmail':'Support email','et.sig':'Signature',
+    'et.supportTitle':'Support title','et.supportText':'Support text','et.supportEmail':'Support email','et.sig':'Signature','et.bankName':'Account holder (SEPA)','et.bankIban':'IBAN (SEPA)',
   }
 };
 let ADMIN_LANG = localStorage.getItem('pm_admin_lang') || 'vi';
@@ -1507,6 +1509,7 @@ function etFillForm(){
   g('et_upsellTitle',ET_CONFIG.upsellTitle); g('et_upsellNote',ET_CONFIG.upsellNote);
   g('et_supportTitle',ET_CONFIG.supportTitle); g('et_supportText',ET_CONFIG.supportText);
   g('et_supportEmail',ET_CONFIG.supportEmail); g('et_signature',ET_CONFIG.signature);
+  g('et_bankName',ET_CONFIG.bankName); g('et_bankIban',ET_CONFIG.bankIban);
   if(!Array.isArray(ET_CONFIG.upsell)) ET_CONFIG.upsell=[];
   ET_TRANS = (ET_CONFIG && ET_CONFIG.translations) ? ET_CONFIG.translations : {};
   etRenderUpsell();
@@ -1538,6 +1541,7 @@ function etCollect(){
     brandName:v('et_brandName'), subject:v('et_subject'), intro:v('et_intro'), deliveryNote:v('et_deliveryNote'),
     orderTitle:v('et_orderTitle'), totalLabel:v('et_totalLabel'), upsellTitle:v('et_upsellTitle'), upsellNote:v('et_upsellNote'),
     supportTitle:v('et_supportTitle'), supportText:v('et_supportText'), supportEmail:v('et_supportEmail'), signature:v('et_signature'),
+    bankName:v('et_bankName'), bankIban:v('et_bankIban'),
     upsell:(ET_CONFIG.upsell||[]).filter(u=>u.n&&u.n.trim())
   };
 }

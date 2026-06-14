@@ -234,6 +234,8 @@ const DEFAULT_CONFIG = {
   supportText: 'Bei Fragen oder Problemen antworten wir meist innerhalb weniger Minuten. Schreiben Sie uns jederzeit.',
   supportEmail: 'cfvblue@gmail.com',
   signature: 'Ihr DigitalStore-Team',
+  bankName: 'Dong Huy Truong',
+  bankIban: 'BE05 9675 8234 0775',
   // Bản dịch sẵn (chuyên nghiệp) — dùng ngay kể cả khi chưa cấu hình DeepL.
   // Khi bạn Lưu trong admin và đã có DEEPL_API_KEY, các bản này sẽ được cập nhật tự động.
   translations: {
